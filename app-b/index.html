@@ -2213,7 +2213,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783656236662;   // 2026-07-10 13:03 KST
+const BUILD_TS = 1783658164782;   // 2026-07-10 13:36 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3750,6 +3750,20 @@ function fxRender(cv, build, marginDelta){
   cv.innerHTML='<div class="xl-wrap"><table class="xl-grid fx"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
 }
 /* ── 메인 페이지: 히어로 센터 + 3단계 (app-a landingA 이식, 문구는 app-b 맥락) ── */
+/* 히어로 배경: 사선(좌→우) 계단식 모자이크 초록 그래디언트 (SVG data URI, 색은 타일 단위로 양자화) */
+function mosaicBg(){
+  const W=1200, H=300, T=48, cols=Math.ceil(W/T), rows=Math.ceil(H/T);
+  const dirx=1, diry=0.42, maxp=W*dirx+H*diry, L=10;   // dir=사선(우측+약간 아래), L=계단 단계 수
+  const lo=[6,53,29], hi=[46,181,110];                 // #06351d(어두운 초록) → #2eb56e(밝은 초록)
+  const hx=n=>n.toString(16).padStart(2,'0');
+  let s='';
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    const cx=(c+0.5)*T, cy=(r+0.5)*T, lv=Math.min(L-1,Math.floor((cx*dirx+cy*diry)/maxp*L))/(L-1);
+    const col='#'+hx(Math.round(lo[0]+(hi[0]-lo[0])*lv))+hx(Math.round(lo[1]+(hi[1]-lo[1])*lv))+hx(Math.round(lo[2]+(hi[2]-lo[2])*lv));
+    s+='<rect x="'+(c*T)+'" y="'+(r*T)+'" width="'+(T+1)+'" height="'+(T+1)+'" fill="'+col+'"/>';
+  }
+  return 'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'+s+'</svg>');
+}
 function landingFrame(cv, buildRows){
   const NC=12, PTW=112, DW=92, ROWH=21, sh=sheet();
   const contentW=PTW+(NC-1)*DW, vw=cv.clientWidth||1200, vh=cv.clientHeight||600;
@@ -3774,7 +3788,7 @@ function landingFrame(cv, buildRows){
 function landingMain(cv){   // 히어로 센터 + 3단계
   return landingFrame(cv, ({R,blank,contRows})=>{
     blank();
-    R('<td class="lp-a-hero" colspan="12"><i></i><i></i><i></i><i></i><i></i><i></i><div class="lp-a-emoji">🎯</div><div class="lp-a-title">도면 좌표 불량률 시각화</div><div class="lp-a-sub">각 포인트의 X·Y 좌표를 도면에 매핑하고, 포인트별 불량률을 히트맵으로 봅니다</div><div class="lp-a-cta">📥 [데이터] 탭 → ‘측정 더미 불러오기’ 로 시작</div></td>');
+    R('<td class="lp-a-hero" colspan="12" style="background:#06351d url('+mosaicBg()+') center/cover"><i></i><i></i><i></i><i></i><i></i><i></i><div class="lp-a-emoji">🎯</div><div class="lp-a-title">도면 좌표 불량률 시각화</div><div class="lp-a-sub">각 포인트의 X·Y 좌표를 도면에 매핑하고, 포인트별 불량률을 히트맵으로 봅니다</div><div class="lp-a-cta">📥 [데이터] 탭 → ‘측정 더미 불러오기’ 로 시작</div></td>');
     blank();
     R('<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📥</div><b>1단계 · 데이터 불러오기</b><span>[데이터] 탭 → ‘측정 더미 불러오기’ 로 좌표·불량률 더미 생성 (또는 업로드)</span></td>'
      +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">🎯</div><b>2단계 · 이미지 정합</b><span>‘이미지 정합’ 시트에서 캡처를 불러와 기준 3점을 클릭해 좌표를 맞춤</span></td>'
