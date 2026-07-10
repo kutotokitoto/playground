@@ -2232,7 +2232,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783670575008;   // 2026-07-10 17:02 KST
+const BUILD_TS = 1783671531619;   // 2026-07-10 17:18 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2588,8 +2588,12 @@ async function processUpload(file, mode){
       let text;
       if(u8[0]===0xFF&&u8[1]===0xFE) text=new TextDecoder('utf-16le').decode(buf);        // Excel '유니코드 텍스트'
       else if(u8[0]===0xFE&&u8[1]===0xFF) text=new TextDecoder('utf-16be').decode(buf);
-      else { text=new TextDecoder('utf-8').decode(buf);
-        if(/�/.test(text)){ try{ text=new TextDecoder('euc-kr').decode(buf); }catch(e){} } }   // 한글 Excel CSV(CP949) 자동 감지
+      else {   // UTF-8 vs CP949: 둘 다 디코딩해 '한글이 더 살아나는 쪽' 선택 (스코어링)
+        const score=t=>((t.match(/[가-힣]/g)||[]).length)-((t.match(/�/g)||[]).length)*3+(/포인트|불량|기준|측정|오리진|위치/.test(t)?1000:0);   // 템플릿 키워드가 살아나는 디코딩이 우선
+        const cands=[new TextDecoder('utf-8').decode(buf)];
+        try{ cands.push(new TextDecoder('euc-kr').decode(buf)); }catch(e){}
+        cands.sort((a,b)=>score(b)-score(a)); text=cands[0];
+      }
       const lines=text.replace(/\r/g,'').split('\n');
       while(lines.length && lines[lines.length-1]==='') lines.pop();
       const tab=text.indexOf('\t')>=0 && text.indexOf(',')<0;
@@ -2602,7 +2606,7 @@ async function processUpload(file, mode){
     const parsed = parseCoordRows(rows);
     let sh, msg, fail=!parsed||parsed.err;
     if(!fail){ sh=buildCoordSheet(parsed);
-      msg='📤 업로드 완료 · 포인트 '+parsed.pts.length+'개'+(parsed.truncated?' (500개 초과분은 잘림)':''); }
+      msg='📤 업로드 완료 · 포인트 '+parsed.pts.length+'개'+(parsed.truncated?' (500개 초과분은 잘림)':'')+(parsed.positional?' · 헤더 미인식 → 열 순서 기반 해석':''); }
     else { sh=genCoordData('측정데이터');
       const why=(parsed&&parsed.err)||'알 수 없는 형식';
       console.warn('[업로드 형식 미인식]', why, '· 시그니처:', sigHex, '— 파일 앞부분:', rows.slice(0,8));   // F12 콘솔에서 원인 확인
@@ -3503,6 +3507,25 @@ function loadCoordSample(){
     toast('📥 새 더미 데이터로 갱신했습니다 · 시각화 시트들에 반영됨');
   }, 320);
 }
+/* 위치 기반 해석(파훼용): 헤더가 깨져도 템플릿 열 순서(포인트·측X·측Y·기X·기Y·불량률)를 가정하고 숫자 블록을 읽음 */
+function positionalCoordParse(rows){
+  const num=v=>{ const s=String(v==null?'':v).trim(); return s!=='' && isFinite(Number(s)); };
+  const NV=v=>Number(String(v).trim());
+  const data=(rows||[]).filter(r=>r && num(r[3]) && num(r[4]) && num(r[5]));   // 기준X·기준Y·불량률 위치가 숫자인 행
+  if(data.length<2) return null;                                              // 오탐 방지: 2행 이상일 때만
+  let origin={x:0,y:0};
+  for(const r of rows){ if(r===data[0]) break; if(r && num(r[1]) && num(r[2]) && !num(r[3])){ origin={x:NV(r[1]),y:NV(r[2])}; break; } }   // 오리진 행(라벨 깨져도 위치로)
+  const pts=[]; let trunc=false;
+  for(const r of data){ if(pts.length>=500){ trunc=true; break; }
+    const rx=NV(r[3]), ry=NV(r[4]);
+    const mx=num(r[1])?NV(r[1]):rx, my=num(r[2])?NV(r[2]):ry;
+    const pos=(r[0]!=null&&String(r[0]).trim()!=='')?String(r[0]).trim():String(pts.length+1);
+    pts.push({pos, rx, ry, mx, my, rate:NV(r[5])});
+  }
+  const xs=pts.map(p=>p.rx), ys=pts.map(p=>p.ry);
+  const area=Math.max(1e-9,(Math.max(...xs)-Math.min(...xs))*(Math.max(...ys)-Math.min(...ys)));
+  return {origin, pts, pitch:Math.max(1e-6,Math.sqrt(area/Math.max(1,pts.length))), truncated:trunc, positional:true};
+}
 /* 업로드 파서: 템플릿(오리진 + 포인트·측정면 X/Y·기준면 X/Y·불량률%) → coord 데이터 */
 function parseCoordRows(rows){
   rows=(rows||[]).filter(r=>r&&r.some(c=>String(c==null?'':c).trim()!==''));
@@ -3510,15 +3533,15 @@ function parseCoordRows(rows){
   const isPt=h=>/포인트|위치|번호|point/.test(h)||h==='no';                     // 포인트 열 표기 변형
   const isRt=h=>/불량[률율]|ng[률율]|불량%|rate|defect/.test(h);                 // 불량률/불량율/NG율/rate…
   const hi=rows.findIndex(r=>r.some(c=>isPt(norm(c)))&&r.some(c=>isRt(norm(c))));
-  if(hi<0) return {err:"헤더 행을 찾지 못함 — '포인트'(또는 위치/번호)와 '불량률'(또는 불량율/NG율) 열이 같은 행에 있어야 합니다"};
+  if(hi<0) return positionalCoordParse(rows)||{err:"헤더 행을 찾지 못함 — '포인트'(또는 위치/번호)와 '불량률'(또는 불량율/NG율) 열이 같은 행에 있어야 합니다"};
   let origin={x:0,y:0};
   for(let i=0;i<hi;i++){ if(norm(rows[i][0]).includes('오리진')){ const ox=Number(rows[i][1]), oy=Number(rows[i][2]); if(isFinite(ox)&&isFinite(oy)) origin={x:ox,y:oy}; } }
   const hdr=rows[hi].map(norm);
   const ax=(kw,a)=>hdr.findIndex(h=>kw.test(h)&&h.includes(a));   // '측정면 X'·'측정 X'·'Meas X' 등 변형 인식
   const iP=hdr.findIndex(isPt),
         iMX=ax(/측정|meas/,'x'), iMY=ax(/측정|meas/,'y'), iRX=ax(/기준|설계|ref/,'x'), iRY=ax(/기준|설계|ref/,'y'), iRT=hdr.findIndex(isRt);
-  if(iRX<0||iRY<0) return {err:"'기준면 X'/'기준면 Y' 열을 찾지 못함 ('기준'+'X'가 열 이름에 있어야 함)"};
-  if(iRT<0) return {err:"'불량률(%)' 열을 찾지 못함"};
+  if(iRX<0||iRY<0) return positionalCoordParse(rows)||{err:"'기준면 X'/'기준면 Y' 열을 찾지 못함 ('기준'+'X'가 열 이름에 있어야 함)"};
+  if(iRT<0) return positionalCoordParse(rows)||{err:"'불량률(%)' 열을 찾지 못함"};
   const pts=[]; let trunc=false;
   for(let ri=hi+1; ri<rows.length; ri++){
     const r=rows[ri];
