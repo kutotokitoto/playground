@@ -377,7 +377,7 @@ table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background:#083d21;
 /* 계단식 사각 그래디언트 "무한 줌": 등비(1.22) 자기유사 사각 밴드 스택을 wrapper 하나로
    scale(1→1.22³) 확대. 3색 주기와 등비가 맞물려 종료 프레임 = 시작 프레임 → 이음새 자체가 없음.
    transform만 애니메이션(GPU 합성, 리플로우 없음) → 튐 원인 원천 제거. */
-table.xl-grid td.lp-a-hero .lp-zoom{position:absolute;left:50%;top:50%;width:100%;height:100%;z-index:0;pointer-events:none;animation:lpZoom 7.5s linear infinite}
+table.xl-grid td.lp-a-hero .lp-zoom{position:absolute;left:50%;top:50%;width:100%;height:100%;z-index:0;pointer-events:none;animation:lpZoom 5s linear infinite}
 table.xl-grid td.lp-a-hero .lp-zoom .zb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 table.xl-grid td.lp-a-hero .lp-a-glow{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(150,255,190,.20),rgba(150,255,190,0) 72%)}
 table.xl-grid td.lp-a-hero>div{position:relative;z-index:1}
@@ -2227,7 +2227,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783661157908;   // 2026-07-10 14:25 KST
+const BUILD_TS = 1783661384918;   // 2026-07-10 14:29 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3218,14 +3218,16 @@ function landingFrame(buildRows){
   for(; rn<=totalRows; rn++) body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+fill(totalCols)+'</tr>';
   return '<div class="xl-wrap"><table class="xl-grid"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
 }
-/* 등비(r=1.22) 자기유사 사각 밴드 스택 — 큰 것부터 그려 작은 것이 위에 얹힘.
-   색은 3주기: wrapper가 r³배 확대되면 밴드 k가 밴드 k+3(같은 색) 자리에 정확히 도달 → 무이음 루프 */
+/* 등비(r=1.22^⅓≈1.0685) 자기유사 사각 밴드 스택 — 큰 것부터 그려 작은 것이 위에 얹힘.
+   색은 9주기(3앵커 그린을 3단계씩 보간한 순환 램프): wrapper가 r⁹(=1.22³)배 확대되면
+   밴드 k가 밴드 k+9(같은 색) 자리에 정확히 도달 → 무이음 루프. keyframe scale 값은 그대로. */
 function lpZoomHTML(){
-  const r=1.22, kMax=4, kMin=-24, cols=['#18a35b','#107C41','#0a5d30'];
+  const r=Math.pow(1.22,1/3), kMax=12, kMin=-72,
+        cols=['#18a35b','#159652','#13894a','#107c41','#0e723b','#0c6736','#0a5d30','#0f743e','#138c4d'];
   let s='<div class="lp-zoom">';
   for(let k=kMax;k>=kMin;k--){
     const p=(100*Math.pow(r,k)).toFixed(3);
-    s+='<div class="zb" style="width:'+p+'%;height:'+p+'%;background:'+cols[((k%3)+3)%3]+'"></div>';
+    s+='<div class="zb" style="width:'+p+'%;height:'+p+'%;background:'+cols[((k%9)+9)%9]+'"></div>';
   }
   return s+'</div>';
 }
