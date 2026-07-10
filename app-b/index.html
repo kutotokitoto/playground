@@ -367,9 +367,9 @@ table.xl-grid{border-collapse:collapse;table-layout:fixed;font-family:"Pretendar
 table.xl-grid tr{height:21px}
 table.xl-grid td.fill{background:#f8f8f7;padding:0}   /* 정보 없는 셀(좌우 패딩·빈 칸)은 아주 엷은 회색 */
 table.xl-grid tr.total td.fill{background:#f8f8f7;font-weight:400}
-table.xl-grid th.xh{background:#f5f5f5;border:1px solid #cfcfcf;color:#555;font-weight:400;font-size:11.5px;height:21px;text-align:center;position:sticky;top:0;z-index:2}
-table.xl-grid th.corner{position:sticky;left:0;top:0;z-index:4}
-table.xl-grid th.rn{background:#f5f5f5;border:1px solid #cfcfcf;color:#555;font-weight:400;font-size:11.5px;text-align:center;position:sticky;left:0;z-index:1}
+table.xl-grid th.xh{background:#f5f5f5;border:1px solid #cfcfcf;color:#555;font-weight:400;font-size:11.5px;height:21px;text-align:center;position:sticky;top:0;z-index:2;box-shadow:inset 0 -1px 0 #cfcfcf}   /* sticky+collapse에서 사라지는 아래 경계선을 inset 그림자로 유지 */
+table.xl-grid th.corner{position:sticky;left:0;top:0;z-index:4;box-shadow:inset -1px -1px 0 #cfcfcf}
+table.xl-grid th.rn{background:#f5f5f5;border:1px solid #cfcfcf;color:#555;font-weight:400;font-size:11.5px;text-align:center;position:sticky;left:0;z-index:1;box-shadow:inset -1px 0 0 #cfcfcf}
 table.xl-grid td{border:1px solid #e0e0e0;padding:2px 9px;text-align:right;white-space:nowrap;color:#111;background:#fff;overflow:hidden;text-overflow:ellipsis}
 table.xl-grid td.hdr{font-weight:600;text-align:center;background:#fafafa;color:#333}
 table.xl-grid td.info-title{text-align:left;font-weight:700;color:#0a7a34;background:#eef7f0;font-size:13.5px}
@@ -418,6 +418,18 @@ table.xl-grid.fx td.fx-legend{text-align:left;padding:2px 12px}
 table.xl-grid.fx td.fx-card{border:none;padding:4px 8px;vertical-align:middle;text-align:left;background:#fff}
 table.xl-grid.fx td.fx-card .chart-card{box-shadow:none;border:none;border-radius:0;padding:2px 4px 4px}
 table.xl-grid.fx td.fill{background:#f8f8f7}   /* 정보 없는 셀(갭 열·빈 칸)은 아주 엷은 회색 */
+/* 셀형 컨트롤 — 버튼/컨트롤/안내를 엑셀 셀처럼 (이미지 정합 등) */
+table.xl-grid td.xl-btn{cursor:pointer;font-weight:700;font-size:12.5px;color:#1e5c38;background:#eef7f0}
+table.xl-grid.fx td.xl-btn{border-color:#c9dbd0}
+table.xl-grid tbody tr:hover td.xl-btn{background:#e0efe6}
+table.xl-grid td.xl-btn.primary{background:#107C41;color:#fff}
+table.xl-grid.fx td.xl-btn.primary{border-color:#0b5a30}
+table.xl-grid tbody tr:hover td.xl-btn.primary{background:#0E6A38}
+table.xl-grid td.xl-btn.disabled{opacity:.45;pointer-events:none}
+table.xl-grid td.xl-ctl{background:#fafafa}
+table.xl-grid td.xl-note{background:#f2f7f4;text-align:left;font-size:13px;color:#444}
+table.xl-grid.fx td.xl-note{border-color:#dbeee2}
+table.xl-grid td.xl-empty{background:#fbfbfa;color:#999;font-size:14px;line-height:1.8}
 .cv-head{max-width:1600px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .cv-title{font-size:19px;font-weight:600;color:#1e1e1e;display:flex;align-items:center;gap:9px}
 .cv-title .cv-ic{font-size:20px}
@@ -2207,7 +2219,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783661699747;   // 2026-07-10 14:34 KST
+const BUILD_TS = 1783662161920;   // 2026-07-10 14:42 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3664,15 +3676,6 @@ function showCalib(cv){
 function renderCalib(cv){
   const co=extractCoord(), refs=calib.refPts, lab=['좌상단','우상단','좌하단'];
   const hasImg=!!calib.img, next=calib.clicks.length, done=next>=3 && calib.af;
-  let tools='<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px">'
-    +'<button id="cal-loaddummy" class="cv-actbtn primary">🖼️ 더미 이미지 사용</button>'
-    +'<button id="cal-loadimg" class="cv-actbtn">📂 이미지 불러오기</button>'
-    +'<span style="width:1px;height:20px;background:#ddd"></span>'
-    +'<button id="cal-auto" class="cv-actbtn"'+(calib.dummyRefs?'':' style="opacity:.45;pointer-events:none"')+'>✨ 예시 자동 정합</button>'
-    +'<button id="cal-reset" class="cv-actbtn">↺ 점 다시 찍기</button>'
-    +'<span style="width:1px;height:20px;background:#ddd"></span>'
-    +'<label style="font-size:12px;color:#555;display:flex;align-items:center;gap:6px">오버레이 <input id="cal-op" type="range" min="20" max="100" value="'+Math.round(calib.opacity*100)+'" style="width:90px"></label>'
-    +'<label style="font-size:12px;color:#555;display:flex;align-items:center;gap:5px"><input id="cal-heat" type="checkbox"'+(calib.heat?' checked':'')+'> 불량률 색</label></div>';
   let status;
   if(!hasImg) status='<b>이미지를 불러오세요.</b> ‘더미 이미지 사용’으로 예시 캡처를 띄운 뒤, 파란 배지 ①②③ 위치를 순서대로 클릭하면 좌표가 정합됩니다.';
   else if(!done){ const r=refs[next]; status='<b>정합 점 '+next+' / 3</b> — 이미지에서 <b style="color:#0a7a34">배지 '+(next+1)+' · '+(r?('P'+r.pos):('점'))+' ('+(lab[next]||'')+')</b> 위치를 클릭하세요.'; }
@@ -3685,19 +3688,33 @@ function renderCalib(cv){
   });
   // 측정도와 같은 엑셀 격자(A·B 패딩 + C 갭 + D~ 콘텐츠 + 갭 + 패딩) 위에 얹음
   fxRender(cv, ctx=>{
-    const {contentCols:CC, C0, contentW, ROWH, push}=ctx;
+    const {contentCols:CC, C0, contentEnd:CE, contentW, ROWH, push}=ctx;
     push(2,C0,Math.min(28,CC),1,'fx-title','🎯 이미지 정합 (실제 캡처에 좌표 오버레이)');
     push(3,C0,Math.min(42,CC),1,'fx-sub','캡처 이미지에서 기준 점 3곳(①②③)을 클릭하면, 그 대응으로 도면 좌표를 이미지에 맞춰 모든 포인트를 겹쳐 보여줍니다.');
-    push(5,C0,CC,2,'fx-card',tools);
-    push(8,C0,CC,2,'fx-card','<div style="font-size:13px;color:#444;padding:8px 12px;background:#f2f7f4;border:1px solid #dbeee2;border-radius:6px">'+status+'</div>');
+    // 도구: 버튼 하나 = 셀 하나 (사이 1칸 갭 — KPI 타일과 같은 방식, 합계 44칸 = 콘텐츠 폭)
+    const inCell=(id,label)=>'<div id="'+id+'" style="display:flex;align-items:center;justify-content:center;height:100%;min-height:38px;padding:4px 6px">'+label+'</div>';
+    const ctls=[
+      ['xl-btn primary', inCell('cal-loaddummy','🖼️ 더미 이미지 사용'), 6],
+      ['xl-btn', inCell('cal-loadimg','📂 이미지 불러오기'), 6],
+      ['xl-btn'+(calib.dummyRefs?'':' disabled'), inCell('cal-auto','✨ 예시 자동 정합'), 6],
+      ['xl-btn', inCell('cal-reset','↺ 점 다시 찍기'), 6],
+      ['xl-ctl', '<label style="display:flex;align-items:center;justify-content:center;gap:6px;height:100%;min-height:38px;font-size:12px;color:#555">오버레이 <input id="cal-op" type="range" min="20" max="100" value="'+Math.round(calib.opacity*100)+'" style="width:88px"></label>', 9],
+      ['xl-ctl', '<label style="display:flex;align-items:center;justify-content:center;gap:5px;height:100%;min-height:38px;font-size:12px;color:#555;cursor:pointer"><input id="cal-heat" type="checkbox"'+(calib.heat?' checked':'')+'> 불량률 색</label>', 6],
+    ];
+    let cc=C0;
+    for(const [cls,html,w] of ctls){ if(cc+w-1>CE) break; push(5,cc,w,2,cls,html); cc+=w+1; }
+    // 상태 안내: 색 셀 하나로 (엑셀 정보 행처럼)
+    push(8,C0,CC,2,'xl-note','<div style="display:flex;align-items:center;height:100%;min-height:38px;padding:0 12px">'+status+'</div>');
     const imgMaxH=Math.round(contentW*0.62);
-    const imgArea = hasImg
-      ? '<div id="cal-imgwrap" style="position:relative;display:inline-block;max-width:100%;cursor:crosshair;line-height:0;border:1px solid #ccc;border-radius:6px;overflow:hidden">'
-          +'<img id="cal-img" src="'+calib.img+'" style="display:block;max-width:100%;max-height:'+imgMaxH+'px;width:auto;height:auto" draggable="false">'
-          +'<div id="cal-ov" style="position:absolute;inset:0">'+ovl+'</div></div>'
-      : '<div style="border:2px dashed #cfcfcf;border-radius:10px;padding:56px 16px;text-align:center;color:#999;background:#fafafa">🖼️ 캡처 이미지를 불러오면 여기에 표시됩니다<br><span style="font-size:12px">‘더미 이미지 사용’ 버튼을 눌러보세요</span></div>';
     const rs=Math.ceil(contentW*0.62/ROWH)+2;
-    push(11,C0,CC,rs,'fx-card','<div style="padding:4px 2px">'+imgArea+'</div>');
+    if(hasImg){
+      push(11,C0,CC,rs,'fx-card','<div style="padding:4px 2px">'
+        +'<div id="cal-imgwrap" style="position:relative;display:inline-block;max-width:100%;cursor:crosshair;line-height:0;border:1px solid #ccc;overflow:hidden">'
+        +'<img id="cal-img" src="'+calib.img+'" style="display:block;max-width:100%;max-height:'+imgMaxH+'px;width:auto;height:auto" draggable="false">'
+        +'<div id="cal-ov" style="position:absolute;inset:0">'+ovl+'</div></div></div>');
+    } else {
+      push(11,C0,CC,rs,'xl-empty','🖼️ 캡처 이미지를 불러오면 여기에 표시됩니다<br><span style="font-size:12px;color:#aaa">‘더미 이미지 사용’ 버튼을 눌러보세요</span>');
+    }
     return 11+rs+1;
   }, true);
   const byId=id=>cv.querySelector('#'+id);
