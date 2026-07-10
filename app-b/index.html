@@ -396,14 +396,13 @@ table.xl-grid td.lp-a-fn{cursor:pointer;background:#eef7f0;border-color:#c9dccf;
 table.xl-grid td.lp-a-fn:hover,table.xl-grid tbody tr:hover td.lp-a-fn:hover{background:#dff0e4}
 table.xl-grid td.lp-a-fn .fn-ic{font-size:20px;line-height:1}
 table.xl-grid td.lp-a-fn b{display:block;font-size:14px;font-weight:800;color:#0b5a30;margin-top:4px}
-table.xl-grid td.lp-a-fn span{display:block;font-size:11px;color:#2a78d6;font-weight:600;margin-top:3px}
 table.xl-grid td.lp-a-step .st-ic{font-size:30px;line-height:1;margin-bottom:6px}
 table.xl-grid td.lp-a-step b{display:inline-block;font-size:14px;font-weight:800;color:#0b5a30;border:1.5px solid #8dbf9f;border-radius:999px;padding:3px 14px;margin-bottom:7px}
 table.xl-grid td.lp-a-step span{display:block;font-size:12.5px;color:#5a6b60;line-height:1.55}
-table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:70px;line-height:1}
-table.xl-grid td.lp-a-hero .lp-a-title{font-size:46px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:12px}
-table.xl-grid td.lp-a-hero .lp-a-sub{font-size:17.5px;color:rgba(255,255,255,.82);margin-top:12px}
-table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:26px;font-size:16px;color:#0b5a30;background:#fff;border:1px solid #fff;border-radius:999px;padding:11px 24px;font-weight:700}
+table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:70px;line-height:1;filter:drop-shadow(0 3px 10px rgba(4,30,16,.5))}
+table.xl-grid td.lp-a-hero .lp-a-title{font-size:46px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:12px;text-shadow:0 2px 16px rgba(4,30,16,.6),0 1px 3px rgba(4,30,16,.45)}
+table.xl-grid td.lp-a-hero .lp-a-sub{font-size:17.5px;color:rgba(255,255,255,.82);margin-top:12px;text-shadow:0 1px 10px rgba(4,30,16,.5)}
+table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:26px;font-size:16px;color:#0b5a30;background:#fff;border:1px solid #fff;border-radius:999px;padding:11px 24px;font-weight:700;box-shadow:0 4px 18px rgba(4,30,16,.5)}
 
 /* ───────── 차트 시트 뷰 ───────── */
 #chart-view{
@@ -2225,7 +2224,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783662795740;   // 2026-07-10 14:53 KST
+const BUILD_TS = 1783663045869;   // 2026-07-10 14:57 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3817,12 +3816,12 @@ function landingMain(cv){   // 히어로 센터 + 3단계
   return landingFrame(cv, ({R,blank,contRows})=>{
     blank();
     R('<td class="lp-a-hero" colspan="12" style="background-image:url('+mosaicBg()+')"><div class="lp-a-emoji">🎯</div><div class="lp-a-title">도면 좌표 불량률 시각화</div><div class="lp-a-sub">각 포인트의 X·Y 좌표를 도면에 매핑하고, 포인트별 불량률을 히트맵으로 봅니다</div><div class="lp-a-cta">📥 [데이터] 탭 → ‘측정 더미 불러오기’ 로 시작</div></td>');
-    R('<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📥</div><b>1단계 · 데이터 불러오기</b><span>[데이터] 탭 → ‘측정 더미 불러오기’ 로 좌표·불량률 더미 생성 (또는 업로드)</span></td>'
-     +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">🎯</div><b>2단계 · 이미지 정합</b><span>‘이미지 정합’ 시트에서 캡처를 불러와 기준 3점을 클릭해 좌표를 맞춤</span></td>'
-     +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">🌡️</div><b>3단계 · 히트맵 확인</b><span>측정도·불량률 히트맵·연속 히트맵에서 캡처 위 오버레이 확인</span></td>');
+    R('<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📥</div><b>1단계 · 데이터 불러오기</b><span>[데이터] 탭 → ‘측정 더미 불러오기’ 로 좌표·불량률 더미 생성<br>(또는 업로드)</span></td>'
+     +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">🎯</div><b>2단계 · 이미지 정합</b><span>‘이미지 정합’ 시트에서 캡처를 불러와<br>기준 3점을 클릭해 좌표를 맞춤</span></td>'
+     +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">🌡️</div><b>3단계 · 히트맵 확인</b><span>측정도·불량률 히트맵·연속 히트맵에서<br>캡처 위 오버레이 확인</span></td>');
     contRows(2);
     // 기능 바로가기 4개 (3칸 × 4)
-    const fn=(goto,ic,name)=>'<td class="lp-a-fn" colspan="3" rowspan="2" data-goto="'+goto+'"><div class="fn-ic">'+ic+'</div><b>'+name+'</b><span>열기 →</span></td>';
+    const fn=(goto,ic,name)=>'<td class="lp-a-fn" colspan="3" rowspan="2" data-goto="'+goto+'"><div class="fn-ic">'+ic+'</div><b>'+name+'</b></td>';
     R(fn('측정도','📍','위치도')+fn('이미지 정합','🗺️','측정도')+fn('불량률 히트맵','🎈','벌룬 히트맵')+fn('연속 히트맵','🌊','연속 히트맵'));
     contRows(1);
     blank();
