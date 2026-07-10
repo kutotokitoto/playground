@@ -2121,7 +2121,7 @@ $('ribbon').addEventListener('click', e=>{
   else if(act==='sortasc'){ doSort(true); }
   else if(act==='sortdesc'){ doSort(false); }
   else if(act==='zoom100'){ $('zoom-slider').value=100; setZoom(100); }
-  else if(act==='loadqc'){ loadQCSample(); return; }
+  else if(act==='loadqc'){ loadCoordSample(); return; }
   else if(act==='template'){ downloadTemplate(); return; }
   else if(act==='upload'){ triggerUpload('qc'); return; }
   else if(act==='importcsv'){ triggerUpload('csv'); return; }
@@ -2192,7 +2192,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783647732652;   // 2026-07-10 10:42 KST
+const BUILD_TS = 1783648740010;   // 2026-07-10 10:59 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3106,6 +3106,7 @@ function showDataView(){
   const dv=$('data-view'); dv.style.display='block'; dv.scrollTop=0;
   nameBox.value=sheet().name; fInput.value=''; $('sb-mode').textContent='준비'; $('sb-stats').innerHTML='';
   const D=sheet().data;
+  if(sheet().coord){ dv.innerHTML=renderCoordTable(sheet()); requestAnimationFrame(syncHScroll); return; }
   const qc=extractQC();
   let h='';
   if(qc){
@@ -3230,10 +3231,10 @@ function showChartSheet(){
   const cv=$('chart-view'); cv.style.display='block'; cv.scrollTop=0; cv.scrollLeft=0;
   const framed=!!sheet().framed; cv.classList.toggle('framed', framed);
   nameBox.value=sheet().name; fInput.value=''; $('sb-mode').textContent='준비'; $('sb-stats').innerHTML='';
-  const type=sheet().chart, label={normal:'정규분포',scatter:'산점도',box:'박스플롯'}[type]||'차트';
-  showLoading(label+' 차트 생성 중…','포인트별 그래프를 그리는 중입니다');
+  const type=sheet().chart, label={normal:'정규분포',scatter:'산점도',box:'박스플롯',coordviz:'도면 시각화'}[type]||'차트';
+  showLoading(label+' 생성 중…','시각화를 그리는 중입니다');
   const token=++chartToken;
-  setTimeout(()=>{ if(token!==chartToken) return; try{ (framed?renderFramedChart:renderCharts)(type,cv); }catch(e){ cv.innerHTML='<div style="padding:40px;color:#c00">차트 생성 오류: '+escH(e.message)+'</div>'; } hideLoading(); requestAnimationFrame(syncHScroll); }, 320);
+  setTimeout(()=>{ if(token!==chartToken) return; try{ if(type==='coordviz') renderCoordViz(cv); else (framed?renderFramedChart:renderCharts)(type,cv); }catch(e){ cv.innerHTML='<div style="padding:40px;color:#c00">차트 생성 오류: '+escH(e.message)+'</div>'; } hideLoading(); requestAnimationFrame(syncHScroll); }, 320);
 }
 
 /* ══════════════ 튜토리얼 위저드 ══════════════ */
@@ -3338,10 +3339,172 @@ $('hscroll').addEventListener('scroll', ()=>{
   });
 });
 
+/* ══════════════ 도면 좌표 매핑 + 삽입 불량 히트맵 ══════════════ */
+let coordSource = null;   // '시각화' 시트가 참조할 좌표 데이터 시트
+/* 판정 순서: 설삽(under) < 하한(lo) < [정상] < 상한(hi) < 과삽(over) */
+function coordStatus(p){
+  if(p.meas > p.over)  return 'over';   // 과삽 (치명)
+  if(p.meas < p.under) return 'under';  // 설삽 (치명)
+  if(p.meas > p.usl)   return 'hi';     // 상한 초과 (경고)
+  if(p.meas < p.lsl)   return 'lo';     // 하한 미만 (경고)
+  return 'ok';
+}
+const COORD_KO={over:'과삽',under:'설삽',hi:'상한초과',lo:'하한미만',ok:'정상'};
+const COORD_COL={ok:'#0ca30c',hi:'#e08a00',lo:'#e08a00',over:'#d03b3b',under:'#7a4dd0'};
+
+/* 더미 데이터: 커넥터형 24위치(2행×12열). 기준면=설계 위치, 측정면=삽입 편차만큼 이동 */
+function genCoordData(name){
+  const COLN=12, ROWN=2, N=COLN*ROWN, pitch=8, x0=10, y0=12, nom=2.00, tol=0.20;
+  const r3=x=>Math.round(x*1000)/1000, r2=x=>Math.round(x*100)/100;
+  const gauss=()=>{ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
+  const usl=r3(nom+tol), lsl=r3(nom-tol), over=r3(nom+tol*1.8), under=r3(nom-tol*1.8);
+  const pts=[];
+  for(let i=0;i<N;i++){
+    const col=i%COLN, row=(i/COLN|0);
+    const rx=r2(x0+col*pitch), ry=r2(y0+row*pitch*2.2);      // 기준면(설계 위치)
+    const dir=row===0?1:-1;                                   // 삽입 방향(행마다 반대)
+    let meas=nom+gauss()*tol*0.42; const roll=Math.random();
+    if(roll<0.05) meas=over+Math.random()*tol*0.5;            // 과삽
+    else if(roll>0.95) meas=under-Math.random()*tol*0.5;      // 설삽
+    else if(roll<0.13) meas=usl+Math.random()*tol*0.5;        // 상한 경고
+    else if(roll>0.87) meas=lsl-Math.random()*tol*0.5;        // 하한 경고
+    meas=r3(meas);
+    const off=meas-nom;                                       // 삽입 편차(mm)
+    const mx=r2(rx+gauss()*0.03), my=r2(ry+dir*off);          // 측정면 = 기준면 + 편차(삽입방향) + 미세 측방
+    pts.push({pos:i+1, rx, ry, mx, my, usl, lsl, nom, over, under, meas, dir});
+  }
+  const sh=newSheet(name); sh.kind='data'; sh.coord={origin:{x:0,y:0}, pts, pitch, tol, nom};
+  writeCoordCells(sh);
+  return sh;
+}
+/* 측정데이터 시트 셀에 표로 기록 (진짜 스프레드시트 데이터) */
+function writeCoordCells(sh){
+  const put=(r,c,v,s)=>{ const cell={v:String(v)}; if(s) cell.s=Object.assign({},s); sh.data[key(r,c)]=cell; };
+  const r3=x=>Math.round(x*1000)/1000;
+  const H=['위치','측정면 X','측정면 Y','기준면 X','기준면 Y','상한','하한','기준치','과삽기준','설삽기준','측정 삽입량','편차','판정'];
+  const hs={b:true,fill:'#2E74B5',col:'#FFFFFF',al:'center'};
+  put(0,0,'■ 측정 데이터 (도면 좌표·삽입량)',{b:true,fs:14,col:'#107C41'});
+  put(1,0,'오리진',{b:true,al:'right'}); put(1,1,'X='+sh.coord.origin.x+'  Y='+sh.coord.origin.y,{al:'left'});
+  const hr=3;
+  for(let c=0;c<H.length;c++) put(hr,c,H[c],hs);
+  sh.coord.pts.forEach((p,i)=>{ const r=hr+1+i, st=coordStatus(p);
+    const bad=(st==='over'||st==='under'), warn=(st==='hi'||st==='lo');
+    const js=bad?{al:'center',b:true,fill:'#FFC7CE',col:'#9C0006'}:warn?{al:'center',fill:'#FFF2CC',col:'#9C6500'}:{al:'center'};
+    const row=[p.pos,p.mx,p.my,p.rx,p.ry,p.usl,p.lsl,p.nom,p.over,p.under,p.meas,r3(p.meas-p.nom),COORD_KO[st]];
+    for(let c=0;c<row.length;c++) put(r,c,row[c], c===row.length-1?js:{al:'center'});
+  });
+}
+function extractCoord(){ let src=coordSource; if(!src||!src.coord) src=sheets.find(s=>s.coord); return src?src.coord:null; }
+/* 좌표 더미 새로 불러오기 (리본: 측정 더미 불러오기) */
+function loadCoordSample(){
+  showLoading('좌표 데이터 불러오는 중…','더미 데이터를 생성하고 있습니다');
+  const token=++chartToken;
+  setTimeout(()=>{ if(token!==chartToken) return;
+    const sh=genCoordData('측정데이터'); let idx=sheets.findIndex(s=>s.coord); if(idx<0) idx=0;
+    sheets[idx]=sh; coordSource=sh; hideLoading(); switchSheet(idx);
+    toast('📥 새 좌표 더미 데이터로 갱신했습니다 · 시각화 시트에 반영됨');
+  }, 320);
+}
+/* 측정데이터 시트 표시 (좌표 표) */
+function renderCoordTable(sh){
+  const co=sh.coord, pts=co.pts, N=pts.length;
+  const cnt={ok:0,hi:0,lo:0,over:0,under:0}; pts.forEach(p=>cnt[coordStatus(p)]++);
+  const bad=cnt.over+cnt.under, warn=cnt.hi+cnt.lo;
+  const H=['위치','측정면 X','측정면 Y','기준면 X','기준면 Y','상한','하한','기준치','과삽기준','설삽기준','측정 삽입량','편차','판정'];
+  let h='<div style="padding:14px 16px 40px;max-width:1500px;margin:0 auto">';
+  h+='<div style="background:#e5f5e5;border:1px solid #b6e0b6;border-radius:8px;padding:10px 14px;font-size:13px;color:#1b6b1b">'
+    +'<b>도면 좌표·삽입량 더미 데이터</b> · 위치 '+N+'개 · 오리진 (X='+co.origin.x+', Y='+co.origin.y+')'
+    +' · 정상 '+cnt.ok+' / 경고 '+warn+' / 불량(과삽·설삽) <b>'+bad+'</b>'
+    +' &nbsp;—&nbsp; <span style="color:#555">‘시각화’ 시트에서 도면 매핑·히트맵을 볼 수 있어요.</span></div>';
+  h+='<table class="dv-table" style="margin-top:12px"><thead><tr>'+H.map(x=>'<th>'+escH(x)+'</th>').join('')+'</tr></thead><tbody>';
+  pts.forEach(p=>{ const st=coordStatus(p), bad=(st==='over'||st==='under'), warn=(st==='hi'||st==='lo');
+    const tint=bad?' style="background:#fdecec"':warn?' style="background:#fff8e1"':'';
+    const jc=bad?'#c0272d':warn?'#a06a00':'#0a8a0a';
+    h+='<tr'+tint+'><td>'+p.pos+'</td><td>'+f2(p.mx)+'</td><td>'+f2(p.my)+'</td><td>'+f2(p.rx)+'</td><td>'+f2(p.ry)+'</td>'
+      +'<td>'+f3(p.usl)+'</td><td>'+f3(p.lsl)+'</td><td>'+f3(p.nom)+'</td><td>'+f3(p.over)+'</td><td>'+f3(p.under)+'</td>'
+      +'<td><b>'+f3(p.meas)+'</b></td><td>'+f3(p.meas-p.nom)+'</td>'
+      +'<td style="font-weight:700;color:'+jc+'">'+COORD_KO[st]+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  return h;
+}
+/* 좌표 → 화면 변환용 경계 */
+function coordBounds(co){
+  let minx=co.origin.x,maxx=co.origin.x,miny=co.origin.y,maxy=co.origin.y;
+  co.pts.forEach(p=>{ minx=Math.min(minx,p.rx,p.mx); maxx=Math.max(maxx,p.rx,p.mx); miny=Math.min(miny,p.ry,p.my); maxy=Math.max(maxy,p.ry,p.my); });
+  return {minx,maxx,miny,maxy};
+}
+function lerpCol(a,b,t){ const p=(s,i)=>parseInt(s.substr(i,2),16); const c=[0,1,2].map(k=>Math.round(p(a,1+k*2)+(p(b,1+k*2)-p(a,1+k*2))*t)); return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
+function sevColor(sev){ const u=Math.max(0,Math.min(1,sev/2)); return u<0.5?lerpCol('#2e9e2e','#f4c020',u/0.5):lerpCol('#f4c020','#d03b3b',(u-0.5)/0.5); }
+/* ① 도면 매핑: 기준면(회색) + 편차 화살표 + 측정면(색) */
+function svgCoordMap(co){
+  const b=coordBounds(co), W=780, ml=44,mr=22,mt=22,mb=34;
+  const dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, pw=W-ml-mr, sc=pw/(dx*1.12), ph=dy*1.12*sc, H=Math.max(150,mt+ph+mb);
+  const cx=(b.minx+b.maxx)/2, cy=(b.miny+b.maxy)/2, X=x=>ml+pw/2+(x-cx)*sc, Y=y=>mt+ph/2-(y-cy)*sc;
+  let maxdev=0; co.pts.forEach(p=>{ const d=Math.hypot(p.mx-p.rx,p.my-p.ry); if(d>maxdev)maxdev=d; });
+  const EXAG=maxdev>0?Math.max(3,Math.min(80,26/(maxdev*sc))):12;
+  const ox=X(co.origin.x), oy=Y(co.origin.y);
+  let s=sLine(ml,oy,ml+pw,oy,'#ececeb',1)+sLine(ox,mt,ox,mt+ph,'#ececeb',1);
+  s+='<circle cx="'+rnd(ox)+'" cy="'+rnd(oy)+'" r="4" fill="none" stroke="#333" stroke-width="1.4"/>'
+    +sLine(ox-7,oy,ox+7,oy,'#333',1.2)+sLine(ox,oy-7,ox,oy+7,'#333',1.2)+sTxt(ox+9,oy-6,'오리진 (0,0)','start','#555',9);
+  co.pts.forEach(p=>{
+    const rX=X(p.rx),rY=Y(p.ry), mX=X(p.rx+(p.mx-p.rx)*EXAG), mY=Y(p.ry+(p.my-p.ry)*EXAG), st=coordStatus(p), col=COORD_COL[st];
+    s+='<circle cx="'+rnd(rX)+'" cy="'+rnd(rY)+'" r="3" fill="none" stroke="#b9b9b4" stroke-width="1.1"/>'
+      +sLine(rX,rY,mX,mY,col,1.2)
+      +'<circle cx="'+rnd(mX)+'" cy="'+rnd(mY)+'" r="'+(st==='ok'?2.4:3.2)+'" fill="'+col+'"><title>위치 '+p.pos+' · 측정 '+f3(p.meas)+' · '+COORD_KO[st]+'</title></circle>'
+      +sTxt(rX,rY-5,String(p.pos),'middle','#9a9a96',7.5);
+  });
+  s+=sTxt(ml,H-9,'편차 ×'+Math.round(EXAG)+' 확대 · 회색=기준면, 색점=측정면','start','#9a9a96',9);
+  return '<svg viewBox="0 0 '+W+' '+rnd(H)+'" preserveAspectRatio="xMidYMid meet" style="min-width:'+W+'px;width:'+W+'px">'+s+'</svg>';
+}
+/* ② 편차 히트맵: 각 위치를 |측정−기준치|/공차로 색칠, 과삽/설삽은 굵은 테두리 */
+function svgCoordHeatmap(co){
+  const b=coordBounds(co), W=780, ml=30,mr=22,mt=22,mb=30;
+  const dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, pw=W-ml-mr, sc=pw/(dx*1.12), ph=dy*1.12*sc, H=Math.max(140,mt+ph+mb);
+  const cx=(b.minx+b.maxx)/2, cy=(b.miny+b.maxy)/2, X=x=>ml+pw/2+(x-cx)*sc, Y=y=>mt+ph/2-(y-cy)*sc;
+  const R=Math.max(7,Math.min(16,co.pitch*sc*0.34)), tol=co.tol||0.2;
+  let s='';
+  co.pts.forEach(p=>{ const x=X(p.rx), y=Y(p.ry), sev=Math.abs(p.meas-p.nom)/tol, st=coordStatus(p), crit=(st==='over'||st==='under');
+    s+='<circle cx="'+rnd(x)+'" cy="'+rnd(y)+'" r="'+rnd(R)+'" fill="'+sevColor(sev)+'"'+(crit?' stroke="'+(st==='over'?'#8a0000':'#3a1a7a')+'" stroke-width="2.4"':' stroke="#fff" stroke-width="1"')+'><title>위치 '+p.pos+' · 편차 '+f3(p.meas-p.nom)+' ('+sev.toFixed(2)+'×공차) · '+COORD_KO[st]+'</title></circle>'
+      +sTxt(x,y+3,String(p.pos),'middle',sev>1.1?'#fff':'#333',8.5);
+  });
+  return '<svg viewBox="0 0 '+W+' '+rnd(H)+'" preserveAspectRatio="xMidYMid meet" style="min-width:'+W+'px;width:'+W+'px">'+s+'</svg>';
+}
+function heatLegend(){
+  let stops=''; for(let i=0;i<=10;i++) stops+='<stop offset="'+(i*10)+'%" stop-color="'+sevColor(i/10*2)+'"/>';
+  return '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:10px auto 0;max-width:1600px;font-size:11px;color:#666">'
+    +'<span style="display:inline-flex;align-items:center;gap:6px"><svg width="160" height="12" viewBox="0 0 160 12"><defs><linearGradient id="hg">'+stops+'</linearGradient></defs><rect width="160" height="12" rx="2" fill="url(#hg)"/></svg>'
+    +'0 (기준치) · 1× 공차(규격 경계) · ≥2× (이탈)</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:5px"><i style="width:12px;height:12px;border-radius:50%;border:2px solid #8a0000;display:inline-block"></i>과삽</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:5px"><i style="width:12px;height:12px;border-radius:50%;border:2px solid #3a1a7a;display:inline-block"></i>설삽</span></div>';
+}
+function renderCoordViz(cv){
+  const co=extractCoord();
+  if(!co){ cv.innerHTML='<div style="padding:48px;color:#888;font-size:14px">좌표 데이터를 찾을 수 없습니다. 측정데이터 시트를 먼저 준비하세요.</div>'; return; }
+  const pts=co.pts, N=pts.length, tol=co.tol||0.2;
+  const cnt={ok:0,hi:0,lo:0,over:0,under:0}; let worst=0,worstPos='-';
+  pts.forEach(p=>{ cnt[coordStatus(p)]++; const sev=Math.abs(p.meas-p.nom)/tol; if(sev>worst){worst=sev;worstPos=p.pos;} });
+  const bad=cnt.over+cnt.under, warn=cnt.hi+cnt.lo, verdict=bad?'NG':(warn?'WARN':'OK'), rate=bad/N*100;
+  lastChartData={type:'coordviz', points:pts};
+  let h='<div class="cv-head"><div class="cv-head-l"><div class="cv-title"><span class="cv-ic">🗺️</span>도면 좌표 매핑 · 삽입 불량 히트맵</div>'
+    +'<div class="cv-sub">오리진 (X='+co.origin.x+', Y='+co.origin.y+') 기준 · 위치 '+N+'개 · 측정면↔기준면 편차와 과삽/설삽 판정 (더미 데이터)</div></div></div>';
+  h+='<div class="cv-tiles">'
+    +tile(verdict,'종합 판정',verdict==='OK'?'ok':verdict==='NG'?'ng':'warn')
+    +tile(N,'측정 위치')+tile(cnt.ok,'정상','ok')+tile(warn,'경고(상·하한)',warn?'warn':'ok')
+    +tile(cnt.over,'과삽',cnt.over?'ng':'ok')+tile(cnt.under,'설삽',cnt.under?'ng':'ok')
+    +tile(rate.toFixed(1)+'%','불량률(과삽+설삽)',bad?'ng':'ok')
+    +tile(worst.toFixed(2)+'×','최대 편차/공차 (P'+worstPos+')',worst>1?'ng':worst>0.66?'warn':'ok')+'</div>';
+  h+='<div class="cv-overview"><h3>① 도면 매핑 (측정면 vs 기준면)</h3><div class="oh-sub">회색 원 = 기준면(설계 위치), 색 점 = 측정면. 선은 편차 방향(가시성 위해 확대). 색 = 판정.</div>'
+    +'<div style="overflow-x:auto">'+svgCoordMap(co)+'</div></div>';
+  h+='<div class="cv-overview"><h3>② 불량률·편차 히트맵</h3><div class="oh-sub">각 위치를 규격 대비 편차(|측정−기준치|/공차)로 색칠. 초록=규격 내, 빨강=이탈. 과삽/설삽은 굵은 테두리.</div>'
+    +'<div style="overflow-x:auto">'+svgCoordHeatmap(co)+'</div>'+heatLegend()+'</div>';
+  cv.innerHTML=h;
+}
+
 /* ══════════════ 초기화 ══════════════ */
-const _qcSheet = genQCData('측정데이터');
-sheets.push(_qcSheet); qcSource = _qcSheet;
-sheets.push(newChartSheet('정규분포 2','normal',true));
+const _coord = genCoordData('측정데이터');
+sheets.push(_coord); coordSource = _coord;
+sheets.push(newChartSheet('시각화','coordviz',false));
 cur = 0;
 renderTabs();
 renderSheetFull();
@@ -3359,9 +3522,9 @@ window.addEventListener('resize', ()=>{
 document.addEventListener('mouseup', ()=>{ setTimeout(()=>{ if(document.activeElement===document.body && isGridSheet()) focusGrid(); },0); });
 // 파일 업로드 / CSV·xlsx 가져오기 (모드에 따라 분기)
 $('file-input').addEventListener('change', e=>{ const f=e.target.files[0]; e.target.value=''; if(f) processUpload(f, uploadMode); });
-// 최초 1회 튜토리얼
-let _tutDone=false; try{ _tutDone=localStorage.getItem('qc_tut_done')==='1'; }catch(e){}
-if(!_tutDone) setTimeout(startTutorial, 950);
+// 튜토리얼 자동 실행 보류 (QC 전용 → 좌표 매핑 앱으로 전환 중이라 스텝이 안 맞음)
+// let _tutDone=false; try{ _tutDone=localStorage.getItem('qc_tut_done')==='1'; }catch(e){}
+// if(!_tutDone) setTimeout(startTutorial, 950);
 </script>
 </body>
 </html>
