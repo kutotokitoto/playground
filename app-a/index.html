@@ -2227,7 +2227,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783668822700;   // 2026-07-10 16:33 KST
+const BUILD_TS = 1783670236788;   // 2026-07-10 16:57 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2603,6 +2603,15 @@ async function processUpload(file, mode){
     let rows;
     const sig=new Uint8Array(await file.slice(0,4).arrayBuffer());
     if(sig[0]===0x50 && sig[1]===0x4B){ rows=await readXlsxRows(file); }        // 'PK' = xlsx/zip
+    else if(/\.xlsx?$/i.test(file.name)){
+      // 확장자는 엑셀인데 ZIP(PK) 아님 → 구형 .xls(OLE: D0 CF 11 E0) 또는 DRM 암호화 컨테이너
+      const ole = sig[0]===0xD0 && sig[1]===0xCF && sig[2]===0x11 && sig[3]===0xE0;
+      hideLoading();
+      toast(ole
+        ? '⚠ 구형 .xls 형식(또는 DRM 컨테이너)입니다 — 엑셀에서 .xlsx 또는 CSV로 다시 저장해 업로드하세요'
+        : '🔒 엑셀 파일이지만 내용이 암호화되어 있습니다 — 사내 DRM(NASCA 등) 보호 파일로 보입니다. DRM 해제 후 업로드하거나, 엑셀에서 CSV로 저장해 업로드하세요');
+      return;
+    }
     else {
       const text=await file.text(); const lines=text.replace(/\r/g,'').split('\n');
       while(lines.length && lines[lines.length-1]==='') lines.pop();
