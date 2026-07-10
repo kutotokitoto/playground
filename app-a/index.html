@@ -379,7 +379,9 @@ table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background:#083d21;
    transform만 애니메이션(GPU 합성, 리플로우 없음) → 튐 원인 원천 제거. */
 table.xl-grid td.lp-a-hero .lp-zoom{position:absolute;left:50%;top:50%;width:100%;height:100%;z-index:0;pointer-events:none;animation:lpZoom 10s linear infinite}
 table.xl-grid td.lp-a-hero .lp-zoom .zb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
-table.xl-grid td.lp-a-hero .lp-a-glow{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(150,255,190,.20),rgba(150,255,190,0) 72%)}
+/* 정적 밝기 오버레이: 가운데 상시 밝음(라디얼) + 가장자리 상시 어두움(셀 모양 사각 비네트).
+   움직이는 밴드는 주기 순환색이라 방향성 그래디언트를 못 가짐 → 정적 레이어로 방향성 부여 */
+table.xl-grid td.lp-a-hero .lp-a-glow{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(150,255,190,.34),rgba(150,255,190,0) 74%);box-shadow:inset 0 0 130px 36px rgba(3,34,17,.55)}
 table.xl-grid td.lp-a-hero>div{position:relative;z-index:1}
 @keyframes lpZoom{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-50%) scale(3.297304)}}
 @media (prefers-reduced-motion:reduce){ table.xl-grid td.lp-a-hero .lp-zoom{animation:none} }
@@ -2227,7 +2229,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783661601753;   // 2026-07-10 14:33 KST
+const BUILD_TS = 1783661803478;   // 2026-07-10 14:36 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3235,7 +3237,6 @@ function landingA(){   // A · 히어로 센터
   return landingFrame(({R,blank,contRows})=>{
     blank();
     R('<td class="lp-a-hero" colspan="12">'+lpZoomHTML()+'<div class="lp-a-glow"></div><div class="lp-a-emoji">🎯</div><div class="lp-a-title">불량률 시각화 도구</div><div class="lp-a-sub">측정 데이터를 정규분포·산점도·박스플롯으로 한눈에 시각화합니다</div><div class="lp-a-cta">📥 [데이터] 탭 → ‘측정 더미 불러오기’ 로 시작</div></td>');
-    blank();
     R('<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📥</div><b>1단계 · 데이터 불러오기</b><span>[데이터] 탭 → ‘측정 더미 불러오기’ 또는 xlsx·CSV 업로드</span></td>'
      +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📊</div><b>2단계 · 분포 확인</b><span>정규분포·산점도·박스플롯 탭으로 전환해 그래프를 확인</span></td>'
      +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">💾</div><b>3단계 · 저장·공유</b><span>포인트 카드에서 복사·저장, 상단에서 전체 저장</span></td>');
