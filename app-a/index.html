@@ -431,7 +431,7 @@ table.xl-grid.fx td.fx-ovh{font-size:12px;font-weight:700;color:#0b5a30;text-ali
 table.xl-grid.fx td.fx-ov{padding:2px 8px 6px;vertical-align:top;background:#fff}
 table.xl-grid.fx td.fx-ov svg{display:block}
 table.xl-grid.fx td.fx-card{border:none;padding:5px;vertical-align:top;text-align:left;background:#fff}   /* top 정렬: 상단 여유 = 좌우 여유(8px)로 통일 */
-table.xl-grid.fx td.fx-card .chart-card{box-shadow:none;border:none;border-radius:0;padding:3px}   /* 좌·상·우 갭 대칭(=8px): 포인트#·체크박스=좌상단, NG뱃지=우상단 */
+table.xl-grid.fx td.fx-card .chart-card{box-shadow:none;border:none;border-radius:0;padding:7px 8px 3px 3px}   /* 상·우 여유 확대(top 12/right 13), 좌·하 8px */
 table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈 칸)은 엷은 회색(#f2f0ee) */
 .cv-head{max-width:1600px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .cv-title{font-size:19px;font-weight:600;color:#1e1e1e;display:flex;align-items:center;gap:9px}
@@ -505,7 +505,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 .cv-selbar .sep{flex:1}
 .cv-selbar button.clear{background:transparent;color:#bbb}
 .cv-selbar button.clear:hover{color:#fff}
-.chart-card svg,.cv-overview svg{display:block;width:100%;height:auto;margin-top:4px}
+.chart-card svg,.cv-overview svg{display:block;width:100%;height:auto;margin-top:10px}
 .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:#666;margin:6px auto 0;max-width:1600px;padding-left:2px}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:16px;height:0;border-top-width:2px;border-top-style:solid;display:inline-block}
@@ -2220,7 +2220,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783663731654;   // 2026-07-10 15:08 KST
+const BUILD_TS = 1783664105006;   // 2026-07-10 15:15 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2740,7 +2740,7 @@ function extractQC(){
 const CHT={ data:'#2a78d6', ng:'#d03b3b', usl:'#d03b3b', lsl:'#2f6fd0', spec:'#0ca30c',
   mean:'#eb6834', grid:'#ececeb', axis:'#c3c2b7', muted:'#9a9a96', bar:'#9ec5f4', barS:'#2a78d6', boxF:'#dbeafe',
   bandOK:'#0ca30c', bandNG:'#d03b3b' };
-const CW=340, CH=258;
+const CW=340, CH=266;
 const rnd=x=>Math.round(x*10)/10;
 const f3=v=>isFinite(v)?v.toFixed(3):'—', f2=v=>v==null||!isFinite(v)?'—':v.toFixed(2);
 function escH(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
