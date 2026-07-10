@@ -339,7 +339,7 @@ select.rsel:hover{border-color:var(--green)}
 .bs-doc .dp{font-size:11px;color:#888}
 /* ───────── 측정데이터 요약 뷰 ───────── */
 #data-view{
-  flex:1;overflow:auto;background:#fff;display:none;padding:0;
+  flex:1;overflow:auto;background:#f8f8f7;display:none;padding:0;
   font-family:"Pretendard Variable","Pretendard","Segoe UI","Malgun Gothic",sans-serif;
 }
 .dv-banner{
@@ -399,10 +399,10 @@ table.xl-grid td.lp-a-fn b{display:block;font-size:14px;font-weight:800;color:#0
 table.xl-grid td.lp-a-step .st-ic{font-size:30px;line-height:1;margin-bottom:6px}
 table.xl-grid td.lp-a-step b{display:inline-block;font-size:14px;font-weight:800;color:#0b5a30;border:1.5px solid #8dbf9f;border-radius:999px;padding:3px 14px;margin-bottom:7px}
 table.xl-grid td.lp-a-step span{display:block;font-size:12.5px;color:#5a6b60;line-height:1.55}
-table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:70px;line-height:1;filter:drop-shadow(0 3px 10px rgba(4,30,16,.5))}
-table.xl-grid td.lp-a-hero .lp-a-title{font-size:46px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:12px;text-shadow:0 2px 16px rgba(4,30,16,.6),0 1px 3px rgba(4,30,16,.45)}
-table.xl-grid td.lp-a-hero .lp-a-sub{font-size:17.5px;color:rgba(255,255,255,.82);margin-top:12px;text-shadow:0 1px 10px rgba(4,30,16,.5)}
-table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:26px;font-size:16px;color:#0b5a30;background:#fff;border:1px solid #fff;border-radius:999px;padding:11px 24px;font-weight:700;box-shadow:0 4px 18px rgba(4,30,16,.5)}
+table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:70px;line-height:1;filter:drop-shadow(0 3px 10px rgba(4,30,16,.6))}
+table.xl-grid td.lp-a-hero .lp-a-title{font-size:46px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:12px;text-shadow:0 2px 16px rgba(4,30,16,.7),0 1px 3px rgba(4,30,16,.55)}
+table.xl-grid td.lp-a-hero .lp-a-sub{font-size:17.5px;color:rgba(255,255,255,.82);margin-top:12px;text-shadow:0 1px 10px rgba(4,30,16,.6)}
+table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:26px;font-size:16px;color:#0b5a30;background:#fff;border:1px solid #fff;border-radius:999px;padding:11px 24px;font-weight:700;box-shadow:0 4px 18px rgba(4,30,16,.6)}
 
 /* ───────── 차트 시트 뷰 ───────── */
 #chart-view{
@@ -410,7 +410,7 @@ table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:26px;font-s
   font-family:"Pretendard Variable","Pretendard","Segoe UI","Malgun Gothic",sans-serif;
 }
 /* 엑셀 셀에 얹은 연출 (…2 탭) */
-#chart-view.framed{background:#fff;padding:0}
+#chart-view.framed{background:#f8f8f7;padding:0}   /* 콘텐츠 없는 바깥 영역도 셀과 같은 엷은 회색 */
 table.xl-grid.fx td{text-align:center;vertical-align:middle;padding:0;border-color:#e2e2e1;color:#222;overflow:visible}
 table.xl-grid.fx td.fx-title{font-size:23px;font-weight:600;color:#222;text-align:left;padding:2px 12px}
 table.xl-grid.fx td.fx-sub{font-size:12.5px;color:#777;text-align:left;padding:2px 12px}
@@ -2224,7 +2224,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783663045869;   // 2026-07-10 14:57 KST
+const BUILD_TS = 1783663329810;   // 2026-07-10 15:02 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3780,7 +3780,7 @@ function fxRender(cv, build, gapLayout){
 /* 히어로 배경: 사선(좌→우) 계단식 모자이크 초록 그래디언트 (SVG data URI, 색은 타일 단위로 양자화) */
 function mosaicBg(){
   const T=26, P=24, ROWS=22, W=P*T, H=ROWS*T;   // 타일 26px(기존의 약 2/3) · 한 주기=24타일(=624px, repeat-x로 끊김없이 이어짐)
-  const lo=[48,126,80], hi=[60,205,128];        // 어두운 초록(조금 더 밝게) → 밝은 초록
+  const lo=[42,120,54], hi=[58,202,92];         // 어두운 초록 → 밝은 초록 (엷은 노랑기 + 채도 약간, 엑셀 톤)
   const hx=n=>n.toString(16).padStart(2,'0');
   const tri=x=>{ const f=x-Math.floor(x); return 1-Math.abs(1-2*f); };   // 삼각파(0→1→0): 좌우 경계 이음매 없음
   let s='';
