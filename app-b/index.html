@@ -2224,7 +2224,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783664607289;   // 2026-07-10 15:23 KST
+const BUILD_TS = 1783664944509;   // 2026-07-10 15:29 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3070,6 +3070,8 @@ function clearSelection(){
 $('chart-view').addEventListener('click', e=>{
   const gp=e.target.closest('[data-goto]');
   if(gp){ gotoSheet(gp.dataset.goto); return; }
+  const va=e.target.closest('[data-vizact]');
+  if(va){ exportViz(va.dataset.vizact); return; }
   const ca=e.target.closest('[data-cardact]');
   if(ca){ const card=ca.closest('.chart-card'); exportSingle(+card.dataset.idx, ca.dataset.cardact); return; }
   const aa=e.target.closest('[data-allact]');
@@ -3437,8 +3439,8 @@ function renderCoordTableFramed(cv, sh){
   const co=sh.coord, pts=co.pts, st=rateStats(co);
   fxRender(cv, ctx=>{
     const {contentCols:CC, C0, contentEnd:CE, push}=ctx;
-    push(2,C0,Math.min(30,CC),1,'fx-title','📋 측정 데이터 (도면 좌표 · 포인트별 불량률)');
-    push(3,C0,Math.min(42,CC),1,'fx-sub','오리진 (X='+co.origin.x+', Y='+co.origin.y+') 기준 · 포인트 '+st.N+'개 · 측정면/기준면 좌표와 포인트별 불량률(%) (더미 데이터)');
+    push(2,C0,Math.min(22,CC),1,'fx-title','📋 측정 데이터');
+    push(3,C0,Math.min(22,CC),1,'fx-sub','오리진 (X='+co.origin.x+', Y='+co.origin.y+') · 포인트 '+st.N+'개 · 좌표·불량률(%) 더미');
     const kpis=[[st.N,'포인트 수',''],[st.avg.toFixed(1)+'%','평균 불량률',st.avg>=8?'warn':'ok'],[st.max.toFixed(1)+'%','최대 불량률 (P'+st.maxPos+')',st.max>=RATE_BAD?'ng':'warn'],[st.bad,'불량 포인트(≥'+RATE_BAD+'%)',st.bad?'ng':'ok'],[st.good,'양호 포인트','ok']];
     const kStep=Math.max(3, Math.floor((CC+1)/kpis.length));
     kpis.forEach((k,i)=>{ const c=C0+i*kStep; if(c+kStep-2>CE) return; push(5,c,kStep-1,2,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(String(k[0]))); push(7,c,kStep-1,1,'fx-kpi-l',escH(k[1])); });
@@ -3541,20 +3543,47 @@ function svgRateCont(co, W, fill){
   return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="'+style+'">'+s+'</svg>';
 }
 /* 엑셀 셀 격자 위에 얹은 프레임 뷰 (예전 '…2' 시트처럼 A·B·C 열머리글 + 행번호) */
+/* 시각화 내보내기 — 현재 그림 시트를 PNG로 복사/저장 */
+function svgRateRank(co, W){
+  W=W||1200; const top=[...co.pts].sort((a,b)=>b.rate-a.rate).slice(0,16), mx=Math.max(1, top[0]?top[0].rate:1);
+  const rowH=26, ml=70, mr=95, mt=14, mb=10, H=mt+top.length*rowH+mb, bw=W-ml-mr;
+  let s='';
+  top.forEach((p,i)=>{ const y=mt+i*rowH, w=Math.max(3,p.rate/mx*bw), hi=p.rate>=RATE_BAD;
+    s+=sTxt(ml-8,y+17,'P'+p.pos,'end','#666',12)
+      +'<rect x="'+ml+'" y="'+(y+5)+'" width="'+rnd(w)+'" height="16" rx="3" fill="'+rateColor(p.rate)+'"/>'
+      +sTxt(ml+w+8,y+17,p.rate.toFixed(1)+'%','start',hi?'#c0272d':'#333',12); });
+  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">'+s+'</svg>';
+}
+async function exportViz(act){
+  const co=extractCoord(); if(!co){ toast('데이터가 없습니다'); return; }
+  const viz=sheet().viz||'bubble';
+  const name={map:'측정도',bubble:'불량률_히트맵',cont:'연속_히트맵',summary:'불량률_요약'}[viz]||'시각화';
+  try{
+    let s= viz==='map'?svgMeasMap(co,1200,true) : viz==='cont'?svgRateCont(co,1200,true) : viz==='summary'?svgRateRank(co,1200) : svgRateBubble(co,1200,true);
+    s=s.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ').replace(/(<svg[^>]*>)/,'$1<rect width="100%" height="100%" fill="#ffffff"/>');
+    const cnv=await svgToCanvas(s,2);
+    await outputCanvas(cnv, act, name+'.png', name.replace(/_/g,' '));
+  }catch(e){ toast('내보내기 오류: '+(e&&e.message||e)); }
+}
 /* 시각화 시트(4종) — sheet().viz 로 분기, 엑셀 격자 위에 얹음 */
 function renderCoordVizFramed(cv){
   const co=extractCoord();
   if(!co){ cv.innerHTML='<div style="padding:48px;color:#888;font-size:14px">좌표 데이터를 찾을 수 없습니다.</div>'; return; }
   const st=rateStats(co), viz=sheet().viz||'bubble';
   lastChartData={type:'coordviz', points:co.pts};
-  const T={ map:['🗺️ 측정도 (X·Y 좌표 매핑)','기준면(설계) 대비 측정면(실측) 위치와 편차'],
-    bubble:['🌡️ 포인트별 불량률 히트맵 (버블)','각 포인트를 불량률로 색칠'],
-    cont:['🌡️ 연속 색 불량률 히트맵','포인트 불량률을 거리가중 보간해 연속 색 필드로'],
-    summary:['📊 불량률 요약','포인트별 불량률 순위와 통계'] }[viz]||['시각화',''];
+  const T={ map:['🗺️ 측정도','기준면 vs 측정면 위치 매핑'],
+    bubble:['🌡️ 불량률 히트맵 (버블)','포인트별 불량률을 색·크기로'],
+    cont:['🌡️ 연속 히트맵','불량률을 보간한 연속 색 필드'],
+    summary:['📊 불량률 요약','불량률 순위와 통계'] }[viz]||['시각화',''];
   fxRender(cv, ctx=>{
     const {contentCols:CC, C0, contentEnd:CE, contentW, ROWH, push}=ctx;
-    push(2,C0,Math.min(26,CC),1,'fx-title',T[0]);
-    push(3,C0,Math.min(40,CC),1,'fx-sub','오리진 (X='+co.origin.x+', Y='+co.origin.y+') · 포인트 '+st.N+'개 · '+T[1]+' (더미 데이터)');
+    push(2,C0,Math.min(22,CC),1,'fx-title',T[0]);
+    push(3,C0,Math.min(22,CC),1,'fx-sub','오리진 (X='+co.origin.x+', Y='+co.origin.y+') · 포인트 '+st.N+'개 · '+T[1]);
+    if(CE-12>C0+22){   // 우측 상단: 복사/저장 (셀형 버튼)
+      const ab=(act,label)=>'<div data-vizact="'+act+'" style="display:flex;align-items:center;justify-content:center;height:100%;min-height:38px">'+label+'</div>';
+      push(2,CE-12,6,2,'xl-btn',ab('copy','📋 복사하기'));
+      push(2,CE-5,6,2,'xl-btn',ab('save','💾 저장하기'));
+    }
     const kpis=[[st.N,'포인트 수',''],[st.avg.toFixed(1)+'%','평균 불량률',st.avg>=8?'warn':'ok'],[st.max.toFixed(1)+'%','최대 불량률 (P'+st.maxPos+')',st.max>=RATE_BAD?'ng':'warn'],[st.bad,'불량 포인트(≥'+RATE_BAD+'%)',st.bad?'ng':'ok'],[st.good,'양호 포인트','ok']];
     const kStep=Math.max(3, Math.floor((CC+1)/kpis.length));   // 마지막 타일 뒤 갭 불필요 → CC+1 (KPI 행이 콘텐츠 폭을 꽉 채움)
     kpis.forEach((k,i)=>{ const c=C0+i*kStep; if(c+kStep-2>CE) return; push(5,c,kStep-1,2,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(String(k[0]))); push(7,c,kStep-1,1,'fx-kpi-l',escH(k[1])); });
@@ -3679,8 +3708,8 @@ function renderCalib(cv){
   // 측정도와 같은 엑셀 격자(A·B 패딩 + C 갭 + D~ 콘텐츠 + 갭 + 패딩) 위에 얹음
   fxRender(cv, ctx=>{
     const {contentCols:CC, C0, contentEnd:CE, contentW, ROWH, push}=ctx;
-    push(2,C0,Math.min(28,CC),1,'fx-title','🎯 이미지 정합 (실제 캡처에 좌표 오버레이)');
-    push(3,C0,Math.min(42,CC),1,'fx-sub','캡처 이미지에서 기준 점 3곳(①②③)을 클릭하면, 그 대응으로 도면 좌표를 이미지에 맞춰 모든 포인트를 겹쳐 보여줍니다.');
+    push(2,C0,Math.min(22,CC),1,'fx-title','🎯 이미지 정합');
+    push(3,C0,Math.min(22,CC),1,'fx-sub','기준 점 3곳(①②③)을 클릭해 도면 좌표를 캡처에 정합합니다.');
     // 도구: 버튼 하나 = 셀 하나 (사이 1칸 갭 — KPI 타일과 같은 방식, 합계 44칸 = 콘텐츠 폭)
     const inCell=(id,label)=>'<div id="'+id+'" style="display:flex;align-items:center;justify-content:center;height:100%;min-height:38px;padding:4px 6px">'+label+'</div>';
     const ctls=[
