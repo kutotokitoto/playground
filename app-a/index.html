@@ -361,8 +361,8 @@ table.dv-table tr.dv-dhdr td{background:#d9e1f2;font-weight:600;color:#1f3864}
 .xl-wrap{margin:0;width:max-content}   /* 좌상단에 딱 맞춤 — #data-view가 스크롤 담당 */
 table.xl-grid{border-collapse:collapse;table-layout:fixed;font-family:"Pretendard Variable","Pretendard","Malgun Gothic","Segoe UI";font-size:13px;background:#fff}
 table.xl-grid tr{height:21px}
-table.xl-grid td.fill{background:#eef0f2;padding:0}   /* 정보 없는 셀(좌우 패딩·빈 칸)은 엷은 회색(#eef0f2) */
-table.xl-grid tr.total td.fill{background:#eef0f2;font-weight:400}
+table.xl-grid td.fill{background:#f2f0ee;padding:0}   /* 정보 없는 셀(좌우 패딩·빈 칸)은 엷은 회색(#f2f0ee) */
+table.xl-grid tr.total td.fill{background:#f2f0ee;font-weight:400}
 table.xl-grid th.xh{background:#f5f5f5;border:1px solid #cfcfcf;color:#555;font-weight:400;font-size:11.5px;height:21px;text-align:center;position:sticky;top:0;z-index:2}
 table.xl-grid th.corner{position:sticky;left:0;top:0;z-index:4}
 table.xl-grid th.rn{background:#f5f5f5;border:1px solid #cfcfcf;color:#555;font-weight:400;font-size:11.5px;text-align:center;position:sticky;left:0;z-index:1}
@@ -400,7 +400,7 @@ table.xl-grid.fx td.fx-kpi-l{font-size:11px;color:#888;white-space:nowrap}
 table.xl-grid.fx td.fx-legend{text-align:left;padding:2px 12px}
 table.xl-grid.fx td.fx-card{border:none;padding:4px 8px;vertical-align:middle;text-align:left;background:#fff}
 table.xl-grid.fx td.fx-card .chart-card{box-shadow:none;border:none;border-radius:0;padding:2px 4px 4px}
-table.xl-grid.fx td.fill{background:#eef0f2}   /* 정보 없는 셀(갭 열·빈 칸)은 엷은 회색(#eef0f2) */
+table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈 칸)은 엷은 회색(#f2f0ee) */
 .cv-head{max-width:1600px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .cv-title{font-size:19px;font-weight:600;color:#1e1e1e;display:flex;align-items:center;gap:9px}
 .cv-title .cv-ic{font-size:20px}
@@ -2188,7 +2188,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783647151409;   // 2026-07-10 10:32 KST
+const BUILD_TS = 1783648188733;   // 2026-07-10 10:49 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
