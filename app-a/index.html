@@ -389,10 +389,10 @@ table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:8px 18px
 table.xl-grid td.lp-a-step .st-ic{font-size:27px;line-height:1;margin-bottom:6px}
 table.xl-grid td.lp-a-step b{display:inline-block;font-size:13px;font-weight:800;color:#0b5a30;margin-bottom:6px;border:1.5px solid #0b5a30;border-radius:999px;padding:4px 14px}
 table.xl-grid td.lp-a-step span{display:block;font-size:12.5px;color:#5a6b60;line-height:1.55}
-table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:58px;line-height:1;text-shadow:0 0 10px rgba(4,45,23,.9),0 0 22px rgba(4,45,23,.7)}
-table.xl-grid td.lp-a-hero .lp-a-title{font-size:57px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:10px;text-shadow:0 0 8px rgba(4,45,23,.95),0 0 20px rgba(4,45,23,.8),0 3px 6px rgba(3,30,15,.7)}
-table.xl-grid td.lp-a-hero .lp-a-sub{font-size:14.5px;color:rgba(255,255,255,.86);margin-top:10px;text-shadow:0 0 6px rgba(4,45,23,.95),0 0 14px rgba(4,45,23,.8),0 2px 4px rgba(3,30,15,.7)}
-table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:22px;font-size:13px;color:#0b5a30;background:#fff;border:1px solid #fff;border-radius:999px;padding:9px 20px;font-weight:700;box-shadow:0 0 12px rgba(4,45,23,.85),0 0 26px rgba(4,45,23,.6),0 3px 8px rgba(3,30,15,.6)}
+table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:58px;line-height:1;text-shadow:0 0 10px rgba(4,45,23,.45),0 0 22px rgba(4,45,23,.35)}
+table.xl-grid td.lp-a-hero .lp-a-title{font-size:57px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:10px;text-shadow:0 0 8px rgba(4,45,23,.48),0 0 20px rgba(4,45,23,.4),0 3px 6px rgba(3,30,15,.35)}
+table.xl-grid td.lp-a-hero .lp-a-sub{font-size:14.5px;color:rgba(255,255,255,.86);margin-top:10px;text-shadow:0 0 6px rgba(4,45,23,.48),0 0 14px rgba(4,45,23,.4),0 2px 4px rgba(3,30,15,.35)}
+table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:22px;font-size:13px;color:#0b5a30;background:#fff;border:1px solid #fff;border-radius:999px;padding:9px 20px;font-weight:700;box-shadow:0 0 12px rgba(4,45,23,.42),0 0 26px rgba(4,45,23,.3),0 3px 8px rgba(3,30,15,.3)}
 /* 메인페이지 하단 내비 버튼(시트 이동) */
 table.xl-grid td.lp-a-nav{background:#fff;text-align:center;padding:16px 10px;vertical-align:middle;white-space:normal;border-color:#d7e8dd;cursor:pointer;transition:background .12s}
 table.xl-grid td.lp-a-nav:hover{background:#eef7f0}
@@ -2220,7 +2220,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783662898711;   // 2026-07-10 14:54 KST
+const BUILD_TS = 1783663045247;   // 2026-07-10 14:57 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
