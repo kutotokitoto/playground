@@ -2193,7 +2193,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783650405858;   // 2026-07-10 11:26 KST
+const BUILD_TS = 1783650904418;   // 2026-07-10 11:35 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3613,32 +3613,18 @@ function showMainPage(){
   try{ renderMainPage(cv); }catch(e){ cv.innerHTML='<div style="padding:40px;color:#c00">메인 페이지 오류: '+escH(e.message)+'</div>'; }
   requestAnimationFrame(syncHScroll);
 }
-function renderMainPage(cv){
-  const co=extractCoord(), sh=sheet();
-  let N=0, cnt={ok:0,hi:0,lo:0,over:0,under:0}, verdict='—', rate='—';
-  if(co){ N=co.pts.length; co.pts.forEach(p=>cnt[coordStatus(p)]++); const b=cnt.over+cnt.under; verdict=b?'NG':((cnt.hi+cnt.lo)?'WARN':'OK'); rate=(b/N*100).toFixed(1)+'%'; }
-  const warn=cnt.hi+cnt.lo, bad=cnt.over+cnt.under;
+/* fx 시트 공통 레이아웃: build(ctx)가 push로 셀을 채우고 마지막 행을 반환 (엑셀 격자 룩) */
+function fxRender(cv, build){
+  const sh=sheet();
   const ROWH=21, CW=26, vw=cv.clientWidth||1200, vh=cv.clientHeight||700;
   let contentCols=Math.max(26, Math.min(46, Math.floor((vw-120)/CW))); if(contentCols%2) contentCols--;
   const contentW=contentCols*CW, leftover=Math.max(0, vw-42-contentW);
   let MARGIN=2; { const per=leftover/(MARGIN*2); if(per>90) MARGIN=3; else if(per<30) MARGIN=1; }
   const padW=Math.max(12, Math.round(leftover/(MARGIN*2)));
   const C0=MARGIN+1, contentEnd=C0+contentCols-1, totalCols=contentEnd+MARGIN;
-  const items=[], push=(r,c,cs,rs,cls,html)=>items.push({r,c,cs,rs,cls,html});
-  push(2,C0,Math.min(24,contentCols),1,'fx-title','🗺️ 도면 좌표 검사 리포트');
-  push(3,C0,Math.min(32,contentCols),1,'fx-sub','측정면·기준면 좌표를 오리진 기준으로 도면에 매핑하고, 규격·과삽·설삽 기준으로 삽입 불량을 시각화합니다. (더미 데이터 · 메인 페이지 초안)');
-  const kpis=[[verdict,'종합판정',verdict==='OK'?'ok':verdict==='NG'?'ng':(verdict==='WARN'?'warn':'')],[N||'—','측정 위치',''],[co?cnt.ok:'—','정상','ok'],[co?warn:'—','경고',warn?'warn':''],[co?bad:'—','불량(과삽·설삽)',bad?'ng':''],[rate,'불량률',bad?'ng':'']];
-  const kStep=Math.max(3, Math.floor(contentCols/kpis.length));
-  kpis.forEach((k,i)=>{ const c=C0+i*kStep; if(c+kStep-1>contentEnd) return; push(5,c,kStep-1,1,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(String(k[0]))); push(6,c,kStep-1,1,'fx-kpi-l',escH(k[1])); });
-  push(8,C0,Math.min(24,contentCols),1,'fx-legend','<b style="font-size:13px;color:#333">바로가기</b>');
-  const gap=1, half=Math.floor((contentCols-gap)/2), cardRS=5;
-  const card=(goto,ic,title,desc,col)=>'<div data-goto="'+goto+'" style="cursor:pointer;padding:14px 16px;border:1px solid #e2e2e0;border-radius:10px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04)">'
-    +'<div style="font-size:15px;font-weight:700;color:'+col+'">'+ic+' '+escH(title)+'</div>'
-    +'<div style="font-size:12px;color:#777;margin-top:5px;line-height:1.5">'+escH(desc)+'</div>'
-    +'<div style="font-size:12px;color:#2a78d6;font-weight:600;margin-top:9px">열기 →</div></div>';
-  push(9,C0,half,cardRS,'fx-card',card('측정데이터','📋','측정데이터','위치별 측정면/기준면 좌표, 규격·과삽·설삽 기준, 판정을 담은 원본 표.','#107C41'));
-  push(9,C0+half+gap,contentEnd-(C0+half+gap)+1,cardRS,'fx-card',card('시각화','🗺️','시각화','오리진 기준 도면 매핑과 삽입 불량·편차 히트맵.','#2a78d6'));
-  const lastRow=9+cardRS+1, totalRows=Math.max(lastRow+1, Math.ceil(vh/ROWH));
+  const items=[], push=(r,c,cs,rs,cls,html,style)=>items.push({r,c,cs,rs,cls,html,style});
+  const lastRow=build({contentCols,contentW,C0,contentEnd,CW,ROWH,vh,push})||1;
+  const totalRows=Math.max(lastRow+1, Math.ceil(vh/ROWH));
   const occ=new Set(), origin={};
   for(const it of items){ origin[it.r+','+it.c]=it; for(let dr=0;dr<it.rs;dr++)for(let dc=0;dc<it.cs;dc++){ if(dr||dc) occ.add((it.r+dr)+','+(it.c+dc)); } }
   const widths=[]; for(let c=1;c<=totalCols;c++){ widths.push((c<=MARGIN||c>totalCols-MARGIN)?padW:CW); }
@@ -3650,16 +3636,93 @@ function renderMainPage(cv){
     for(let c=1;c<=totalCols;c++){
       if(occ.has(r+','+c)) continue;
       const it=origin[r+','+c];
-      if(it) body+='<td class="'+it.cls+'"'+(it.cs>1?' colspan="'+it.cs+'"':'')+(it.rs>1?' rowspan="'+it.rs+'"':'')+'>'+it.html+'</td>';
+      if(it) body+='<td class="'+(it.cls||'')+'"'+(it.cs>1?' colspan="'+it.cs+'"':'')+(it.rs>1?' rowspan="'+it.rs+'"':'')+(it.style?' style="'+it.style+'"':'')+'>'+it.html+'</td>';
       else body+='<td class="fill"></td>';
     }
     body+='</tr>';
   }
   cv.innerHTML='<div class="xl-wrap"><table class="xl-grid fx"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
 }
+function mpData(){
+  const co=extractCoord();
+  const d={co, N:0, ok:0, warn:0, bad:0, over:0, under:0, verdict:'—', rate:'—', worst:0, worstPos:'-', origin:{x:0,y:0}, nom:null, tol:null};
+  if(co){ const cnt={ok:0,hi:0,lo:0,over:0,under:0}; let worst=0,wp='-';
+    co.pts.forEach(p=>{ cnt[coordStatus(p)]++; const s=Math.abs(p.meas-p.nom)/(co.tol||0.2); if(s>worst){worst=s;wp=p.pos;} });
+    const bad=cnt.over+cnt.under, warn=cnt.hi+cnt.lo, N=co.pts.length;
+    Object.assign(d,{N, ok:cnt.ok, warn, bad, over:cnt.over, under:cnt.under, verdict:bad?'NG':(warn?'WARN':'OK'), rate:(bad/N*100).toFixed(1)+'%', worst, worstPos:wp, origin:co.origin, nom:co.nom, tol:co.tol});
+  }
+  return d;
+}
+function vCol(v){ return v==='OK'?'#0ca30c':v==='NG'?'#d03b3b':v==='WARN'?'#e08a00':'#888'; }
+function mpTile(v,l,accent){ return '<div style="box-sizing:border-box;padding:11px 13px;border-radius:11px;background:#fff;border:1px solid #e8e8e4;box-shadow:0 1px 3px rgba(0,0,0,.05)">'
+  +'<div style="font-size:23px;font-weight:800;color:'+(accent||'#1e1e1e')+';line-height:1.05;font-variant-numeric:tabular-nums">'+escH(String(v))+'</div>'
+  +'<div style="font-size:11px;color:#8a8a8a;margin-top:5px">'+escH(l)+'</div></div>'; }
+function mpBtn(goto,label,bg){ return '<span data-goto="'+goto+'" style="cursor:pointer;display:inline-block;background:'+bg+';color:#fff;font-size:13px;font-weight:700;padding:11px 20px;border-radius:9px;box-shadow:0 2px 8px rgba(0,0,0,.12)">'+escH(label)+' →</span>'; }
+function renderMainPage(cv){
+  const d=mpData(), variant=sheet().mainVariant||'a';
+  const build = variant==='b'?buildMainB : variant==='c'?buildMainC : buildMainA;
+  fxRender(cv, ctx=>build(ctx,d));
+}
+/* A) 대시보드형 — 컬러 헤더 배너 + KPI 타일 + 미니 도면/히트맵 + 버튼 */
+function buildMainA(ctx,d){
+  const {contentCols:CC, C0, contentEnd:CE, CW, push}=ctx;
+  push(2,C0,CC,3,'fx-card','<div style="height:100%;box-sizing:border-box;background:linear-gradient(120deg,#107C41,#0b5a30);border-radius:12px;padding:16px 20px;color:#fff;display:flex;flex-direction:column;justify-content:center">'
+    +'<div style="font-size:22px;font-weight:800">🗺️ 도면 좌표 검사 · 대시보드</div>'
+    +'<div style="font-size:12.5px;opacity:.9;margin-top:5px">측정면·기준면 좌표를 오리진 기준으로 매핑하고 삽입 불량을 한눈에.</div></div>');
+  const tiles=[[d.verdict,'종합판정',vCol(d.verdict)],[d.N||'—','측정 위치','#1e1e1e'],[d.ok,'정상','#0ca30c'],[d.warn,'경고','#e08a00'],[d.bad,'불량(과삽·설삽)','#d03b3b'],[d.rate,'불량률',d.bad?'#d03b3b':'#0ca30c']];
+  const step=Math.floor(CC/6), tw=step-1;
+  tiles.forEach((t,i)=>{ const c=C0+i*step; if(c+tw-1>CE) return; push(6,c,tw,3,'fx-card',mpTile(t[0],t[1],t[2])); });
+  push(10,C0,CC,1,'fx-legend','<b style="font-size:12.5px;color:#555">도면 미리보기</b>');
+  const gap=1, half=Math.floor((CC-gap)/2), rs=8;
+  if(d.co){
+    push(11,C0,half,rs,'fx-card','<div style="padding:6px 8px">'+svgCoordMap(d.co, half*CW, true)+'</div>');
+    const rw=CE-(C0+half+gap)+1; push(11,C0+half+gap,rw,rs,'fx-card','<div style="padding:6px 8px">'+svgCoordHeatmap(d.co, rw*CW, true)+'</div>');
+  }
+  const br=11+rs+1;
+  push(br,C0,CC,2,'fx-card','<div style="display:flex;gap:12px;align-items:center;padding:6px 4px;flex-wrap:wrap">'+mpBtn('측정데이터','측정데이터 열기','#107C41')+mpBtn('시각화','시각화 열기','#2a78d6')+'<span style="font-size:11.5px;color:#999">데이터 탭 ▸ 측정 더미 불러오기로 새 데이터를 만들 수 있어요.</span></div>');
+  return br+2;
+}
+/* B) 히어로/랜딩형 — 넉넉한 여백, 큰 타이틀, 3개 특징, CTA 버튼 */
+function buildMainB(ctx,d){
+  const {contentCols:CC, C0, contentEnd:CE, push}=ctx;
+  push(3,C0,CC,7,'fx-card','<div style="height:100%;box-sizing:border-box;background:linear-gradient(160deg,#f0f7f2,#eaf1fb);border:1px solid #e2ece4;border-radius:16px;padding:34px 28px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center">'
+    +'<div style="font-size:12px;letter-spacing:.14em;font-weight:700;color:#0a7a34;text-transform:uppercase">Drawing Coordinate Inspection</div>'
+    +'<div style="font-size:34px;font-weight:800;color:#14251b;margin-top:10px;letter-spacing:-.02em">도면 좌표 검사</div>'
+    +'<div style="font-size:14px;color:#5a6b60;margin-top:12px;max-width:520px;line-height:1.6">측정면과 기준면의 좌표를 오리진 기준으로 도면에 얹고, 규격·과삽·설삽 기준으로 삽입 불량을 시각화합니다.</div>'
+    +'<div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">'+mpBtn('시각화','시각화 보기','#107C41')+mpBtn('측정데이터','데이터 보기','#2a78d6')+'</div></div>');
+  const feats=[['🗺️','좌표 매핑','오리진 기준 측정면·기준면 배치'],['🌡️','불량 히트맵','규격 대비 편차를 색으로'],['⚖️','규격 판정','과삽·설삽·상하한 자동 판정']];
+  const gap=1, tw=Math.floor((CC-2*gap)/3);
+  feats.forEach((f,i)=>{ const c=C0+i*(tw+gap); if(c+tw-1>CE) return; push(11,c,tw,3,'fx-card','<div style="box-sizing:border-box;padding:14px 16px;border:1px solid #eaeae6;border-radius:12px;background:#fff;text-align:center">'
+    +'<div style="font-size:24px">'+f[0]+'</div><div style="font-size:14px;font-weight:700;color:#222;margin-top:6px">'+escH(f[1])+'</div>'
+    +'<div style="font-size:11.5px;color:#888;margin-top:4px;line-height:1.5">'+escH(f[2])+'</div></div>'); });
+  return 14;
+}
+/* C) 리포트 표지형 — 좌 타이틀/우 상태배지 + 메타데이터 폼 + 시트 안내 */
+function buildMainC(ctx,d){
+  const {contentCols:CC, C0, contentEnd:CE, push}=ctx;
+  push(3,C0,CC-8,2,'fx-card','<div style="border-left:4px solid #107C41;padding:2px 0 2px 14px">'
+    +'<div style="font-size:11px;letter-spacing:.12em;color:#0a7a34;font-weight:700">INSPECTION REPORT</div>'
+    +'<div style="font-size:26px;font-weight:800;color:#1b1b1b;margin-top:4px">도면 좌표 검사 리포트</div></div>');
+  push(3,CE-7,8,2,'fx-card','<div style="text-align:right"><div style="display:inline-block;background:'+vCol(d.verdict)+';color:#fff;font-size:22px;font-weight:800;padding:8px 20px;border-radius:10px">'+escH(d.verdict)+'</div>'
+    +'<div style="font-size:11px;color:#999;margin-top:6px">종합 판정</div></div>');
+  const rows=[['오리진','X='+d.origin.x+'  ·  Y='+d.origin.y],['측정 위치',d.N+' 개'],['기준치',d.nom==null?'—':f3(d.nom)],['공차',d.tol==null?'—':'±'+f3(d.tol)],['정상',d.ok+' 개'],
+    ['경고(상·하한)',d.warn+' 개'],['불량(과삽·설삽)',d.bad+' 개'],['불량률',d.rate],['검사일','2026-07-10 (더미)'],['리포트 번호','RPT-'+(1000+(d.N||0))]];
+  const half=Math.floor(CC/2), kw=Math.floor(half*0.42), r0=6;
+  rows.forEach((rw,i)=>{ const col=i<5?C0:C0+half, rr=r0+(i%5)*2;
+    push(rr,col,kw,2,'fx-card','<div style="padding:2px 0;color:#888;font-size:11.5px">'+escH(rw[0])+'</div>');
+    push(rr,col+kw,half-kw-1,2,'fx-card','<div style="padding:2px 0;color:#1e1e1e;font-size:13.5px;font-weight:600">'+escH(rw[1])+'</div>');
+  });
+  const tr=r0+10+1;
+  push(tr,C0,CC,1,'fx-legend','<b style="font-size:12.5px;color:#555">시트 안내</b>');
+  push(tr+1,C0,CC,2,'fx-card','<div data-goto="측정데이터" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #eee"><span style="width:22px;height:22px;border-radius:6px;background:#107C41;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">1</span><b style="font-size:13px;color:#222">측정데이터</b><span style="font-size:11.5px;color:#888">위치별 좌표·규격·판정 원본 표</span><span style="margin-left:auto;color:#2a78d6;font-size:12px">열기 →</span></div>');
+  push(tr+3,C0,CC,2,'fx-card','<div data-goto="시각화" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 10px"><span style="width:22px;height:22px;border-radius:6px;background:#2a78d6;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">2</span><b style="font-size:13px;color:#222">시각화</b><span style="font-size:11.5px;color:#888">도면 매핑 · 삽입 불량 히트맵</span><span style="margin-left:auto;color:#2a78d6;font-size:12px">열기 →</span></div>');
+  return tr+5;
+}
 
 /* ══════════════ 초기화 ══════════════ */
-sheets.push({name:'메인페이지', kind:'main', data:{}, colW:{}, rowH:{}});
+sheets.push({name:'메인 A·대시보드', kind:'main', mainVariant:'a', data:{}, colW:{}, rowH:{}});
+sheets.push({name:'메인 B·히어로', kind:'main', mainVariant:'b', data:{}, colW:{}, rowH:{}});
+sheets.push({name:'메인 C·리포트', kind:'main', mainVariant:'c', data:{}, colW:{}, rowH:{}});
 const _coord = genCoordData('측정데이터');
 sheets.push(_coord); coordSource = _coord;
 sheets.push(newChartSheet('시각화','coordviz',true));
