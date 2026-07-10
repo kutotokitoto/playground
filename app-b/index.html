@@ -2216,16 +2216,21 @@ function switchSheet(i){
 /* 새 시트(＋) 버튼 제거 — 시트는 측정데이터·정규분포·산점도·박스플롯 4개로 고정 */
 
 /* ══════════════ 확대/축소 ══════════════ */
+let uiZoom=1;   // 현재 배율 — fxRender/landingFrame이 유효 폭 계산에 사용
 function setZoom(z){
-  wrap.style.zoom=z/100;
+  uiZoom=z/100;
+  wrap.style.zoom=uiZoom;
+  $('data-view').style.zoom=uiZoom;
+  $('chart-view').style.zoom=uiZoom;
   $('zoom-pct').textContent=z+'%';
+  window.dispatchEvent(new Event('resize'));   // 현재 시트를 유효 폭 기준으로 다시 그림
 }
 $('zoom-slider').addEventListener('input', e=>setZoom(+e.target.value));
 $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoom(100); });
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783666193098;   // 2026-07-10 15:49 KST
+const BUILD_TS = 1783666391303;   // 2026-07-10 15:53 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3755,7 +3760,7 @@ function showMainPage(){
 /* fx 시트 공통 레이아웃: build(ctx)가 push로 셀을 채우고 마지막 행을 반환 (엑셀 격자 룩) */
 function fxRender(cv, build, gapLayout){
   const sh=sheet();
-  const ROWH=21, CW=26, vw=cv.clientWidth||1200, vh=cv.clientHeight||700;
+  const ROWH=21, CW=26, vw=(cv.clientWidth||1200)/uiZoom, vh=(cv.clientHeight||700)/uiZoom;   // 줌 배율 반영한 유효 폭/높이
   let contentCols=Math.max(26, Math.min(46, Math.floor((vw-120)/CW))); if(contentCols%2) contentCols--;
   const GAP=gapLayout?1:0;                          // 고정 갭 열(26px) — 좌:C · 우:콘텐츠 끝 다음
   if(GAP) contentCols=Math.max(8, contentCols-2);   // 갭 두 칸이 콘텐츠 두 칸을 대체 (D~AU)
@@ -3803,7 +3808,7 @@ function mosaicBg(){
 }
 function landingFrame(cv, buildRows){
   const NC=12, PTW=112, DW=92, ROWH=21, sh=sheet();
-  const contentW=PTW+(NC-1)*DW, vw=cv.clientWidth||1200, vh=cv.clientHeight||600;
+  const contentW=PTW+(NC-1)*DW, vw=(cv.clientWidth||1200)/uiZoom, vh=(cv.clientHeight||600)/uiZoom;
   const leftover=Math.max(0, vw-42-contentW);
   let padPer=2; { const per=leftover/(padPer*2); if(per>95) padPer=3; else if(per<40) padPer=1; }
   const padW=Math.max(12, Math.round(leftover/(padPer*2)));
