@@ -369,6 +369,8 @@ table.xl-grid th.rn{background:#f5f5f5;border:1px solid #cfcfcf;color:#555;font-
 table.xl-grid td{border:1px solid #e0e0e0;padding:2px 9px;text-align:right;white-space:nowrap;color:#111;background:#fff;overflow:hidden;text-overflow:ellipsis}
 table.xl-grid td.hdr{font-weight:600;text-align:center;background:#fafafa;color:#333}
 table.xl-grid td.info-title{text-align:left;font-weight:700;color:#0a7a34;background:#eef7f0;font-size:13.5px}
+table.xl-grid td.pg-title{text-align:center;font-weight:800;color:#0a7a34;background:#eef7f0;font-size:24px;letter-spacing:-.01em;padding:8px 9px 2px}
+table.xl-grid td.pg-sub{text-align:center;color:#6b7280;background:#eef7f0;font-size:13px;padding:0 9px 8px}
 table.xl-grid td.info-k{text-align:left;color:#777;background:#fafafa;font-size:11.5px}
 table.xl-grid td.info-v{text-align:left;font-weight:600;color:#222}
 table.xl-grid td.info-v.ok{color:#0a8a0a}
@@ -2188,7 +2190,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783648568582;   // 2026-07-10 10:56 KST
+const BUILD_TS = 1783648871205;   // 2026-07-10 11:01 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3176,8 +3178,9 @@ function renderPointStatsTable(qc){
     for(const pr of pairs) s+='<td class="info-k">'+escH(pr[0])+'</td><td class="info-v'+(pr[2]?' '+pr[2]:'')+'">'+escH(pr[1])+'</td>';
     body+=s+RP+'</tr>'; rn++; };
   blankRow();   // 1행: 상단 여백(빈 행)
-  // 제목(병합)
-  body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP+'<td class="info-title" colspan="'+NC+'">✅ 측정 데이터를 성공적으로 불러왔습니다</td>'+RP+'</tr>'; rn++;
+  // 메인 타이틀 + 한 줄 설명 (이 페이지 = 메인 페이지)
+  body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP+'<td class="pg-title" colspan="'+NC+'">불량률 시각화 도구</td>'+RP+'</tr>'; rn++;
+  body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP+'<td class="pg-sub" colspan="'+NC+'">측정 데이터를 정규분포·산점도·박스플롯으로 시각화합니다</td>'+RP+'</tr>'; rn++;
   // 메타데이터
   infoRow([['모델',md('model')],['품번',md('pn')],['Lot',md('lot')],['검사일',md('date')],['측정기',md('jig')],['프로그램',md('program')]]);
   // 요약 ① — 규모·불량·수율
