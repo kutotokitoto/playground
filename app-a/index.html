@@ -2227,7 +2227,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783670236788;   // 2026-07-10 16:57 KST
+const BUILD_TS = 1783672098140;   // 2026-07-10 17:28 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2454,6 +2454,43 @@ function parseMeasurementCSV(text){
   const rows=text.replace(/\r/g,'').split('\n').filter(l=>l.trim()!=='').map(splitCSVLine);
   return parseMeasurementRows(rows);
 }
+/* 한글 인코딩 스코어링: UTF-8/EUC-KR 둘 다 디코딩해 "한글이 더 살아나는 쪽"을 채택.
+   진짜 한글(가-힣) +1, 깨진 문자(�) -3, 템플릿 키워드 생존 시 +1000(결정타).
+   잘못된 디코딩은 우연히 '포인트' 같은 실제 단어를 만들 수 없어 키워드 보너스가 항상 정답을 고름 */
+function decodeSmart(buf){
+  const cands=[new TextDecoder('utf-8').decode(buf)];
+  try{ cands.push(new TextDecoder('euc-kr').decode(buf)); }catch(e){}
+  const score=t=>((t.match(/[가-힣]/g)||[]).length)
+    -((t.match(/�/g)||[]).length)*3
+    +(/포인트|스펙|상한|하한|시리얼|측정/.test(t)?1000:0);
+  cands.sort((a,b)=>score(b)-score(a));
+  return cands[0];
+}
+/* 헤더 라벨이 어떤 인코딩으로도 안 살아날 때의 최후 파훼: 템플릿 행 순서를 가정하고 위치로 해석.
+   "B열부터 전부 숫자인 행 3연속"(스펙·상한·하한)을 찾으면, 그 위 행=포인트, 아래=데이터로 간주 */
+function positionalTemplateParse(rows){
+  const cell=(r,c)=>String(r&&r[c]!=null?r[c]:'');
+  const allNum=r=>{ let n=0,w=0; for(let c=1;c<(r?r.length:0);c++){ const s=cell(r,c).trim(); if(s==='')continue; w++; if(isFinite(Number(s)))n++; } return w>=1&&n===w; };
+  for(let i=1;i+2<Math.min(rows.length,8);i++){
+    if(!(allNum(rows[i])&&allNum(rows[i+1])&&allNum(rows[i+2]))) continue;
+    const hdr=rows[i-1], specR=rows[i], uR=rows[i+1], lR=rows[i+2];
+    let Praw=0; for(let c=1;c<specR.length;c++){ if(cell(specR,c).trim()!=='') Praw=c; else break; }
+    if(Praw<1) continue;
+    const P=Math.min(Praw,MAX_POINTS), pts=[];
+    for(let c=1;c<=P;c++){ let nm=cell(hdr,c).trim(); if(!nm||/�/.test(nm)) nm=pad2(c);
+      pts.push({no:nm, spec:Number(specR[c]), usl:Number(uR[c]), lsl:Number(lR[c]), values:[]}); }
+    if(!pts.every(p=>isFinite(p.usl)&&isFinite(p.lsl))) continue;
+    const maxN=ROWS-13, serials=[]; let moreRows=false;
+    for(let ri=i+3; ri<rows.length; ri++){ const s0=cell(rows[ri],0).trim(), sn=Number(s0);
+      if(s0===''||!isFinite(sn)) continue;
+      if(serials.length>=maxN){ moreRows=true; break; }
+      serials.push(sn);
+      for(let c=1;c<=P;c++){ const v=Number(rows[ri][c]); pts[c-1].values.push(isFinite(v)?v:null); } }
+    if(!serials.length) continue;
+    return {pts, serials, positional:true, truncated:Praw>MAX_POINTS||moreRows};
+  }
+  return null;
+}
 /* rows: 2차원 배열(문자열). CSV·xlsx 공용 파서. 한도(포인트 60 / 시료 ROWS-13) 초과분은 잘림 */
 let parseFail='';   // 마지막 파싱 실패 사유 — 업로드 토스트 진단용
 function parseMeasurementRows(rows){
@@ -2466,6 +2503,8 @@ function parseMeasurementRows(rows){
     uR=find('상한')||rows.find(r=>/USL/i.test(cell(r,0))),
     lR=find('하한')||rows.find(r=>/LSL/i.test(cell(r,0)));
   if(!hdr||!specR||!uR||!lR){
+    const pos=positionalTemplateParse(rows);   // 라벨이 깨졌어도 행 순서로 재시도
+    if(pos) return pos;
     const miss=[!hdr&&"'포인트'",!specR&&"'스펙'",!uR&&"'상한(USL)'",!lR&&"'하한(LSL)'"].filter(Boolean).join(', ');
     parseFail='A열에서 라벨 행을 찾지 못함: '+miss; return null; }
   let Praw=0; for(let c=1;c<hdr.length;c++){ if(cell(hdr,c).trim()!=='') Praw=c; else break; }
@@ -2613,7 +2652,7 @@ async function processUpload(file, mode){
       return;
     }
     else {
-      const text=await file.text(); const lines=text.replace(/\r/g,'').split('\n');
+      const text=decodeSmart(new Uint8Array(await file.arrayBuffer())); const lines=text.replace(/\r/g,'').split('\n');
       while(lines.length && lines[lines.length-1]==='') lines.pop();
       const tab=text.indexOf('\t')>=0 && text.indexOf(',')<0;
       rows=lines.map(l=> tab? l.split('\t') : splitCSVLine(l));
@@ -2626,7 +2665,7 @@ async function processUpload(file, mode){
     let sh, msg;
     if(parsed){ sh=buildQCSheet('측정데이터', parsed.pts, parsed.serials, parsed.meta);
       const uP=Math.min(parsed.pts.length,MAX_POINTS), uN=Math.min(parsed.serials.length,ROWS-13);
-      msg='📤 업로드 완료 ('+(isLog?'세로 로그':'가로 템플릿')+') · 시료 '+uN+'개 · 포인트 '+uP+'개'+(parsed.truncated?' (한도 초과분은 잘림)':''); }
+      msg='📤 업로드 완료 ('+(isLog?'세로 로그':'가로 템플릿')+(parsed.positional?' · 헤더 미인식 → 행 순서 기반 해석':'')+') · 시료 '+uN+'개 · 포인트 '+uP+'개'+(parsed.truncated?' (한도 초과분은 잘림)':''); }
     else { sh=genQCData('측정데이터');
       msg='⚠ 파일을 읽지 못해 더미 데이터로 대체 · 원인: '+(parseFail||'형식 미인식'); }
     hideLoading(); replaceQCSheet(sh); toast(msg);   // 새 시트 만들지 않고 측정데이터 교체
