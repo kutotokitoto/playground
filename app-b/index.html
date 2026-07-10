@@ -46,7 +46,7 @@ input,select{font-family:inherit}
 #autosave.on .pill{background:#fff}
 #autosave.on .pill::after{left:14px;background:var(--green)}
 #tb-title{
-  font-size:12px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:16px;font-weight:800;letter-spacing:-.01em;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 #tb-search{
   flex:1;max-width:560px;margin:0 auto;height:26px;background:rgba(255,255,255,.9);
@@ -572,7 +572,7 @@ table.xl-grid td.xl-empty{background:#fbfbfa;color:#999;font-size:14px;line-heig
 
 <!-- 타이틀 바 -->
 <div id="titlebar">
-  <span id="tb-title">도면좌표 불량률 시각화 <span style="opacity:.75;font-size:11px;margin-left:8px">스마트폰기구개발2그룹 AXTF 정웅호</span></span>
+  <span id="tb-title">도면좌표 불량률 시각화 <span style="opacity:.75;font-size:11px;font-weight:500;margin-left:10px">스마트폰기구개발2그룹 AX TF 정웅호</span></span>
   <div id="tb-search" class="dummy">🔍 <span style="color:#666">검색</span></div>
   <div id="tb-right">
     <div id="tb-user" title="사용자">DH</div>
@@ -2225,7 +2225,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783665937777;   // 2026-07-10 15:45 KST
+const BUILD_TS = 1783666193098;   // 2026-07-10 15:49 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
