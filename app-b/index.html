@@ -2194,7 +2194,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783654639368;   // 2026-07-10 12:37 KST
+const BUILD_TS = 1783655142674;   // 2026-07-10 12:45 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3588,13 +3588,13 @@ function genBoardImage(co){
   const P=(x,y)=>{ const lx=ox+(x-b.minx)*s-cxp, ly=oy+(y-b.miny)*s-cyp; return {u:cxp+lx*ct-ly*stt+tx, v:cyp+lx*stt+ly*ct+ty}; };
   const c00=P(b.minx,b.miny), c10=P(b.maxx,b.miny), c11=P(b.maxx,b.maxy), c01=P(b.minx,b.maxy);
   const poly=[c00,c10,c11,c01].map(p=>rnd(p.u)+','+rnd(p.v)).join(' ');
-  let g='<rect width="'+IW+'" height="'+IH+'" fill="#0e1512"/>';
-  g+='<polygon points="'+poly+'" fill="#0b5033" stroke="#0a3f28" stroke-width="3"/>';
-  g+='<text x="'+rnd(c00.u+10)+'" y="'+rnd(c00.v+20)+'" fill="#bfe6cf" font-size="12" font-family="monospace" transform="rotate(-7 '+rnd(c00.u+10)+' '+rnd(c00.v+20)+')">DUMMY BOARD CAP · REV.A (더미 캡처)</text>';
+  let g='<rect width="'+IW+'" height="'+IH+'" fill="#d7dcd6"/>';   // 밝은 촬영 배경
+  g+='<polygon points="'+poly+'" fill="#2f9e63" stroke="#1f6f46" stroke-width="3"/>';   // 밝은 PCB 그린
+  g+='<text x="'+rnd(c00.u+10)+'" y="'+rnd(c00.v+20)+'" fill="#eafff1" font-size="12" font-family="monospace" transform="rotate(-7 '+rnd(c00.u+10)+' '+rnd(c00.v+20)+')">DUMMY BOARD CAP · REV.A (더미 캡처)</text>';
   co.pts.forEach(p=>{ const q=P(p.rx,p.ry);
-    g+='<circle cx="'+rnd(q.u)+'" cy="'+rnd(q.v)+'" r="6.5" fill="#d9a441" stroke="#8a5a12" stroke-width="1.4"/>'
-      +'<circle cx="'+rnd(q.u)+'" cy="'+rnd(q.v)+'" r="2.3" fill="#3a2a0a"/>'
-      +'<text x="'+rnd(q.u+8)+'" y="'+rnd(q.v-6)+'" fill="#cfe8d8" font-size="8" font-family="monospace">'+p.pos+'</text>';
+    g+='<circle cx="'+rnd(q.u)+'" cy="'+rnd(q.v)+'" r="6.5" fill="#efc24f" stroke="#a06a16" stroke-width="1.4"/>'
+      +'<circle cx="'+rnd(q.u)+'" cy="'+rnd(q.v)+'" r="2.3" fill="#5a3f12"/>'
+      +'<text x="'+rnd(q.u+8)+'" y="'+rnd(q.v-6)+'" fill="#f0fff5" font-size="8" font-family="monospace">'+p.pos+'</text>';
   });
   const refs=calibRefPoints(co);
   refs.forEach((p,i)=>{ const q=P(p.rx,p.ry);
@@ -3603,12 +3603,12 @@ function genBoardImage(co){
       +'<text x="'+rnd(q.u+13)+'" y="'+rnd(q.v-10)+'" text-anchor="middle" fill="#fff" font-size="10" font-family="monospace" font-weight="bold">'+(i+1)+'</text>';
   });
   const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+IW+'" height="'+IH+'" viewBox="0 0 '+IW+' '+IH+'">'
-    +'<defs><radialGradient id="vg" cx="50%" cy="46%" r="72%"><stop offset="60%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="0.45"/></radialGradient></defs>'
+    +'<defs><radialGradient id="vg" cx="50%" cy="46%" r="74%"><stop offset="72%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="0.16"/></radialGradient></defs>'
     +g+'<rect width="'+IW+'" height="'+IH+'" fill="url(#vg)"/></svg>';
   return { url:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg),
     refClicks: refs.map(p=>{ const q=P(p.rx,p.ry); return {fx:q.u/IW, fy:q.v/IH}; }) };
 }
-const calib={ img:null, clicks:[], af:null, dummyRefs:null, refPts:[], opacity:0.85, heat:true, errPx:0, overlayOnViz:true };
+const calib={ img:null, clicks:[], af:null, dummyRefs:null, refPts:[], opacity:0.72, heat:true, errPx:0, overlayOnViz:true };
 function oobN(q){ return q.fx<-0.06||q.fx>1.06||q.fy<-0.06||q.fy>1.06; }
 /* 정합 이미지 위에 연속 불량률 필드 (정규 0..100 좌표를 이미지에 stretch) */
 function svgRateFieldOnImage(co, af){
