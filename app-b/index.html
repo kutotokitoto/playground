@@ -2192,7 +2192,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783648740010;   // 2026-07-10 10:59 KST
+const BUILD_TS = 1783649438489;   // 2026-07-10 11:10 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3234,7 +3234,7 @@ function showChartSheet(){
   const type=sheet().chart, label={normal:'정규분포',scatter:'산점도',box:'박스플롯',coordviz:'도면 시각화'}[type]||'차트';
   showLoading(label+' 생성 중…','시각화를 그리는 중입니다');
   const token=++chartToken;
-  setTimeout(()=>{ if(token!==chartToken) return; try{ if(type==='coordviz') renderCoordViz(cv); else (framed?renderFramedChart:renderCharts)(type,cv); }catch(e){ cv.innerHTML='<div style="padding:40px;color:#c00">차트 생성 오류: '+escH(e.message)+'</div>'; } hideLoading(); requestAnimationFrame(syncHScroll); }, 320);
+  setTimeout(()=>{ if(token!==chartToken) return; try{ if(type==='coordviz') (framed?renderCoordVizFramed:renderCoordViz)(cv); else (framed?renderFramedChart:renderCharts)(type,cv); }catch(e){ cv.innerHTML='<div style="padding:40px;color:#c00">차트 생성 오류: '+escH(e.message)+'</div>'; } hideLoading(); requestAnimationFrame(syncHScroll); }, 320);
 }
 
 /* ══════════════ 튜토리얼 위저드 ══════════════ */
@@ -3354,15 +3354,15 @@ const COORD_COL={ok:'#0ca30c',hi:'#e08a00',lo:'#e08a00',over:'#d03b3b',under:'#7
 
 /* 더미 데이터: 커넥터형 24위치(2행×12열). 기준면=설계 위치, 측정면=삽입 편차만큼 이동 */
 function genCoordData(name){
-  const COLN=12, ROWN=2, N=COLN*ROWN, pitch=8, x0=10, y0=12, nom=2.00, tol=0.20;
+  const COLN=10, ROWN=5, N=COLN*ROWN, pitch=8, vpitch=9, x0=8, y0=8, nom=2.00, tol=0.20;
   const r3=x=>Math.round(x*1000)/1000, r2=x=>Math.round(x*100)/100;
   const gauss=()=>{ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
   const usl=r3(nom+tol), lsl=r3(nom-tol), over=r3(nom+tol*1.8), under=r3(nom-tol*1.8);
   const pts=[];
   for(let i=0;i<N;i++){
     const col=i%COLN, row=(i/COLN|0);
-    const rx=r2(x0+col*pitch), ry=r2(y0+row*pitch*2.2);      // 기준면(설계 위치)
-    const dir=row===0?1:-1;                                   // 삽입 방향(행마다 반대)
+    const rx=r2(x0+col*pitch), ry=r2(y0+row*vpitch);          // 기준면(설계 위치)
+    const dir=row<ROWN/2?1:-1;                                // 삽입 방향(상/하 뱅크)
     let meas=nom+gauss()*tol*0.42; const roll=Math.random();
     if(roll<0.05) meas=over+Math.random()*tol*0.5;            // 과삽
     else if(roll>0.95) meas=under-Math.random()*tol*0.5;      // 설삽
@@ -3436,13 +3436,13 @@ function coordBounds(co){
 }
 function lerpCol(a,b,t){ const p=(s,i)=>parseInt(s.substr(i,2),16); const c=[0,1,2].map(k=>Math.round(p(a,1+k*2)+(p(b,1+k*2)-p(a,1+k*2))*t)); return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
 function sevColor(sev){ const u=Math.max(0,Math.min(1,sev/2)); return u<0.5?lerpCol('#2e9e2e','#f4c020',u/0.5):lerpCol('#f4c020','#d03b3b',(u-0.5)/0.5); }
-/* ① 도면 매핑: 기준면(회색) + 편차 화살표 + 측정면(색) */
-function svgCoordMap(co){
-  const b=coordBounds(co), W=780, ml=44,mr=22,mt=22,mb=34;
-  const dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, pw=W-ml-mr, sc=pw/(dx*1.12), ph=dy*1.12*sc, H=Math.max(150,mt+ph+mb);
+/* ① 도면 매핑: 기준면(회색) + 편차 화살표 + 측정면(색). W=캔버스 폭, fill=셀 채움(반응형) */
+function svgCoordMap(co, W, fill){
+  W=W||780; const H=Math.round(W*0.42), ml=44,mr=22,mt=20,mb=30, pw=W-ml-mr, ph=H-mt-mb;
+  const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, sc=Math.min(pw/(dx*1.12), ph/(dy*1.12));
   const cx=(b.minx+b.maxx)/2, cy=(b.miny+b.maxy)/2, X=x=>ml+pw/2+(x-cx)*sc, Y=y=>mt+ph/2-(y-cy)*sc;
   let maxdev=0; co.pts.forEach(p=>{ const d=Math.hypot(p.mx-p.rx,p.my-p.ry); if(d>maxdev)maxdev=d; });
-  const EXAG=maxdev>0?Math.max(3,Math.min(80,26/(maxdev*sc))):12;
+  const EXAG=maxdev>0?Math.max(3,Math.min(80,22/(maxdev*sc))):12;
   const ox=X(co.origin.x), oy=Y(co.origin.y);
   let s=sLine(ml,oy,ml+pw,oy,'#ececeb',1)+sLine(ox,mt,ox,mt+ph,'#ececeb',1);
   s+='<circle cx="'+rnd(ox)+'" cy="'+rnd(oy)+'" r="4" fill="none" stroke="#333" stroke-width="1.4"/>'
@@ -3455,20 +3455,22 @@ function svgCoordMap(co){
       +sTxt(rX,rY-5,String(p.pos),'middle','#9a9a96',7.5);
   });
   s+=sTxt(ml,H-9,'편차 ×'+Math.round(EXAG)+' 확대 · 회색=기준면, 색점=측정면','start','#9a9a96',9);
-  return '<svg viewBox="0 0 '+W+' '+rnd(H)+'" preserveAspectRatio="xMidYMid meet" style="min-width:'+W+'px;width:'+W+'px">'+s+'</svg>';
+  const style=fill?'width:100%;height:auto;display:block':('min-width:'+W+'px;width:'+W+'px');
+  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="'+style+'">'+s+'</svg>';
 }
 /* ② 편차 히트맵: 각 위치를 |측정−기준치|/공차로 색칠, 과삽/설삽은 굵은 테두리 */
-function svgCoordHeatmap(co){
-  const b=coordBounds(co), W=780, ml=30,mr=22,mt=22,mb=30;
-  const dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, pw=W-ml-mr, sc=pw/(dx*1.12), ph=dy*1.12*sc, H=Math.max(140,mt+ph+mb);
+function svgCoordHeatmap(co, W, fill){
+  W=W||780; const H=Math.round(W*0.34), ml=30,mr=22,mt=18,mb=24, pw=W-ml-mr, ph=H-mt-mb;
+  const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, sc=Math.min(pw/(dx*1.12), ph/(dy*1.12));
   const cx=(b.minx+b.maxx)/2, cy=(b.miny+b.maxy)/2, X=x=>ml+pw/2+(x-cx)*sc, Y=y=>mt+ph/2-(y-cy)*sc;
-  const R=Math.max(7,Math.min(16,co.pitch*sc*0.34)), tol=co.tol||0.2;
+  const R=Math.max(6,Math.min(15,co.pitch*sc*0.4)), tol=co.tol||0.2;
   let s='';
   co.pts.forEach(p=>{ const x=X(p.rx), y=Y(p.ry), sev=Math.abs(p.meas-p.nom)/tol, st=coordStatus(p), crit=(st==='over'||st==='under');
     s+='<circle cx="'+rnd(x)+'" cy="'+rnd(y)+'" r="'+rnd(R)+'" fill="'+sevColor(sev)+'"'+(crit?' stroke="'+(st==='over'?'#8a0000':'#3a1a7a')+'" stroke-width="2.4"':' stroke="#fff" stroke-width="1"')+'><title>위치 '+p.pos+' · 편차 '+f3(p.meas-p.nom)+' ('+sev.toFixed(2)+'×공차) · '+COORD_KO[st]+'</title></circle>'
-      +sTxt(x,y+3,String(p.pos),'middle',sev>1.1?'#fff':'#333',8.5);
+      +sTxt(x,y+3,String(p.pos),'middle',sev>1.1?'#fff':'#333',8);
   });
-  return '<svg viewBox="0 0 '+W+' '+rnd(H)+'" preserveAspectRatio="xMidYMid meet" style="min-width:'+W+'px;width:'+W+'px">'+s+'</svg>';
+  const style=fill?'width:100%;height:auto;display:block':('min-width:'+W+'px;width:'+W+'px');
+  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="'+style+'">'+s+'</svg>';
 }
 function heatLegend(){
   let stops=''; for(let i=0;i<=10;i++) stops+='<stop offset="'+(i*10)+'%" stop-color="'+sevColor(i/10*2)+'"/>';
@@ -3500,11 +3502,61 @@ function renderCoordViz(cv){
     +'<div style="overflow-x:auto">'+svgCoordHeatmap(co)+'</div>'+heatLegend()+'</div>';
   cv.innerHTML=h;
 }
+/* 엑셀 셀 격자 위에 얹은 프레임 뷰 (예전 '…2' 시트처럼 A·B·C 열머리글 + 행번호) */
+function renderCoordVizFramed(cv){
+  const co=extractCoord();
+  if(!co){ cv.innerHTML='<div style="padding:48px;color:#888;font-size:14px">좌표 데이터를 찾을 수 없습니다.</div>'; return; }
+  const pts=co.pts, N=pts.length, tol=co.tol||0.2, sh=sheet();
+  const cnt={ok:0,hi:0,lo:0,over:0,under:0}; let worst=0,worstPos='-';
+  pts.forEach(p=>{ cnt[coordStatus(p)]++; const sev=Math.abs(p.meas-p.nom)/tol; if(sev>worst){worst=sev;worstPos=p.pos;} });
+  const bad=cnt.over+cnt.under, warn=cnt.hi+cnt.lo, verdict=bad?'NG':(warn?'WARN':'OK'), rate=bad/N*100;
+  lastChartData={type:'coordviz', points:pts};
+  const ROWH=21, CW=26, vw=cv.clientWidth||1200, vh=cv.clientHeight||700;
+  let contentCols=Math.max(26, Math.min(46, Math.floor((vw-120)/CW))); if(contentCols%2) contentCols--;
+  const contentW=contentCols*CW, leftover=Math.max(0, vw-42-contentW);
+  let MARGIN=2; { const per=leftover/(MARGIN*2); if(per>90) MARGIN=3; else if(per<30) MARGIN=1; }
+  const padW=Math.max(12, Math.round(leftover/(MARGIN*2)));
+  const C0=MARGIN+1, contentEnd=C0+contentCols-1, totalCols=contentEnd+MARGIN;
+  const items=[], push=(r,c,cs,rs,cls,html)=>items.push({r,c,cs,rs,cls,html});
+  push(2,C0,Math.min(20,contentCols),1,'fx-title','🗺️ 도면 좌표 매핑 · 삽입 불량 히트맵');
+  push(3,C0,Math.min(30,contentCols),1,'fx-sub','오리진 (X='+co.origin.x+', Y='+co.origin.y+') 기준 · 위치 '+N+'개 · 측정면↔기준면 편차와 과삽/설삽 판정 (더미 데이터)');
+  const kpis=[[verdict,'종합판정',verdict==='OK'?'ok':verdict==='NG'?'ng':'warn'],[N,'측정 위치',''],[cnt.ok,'정상',''],[warn,'경고(상·하한)',warn?'warn':''],[cnt.over,'과삽',cnt.over?'ng':''],[cnt.under,'설삽',cnt.under?'ng':''],[rate.toFixed(1)+'%','불량률',bad?'ng':''],[worst.toFixed(2)+'×','최대편차/공차',worst>1?'ng':worst>0.66?'warn':'']];
+  const kStep=Math.max(3, Math.floor(contentCols/kpis.length));
+  kpis.forEach((k,i)=>{ const c=C0+i*kStep; if(c+kStep-1>contentEnd) return; push(5,c,kStep-1,1,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(String(k[0]))); push(6,c,kStep-1,1,'fx-kpi-l',escH(k[1])); });
+  push(8,C0,Math.min(28,contentCols),1,'fx-legend','<b style="font-size:13px;color:#333">① 도면 매핑 (측정면 vs 기준면)</b>');
+  push(9,C0,contentCols,1,'fx-sub','회색 원 = 기준면(설계 위치), 색 점 = 측정면. 선 = 편차 방향(가시성 위해 확대). 색 = 판정.');
+  const mapRS=Math.ceil(contentW*0.42/ROWH)+1;
+  push(10,C0,contentCols,mapRS,'fx-card','<div style="padding:2px 4px">'+svgCoordMap(co,contentW,true)+'</div>');
+  const r2=10+mapRS+1;
+  push(r2,C0,Math.min(28,contentCols),1,'fx-legend','<b style="font-size:13px;color:#333">② 불량률·편차 히트맵</b>');
+  push(r2+1,C0,contentCols,1,'fx-sub','각 위치를 |측정−기준치|/공차로 색칠. 초록=규격 내, 빨강=이탈. 과삽/설삽은 굵은 테두리.');
+  const heatRS=Math.ceil(contentW*0.34/ROWH)+1;
+  push(r2+2,C0,contentCols,heatRS,'fx-card','<div style="padding:2px 4px">'+svgCoordHeatmap(co,contentW,true)+'</div>');
+  push(r2+2+heatRS,C0,contentCols,1,'fx-legend',heatLegend());
+  const lastRow=r2+2+heatRS+1, totalRows=Math.max(lastRow+1, Math.ceil(vh/ROWH));
+  const occ=new Set(), origin={};
+  for(const it of items){ origin[it.r+','+it.c]=it; for(let dr=0;dr<it.rs;dr++)for(let dc=0;dc<it.cs;dc++){ if(dr||dc) occ.add((it.r+dr)+','+(it.c+dc)); } }
+  const widths=[]; for(let c=1;c<=totalCols;c++){ widths.push((c<=MARGIN||c>totalCols-MARGIN)?padW:CW); }
+  const cg=xlColgroup(widths, sh);
+  let head='<tr><th class="xh corner"></th>'; for(let c=1;c<=totalCols;c++) head+='<th class="xh">'+colName(c-1)+'</th>'; head+='</tr>';
+  let body='';
+  for(let r=1;r<=totalRows;r++){
+    body+=trTag(r,sh)+'<th class="rn">'+r+'</th>';
+    for(let c=1;c<=totalCols;c++){
+      if(occ.has(r+','+c)) continue;
+      const it=origin[r+','+c];
+      if(it) body+='<td class="'+it.cls+'"'+(it.cs>1?' colspan="'+it.cs+'"':'')+(it.rs>1?' rowspan="'+it.rs+'"':'')+'>'+it.html+'</td>';
+      else body+='<td class="fill"></td>';
+    }
+    body+='</tr>';
+  }
+  cv.innerHTML='<div class="xl-wrap"><table class="xl-grid fx"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+}
 
 /* ══════════════ 초기화 ══════════════ */
 const _coord = genCoordData('측정데이터');
 sheets.push(_coord); coordSource = _coord;
-sheets.push(newChartSheet('시각화','coordviz',false));
+sheets.push(newChartSheet('시각화','coordviz',true));
 cur = 0;
 renderTabs();
 renderSheetFull();
@@ -3514,7 +3566,7 @@ let _dvT;
 window.addEventListener('resize', ()=>{
   if(isGridSheet()){ renderSel(); renderAnts(); }
   if(sheet().kind==='data'){ clearTimeout(_dvT); _dvT=setTimeout(showDataView,120); }   // 화면 커지면 더미 격자 다시 채움
-  if(sheet().kind==='chart' && sheet().framed){ clearTimeout(_dvT); _dvT=setTimeout(()=>{ try{ renderFramedChart(sheet().chart,$('chart-view')); }catch(e){} },150); }
+  if(sheet().kind==='chart' && sheet().framed){ clearTimeout(_dvT); _dvT=setTimeout(()=>{ try{ const cv=$('chart-view'); if(sheet().chart==='coordviz') renderCoordVizFramed(cv); else renderFramedChart(sheet().chart,cv); }catch(e){} },150); }
   if($('wizard').style.display==='block') positionWz();
   requestAnimationFrame(syncHScroll);
 });
