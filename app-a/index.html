@@ -374,14 +374,14 @@ table.xl-grid td.pg-sub{text-align:left;color:#777;background:#eef7f0;font-size:
 /* ── 메인 페이지(랜딩) 시안 A/B/C — 엑셀 셀 위에 얹은 디자인 ── */
 table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background:#083d21;text-align:center;padding:100px 16px;vertical-align:middle;white-space:normal}
 /* 등간격 사각 링이 가운데→바깥으로 연속으로 번지는 애니메이션 (레이더/리플, 음수 딜레이로 항상 6겹) */
-table.xl-grid td.lp-a-hero>i{position:absolute;inset:46%;z-index:0;pointer-events:none;border:16px solid rgba(120,230,165,.5);opacity:0;animation:lpArip 3s linear infinite}
+table.xl-grid td.lp-a-hero>i{position:absolute;left:50%;top:50%;width:80px;height:80px;z-index:0;pointer-events:none;border:6px solid #7bf3a8;opacity:0;animation:lpArip 3s linear infinite}
 table.xl-grid td.lp-a-hero>i:nth-of-type(2){animation-delay:-.5s}
 table.xl-grid td.lp-a-hero>i:nth-of-type(3){animation-delay:-1s}
 table.xl-grid td.lp-a-hero>i:nth-of-type(4){animation-delay:-1.5s}
 table.xl-grid td.lp-a-hero>i:nth-of-type(5){animation-delay:-2s}
 table.xl-grid td.lp-a-hero>i:nth-of-type(6){animation-delay:-2.5s}
 table.xl-grid td.lp-a-hero>div{position:relative;z-index:1}
-@keyframes lpArip{0%{inset:46%;opacity:0}8%{opacity:.85}80%{opacity:.5}100%{inset:-7%;opacity:0}}
+@keyframes lpArip{0%{transform:translate(-50%,-50%) scale(.25,.1);border-color:#7bf3a8;opacity:0}6%{opacity:1}100%{transform:translate(-50%,-50%) scale(20,6);border-color:#0a3d22;opacity:1}}
 @media (prefers-reduced-motion:reduce){ table.xl-grid td.lp-a-hero>i{animation:none;opacity:0} }
 table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:16px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd}
 table.xl-grid td.lp-a-step .st-ic{font-size:30px;line-height:1;margin-bottom:8px}
@@ -2227,7 +2227,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783655550462;   // 2026-07-10 12:52 KST
+const BUILD_TS = 1783655974719;   // 2026-07-10 12:59 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
