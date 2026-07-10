@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>웹앱 E — 준비 중</title>
+<style>
+  :root{ --acc:#d03b8c; --bg:#f6f7f9; --card:#fff; --text:#1a1a1a; --muted:#6b7280; --line:#e5e7eb; }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0f1115; --card:#171a21; --text:#e8eaed; --muted:#9aa1ab; --line:#2a2f3a; }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--text);
+    font-family:"Pretendard","Segoe UI","Malgun Gothic",system-ui,sans-serif;padding:24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:44px 40px;
+    max-width:440px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.06)}
+  .badge{width:76px;height:76px;border-radius:20px;background:var(--acc);color:#fff;font-weight:800;
+    font-size:38px;display:grid;place-items:center;margin:0 auto 22px;box-shadow:0 8px 24px color-mix(in srgb,var(--acc) 40%,transparent)}
+  h1{font-size:24px;margin-bottom:8px}
+  .status{display:inline-block;font-size:13px;color:var(--muted);border:1px solid var(--line);
+    border-radius:999px;padding:4px 14px;margin:6px 0 20px}
+  p{color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:26px}
+  a.back{display:inline-block;text-decoration:none;color:var(--acc);font-weight:600;font-size:14px;
+    border:1px solid var(--acc);border-radius:10px;padding:10px 18px;transition:.15s}
+  a.back:hover{background:var(--acc);color:#fff}
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="badge">E</div>
+    <h1>웹앱 E</h1>
+    <div class="status">🚧 준비 중</div>
+    <p>이 자리에 웹앱 E가 들어올 예정이에요.<br>아직 만들어지지 않았습니다.</p>
+    <a class="back" href="../index.html">← 포털로 돌아가기</a>
+  </main>
+</body>
+</html>
