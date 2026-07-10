@@ -481,8 +481,8 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
   display:flex;gap:1px;margin-top:5px;border:1px solid #e6e6e4;border-radius:6px;overflow:hidden;background:#eee;
 }
 .cc-statbox .st{flex:1;background:#fafafa;padding:4px 2px;text-align:center}
-.cc-statbox .sl{display:block;font-size:9.5px;color:#999}
-.cc-statbox .sv{display:block;font-size:12.5px;font-weight:600;color:#2a2a2a;font-variant-numeric:tabular-nums;margin-top:1px}
+.cc-statbox .sl{display:block;font-size:11px;color:#999}
+.cc-statbox .sv{display:block;font-size:14.5px;font-weight:600;color:#2a2a2a;font-variant-numeric:tabular-nums;margin-top:1px}
 .cc-statbox .sv.cpk-lo,.cc-statbox .sv.rate-hi{color:#d03b3b}
 .cc-statbox .sv.cpk-ok{color:#0ca30c}
 .cc-actions{
@@ -2227,7 +2227,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783666312123;   // 2026-07-10 15:51 KST
+const BUILD_TS = 1783666832079;   // 2026-07-10 16:00 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
