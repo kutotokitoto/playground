@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>통합 문서1 - Excel</title>
+<title>불량률 분석 도구</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23107C41'/%3E%3Ctext x='16' y='23' font-size='20' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3EX%3C/text%3E%3C/svg%3E">
 <style>
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
@@ -32,19 +32,14 @@ input,select{font-family:inherit}
   color:#fff;padding:4px 8px;border-radius:3px;font-size:13px;line-height:1;
 }
 #titlebar .tb-btn:hover{background:rgba(255,255,255,.15)}
-#autosave{
-  display:flex;align-items:center;gap:6px;font-size:11.5px;padding:3px 8px;border-radius:3px;color:#fff;
-}
-#autosave:hover{background:rgba(255,255,255,.15)}
-#autosave .pill{
-  width:26px;height:14px;border-radius:7px;background:#9db9aa;position:relative;transition:background .15s;
-}
-#autosave .pill::after{
-  content:"";position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;
-  background:#fff;transition:left .15s;
-}
-#autosave.on .pill{background:#fff}
-#autosave.on .pill::after{left:14px;background:var(--green)}
+#tb-team{font-size:11.5px;color:rgba(255,255,255,.78);margin-left:8px}
+/* 리본 접기/펼치기 */
+#rb-fold{position:absolute;right:6px;bottom:4px;width:22px;height:18px;display:flex;align-items:center;justify-content:center;color:#888;border-radius:3px;font-size:9px}
+#rb-fold:hover{background:#e4e4e4;color:#333}
+body.ribbon-folded #ribbon{display:none}
+#rb-unfold{display:none;width:24px;color:#888;font-size:9px;border-radius:3px}
+body.ribbon-folded #rb-unfold{display:flex;align-items:center;justify-content:center}
+#rb-unfold:hover{background:#e4e4e4;color:#333}
 #tb-title{
   font-size:12px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
@@ -578,11 +573,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 
 <!-- 타이틀 바 -->
 <div id="titlebar">
-  <button id="autosave" title="자동 저장">자동 저장 <span class="pill"></span> <b id="autosave-txt">끔</b></button>
-  <button class="tb-btn" id="tb-save" title="저장 (Ctrl+S)">💾</button>
-  <button class="tb-btn" id="tb-undo" title="실행 취소 (Ctrl+Z)">↺</button>
-  <button class="tb-btn" id="tb-redo" title="다시 실행 (Ctrl+Y)">↻</button>
-  <span id="tb-title">통합 문서1 - Excel</span>
+  <span id="tb-title">불량률 분석 도구</span><span id="tb-team">스마트폰기구개발2그룹 AXTF 정웅호</span>
   <div id="tb-search" class="dummy">🔍 <span style="color:#666">검색</span></div>
   <div id="tb-right">
     <div id="tb-user" title="사용자">DH</div>
@@ -604,6 +595,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
   <button class="rtab" data-tab="view">보기</button>
   <button class="rtab" data-tab="help">도움말</button>
   <div id="menubar-right">
+    <button id="rb-unfold" title="리본 표시">▼</button>
     <button class="mb-btn dummy">🗨 메모</button>
     <button class="mb-btn" id="btn-share">⤴ 공유 ▾</button>
   </div>
@@ -611,6 +603,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 
 <!-- 리본 본문 -->
 <div id="ribbon">
+  <button id="rb-fold" title="리본 축소">▲</button>
   <!-- 홈 탭 -->
   <div class="rpanel active" data-tab="home">
     <div class="rgroup">
@@ -806,7 +799,6 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 <!-- 상태 표시줄 -->
 <div id="statusbar">
   <span id="sb-mode">준비</span>
-  <span class="dummy" style="cursor:default">♿ 접근성: 계속 진행 가능</span>
   <div id="sb-stats"></div>
   <div id="sb-views">
     <button class="on" title="기본">▦</button>
@@ -885,7 +877,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
     <h1>홈</h1>
     <div class="bs-doc dummy">
       <div class="di">X</div>
-      <div><div class="dn">통합 문서1</div><div class="dp">이 웹앱 &gt; 현재 세션</div></div>
+      <div><div class="dn">불량률 분석 도구</div><div class="dp">이 웹앱 &gt; 현재 세션</div></div>
     </div>
     <div class="bs-doc dummy">
       <div class="di">X</div>
@@ -1954,9 +1946,6 @@ $('rb-decup').onclick=()=>applyStyle(s=>{ s.dec=Math.min(10,(s.dec==null?0:s.dec
 $('rb-decdn').onclick=()=>applyStyle(s=>{ s.dec=Math.max(0,(s.dec==null?0:s.dec)-1); if(s.dec===0&&!s.fmt) delete s.dec; });
 $('rb-undo').onclick=()=>{ doUndo(); focusGrid(); };
 $('rb-redo').onclick=()=>{ doRedo(); focusGrid(); };
-$('tb-undo').onclick=()=>{ doUndo(); focusGrid(); };
-$('tb-redo').onclick=()=>{ doRedo(); focusGrid(); };
-$('tb-save').onclick=()=>toast('💾 저장됨 (데모 — 실제 파일은 저장되지 않아요)');
 $('rb-copy').onclick=()=>{ doCopy(null); focusGrid(); };
 $('rb-cut').onclick=()=>{ doCut(null); focusGrid(); };
 $('rb-paste').onclick=()=>{ pasteInternal(); focusGrid(); };
@@ -2219,16 +2208,29 @@ function switchSheet(i){
 /* 새 시트(＋) 버튼 제거 — 시트는 측정데이터·정규분포·산점도·박스플롯 4개로 고정 */
 
 /* ══════════════ 확대/축소 ══════════════ */
+let zoomPct=100, _zmT;
 function setZoom(z){
+  zoomPct=z;
   wrap.style.zoom=z/100;
   $('zoom-pct').textContent=z+'%';
+  // 배율 실동작(1단계: 차트 시트) — 축소하면 유효 폭이 넓어져 한 줄 카드 수 증가
+  clearTimeout(_zmT);
+  _zmT=setTimeout(()=>{ if(sheet().kind==='chart'){ try{ renderFramedChart(sheet().chart,$('chart-view')); }catch(e){} syncHBar(); } },140);
 }
+/* 리본 접기/펼치기 — 뷰 높이가 바뀌므로 현재 뷰 재렌더 */
+function ribbonFold(on){
+  document.body.classList.toggle('ribbon-folded', on);
+  if(sheet().kind==='data') showDataView();
+  else if(sheet().kind==='chart'){ try{ renderFramedChart(sheet().chart,$('chart-view')); }catch(e){} syncHBar(); }
+}
+$('rb-fold').onclick=()=>ribbonFold(true);
+$('rb-unfold').onclick=()=>ribbonFold(false);
 $('zoom-slider').addEventListener('input', e=>setZoom(+e.target.value));
 $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoom(100); });
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783664989568;   // 2026-07-10 15:29 KST
+const BUILD_TS = 1783665713565;   // 2026-07-10 15:41 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2298,11 +2300,6 @@ $('bs-back').addEventListener('click', ()=>{ $('backstage').classList.remove('op
 $('bs-save').addEventListener('click', ()=>{ $('backstage').classList.remove('open'); toast('💾 저장됨 (데모 — 실제 파일은 저장되지 않아요)'); focusGrid(); });
 document.addEventListener('keydown', e=>{
   if(e.key==='Escape'&&$('backstage').classList.contains('open')){ $('backstage').classList.remove('open'); focusGrid(); }
-});
-$('autosave').addEventListener('click', function(){
-  this.classList.toggle('on');
-  $('autosave-txt').textContent=this.classList.contains('on')?'켬':'끔';
-  toast(this.classList.contains('on')?'자동 저장 켬 (데모)':'자동 저장 끔');
 });
 let toastTimer=null;
 function toast(msg){
@@ -2991,9 +2988,10 @@ function renderFramedChart(type, cv){
   const verdict=ngPts?'NG':'OK';
   lastChartData={type, points:pts}; selectedIdx=new Set();
   const sh=sheet(), ROWH=21, CS=5, RS=18, GAP=1, WIDE=112, NARROW=24;   // GAP: 카드 행 사이 세로 갭 행(가로 갭 열과 대응). 카드는 셀 안에서 세로 중앙정렬
-  const cardW=3*WIDE+2*NARROW, vw=cv.clientWidth||1200, vh=cv.clientHeight||700;
+  const Z=zoomPct/100;   // 배율: 유효 폭/높이를 넓혀 카드 배치 재계산, 표시엔 CSS zoom
+  const cardW=3*WIDE+2*NARROW, vw=(cv.clientWidth||1200)/Z, vh=(cv.clientHeight||700)/Z;
   // 반응형 카드 개수 (좁으면 3, 넓으면 4) — 정규분포1처럼 최대 4개(넓을수록 중앙 집중)
-  const PERROW=Math.max(2, Math.min(4, Math.floor((vw-66)/(cardW+NARROW))));
+  const PERROW=Math.max(2, Math.min(8, Math.floor((vw-66)/(cardW+NARROW))));
   const contentCols=PERROW*CS+(PERROW-1), contentW=PERROW*cardW+(PERROW-1)*NARROW;
   // 반응형 패딩 열 개수: 남는 폭에 따라 한쪽 1~3열
   const leftover=Math.max(0, vw-42-contentW-2*NARROW);
@@ -3046,7 +3044,7 @@ function renderFramedChart(type, cv){
     body+='</tr>';
   }
   const selbar='<div class="cv-selbar" id="cv-selbar"><span class="seln">0개 선택됨</span><button data-selact="copy">📋 복사</button><button data-selact="save">💾 저장</button><span class="sep"></span><button class="clear" data-selact="clear">선택 해제</button></div>';
-  cv.innerHTML=selbar+'<div class="xl-wrap"><table class="xl-grid fx"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  cv.innerHTML=selbar+'<div class="xl-wrap" style="zoom:'+Z+'"><table class="xl-grid fx"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
 }
 function tile(val,label,cls){ return '<div class="tile'+(cls?' '+cls:'')+'"><div class="tv">'+escH(val)+'</div><div class="tl">'+escH(label)+'</div></div>'; }
 function ptLabel(no){ return /^\d+$/.test(String(no)) ? ('P'+no) : String(no); }   // 숫자면 P접두, 항목명이면 그대로
