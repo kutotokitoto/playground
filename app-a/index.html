@@ -377,7 +377,7 @@ table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background:#083d21;
 /* 계단식 사각 그래디언트 "무한 줌": 등비(1.22) 자기유사 사각 밴드 스택을 wrapper 하나로
    scale(1→1.22³) 확대. 3색 주기와 등비가 맞물려 종료 프레임 = 시작 프레임 → 이음새 자체가 없음.
    transform만 애니메이션(GPU 합성, 리플로우 없음) → 튐 원인 원천 제거. */
-table.xl-grid td.lp-a-hero .lp-zoom{position:absolute;left:50%;top:50%;width:100%;height:100%;z-index:0;pointer-events:none;animation:lpZoom 10s linear infinite}
+table.xl-grid td.lp-a-hero .lp-zoom{position:absolute;left:50%;top:50%;width:100%;height:100%;z-index:0;pointer-events:none;animation:lpZoom 8.3s linear infinite}
 table.xl-grid td.lp-a-hero .lp-zoom .zb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 /* 정적 밝기 오버레이: 가운데 상시 밝음(라디얼) + 가장자리 상시 어두움(셀 모양 사각 비네트).
    움직이는 밴드는 주기 순환색이라 방향성 그래디언트를 못 가짐 → 정적 레이어로 방향성 부여 */
@@ -390,7 +390,7 @@ table.xl-grid td.lp-a-step .st-ic{font-size:30px;line-height:1;margin-bottom:8px
 table.xl-grid td.lp-a-step b{display:block;font-size:14.5px;font-weight:800;color:#0b5a30;margin-bottom:6px}
 table.xl-grid td.lp-a-step span{display:block;font-size:12.5px;color:#5a6b60;line-height:1.55}
 table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:58px;line-height:1}
-table.xl-grid td.lp-a-hero .lp-a-title{font-size:38px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:10px}
+table.xl-grid td.lp-a-hero .lp-a-title{font-size:57px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:10px}
 table.xl-grid td.lp-a-hero .lp-a-sub{font-size:14.5px;color:rgba(255,255,255,.82);margin-top:10px}
 table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:22px;font-size:13px;color:#0b5a30;background:#fff;border:1px solid #fff;border-radius:999px;padding:9px 20px;font-weight:700}
 table.xl-grid td.lp-b-head{background:#eef7f0;text-align:left;padding:15px 16px;font-size:23px;font-weight:700;color:#1e1e1e;white-space:normal}
@@ -2229,7 +2229,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783661967493;   // 2026-07-10 14:39 KST
+const BUILD_TS = 1783662171731;   // 2026-07-10 14:42 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
