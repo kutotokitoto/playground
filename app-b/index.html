@@ -2213,7 +2213,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783656236662;   // 2026-07-10 13:03 KST
+const BUILD_TS = 1783657755177;   // 2026-07-10 13:29 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3574,7 +3574,7 @@ function renderCoordVizFramed(cv){
     else if(viz==='cont'){ bigCard(useOv?'캡처 위에 연속 불량률 필드 오버레이.':'포인트 불량률을 거리가중 보간해 연속 색 필드로. 흰 점=측정 포인트.', useOv?imageOverlayHTML(co,'cont'):svgRateCont(co,contentW,true), useOv?0.62:0.42); push(R,C0,CC,1,'fx-legend',rateLegend()); R++; }
     else { bigCard(useOv?'캡처 위에 포인트별 불량률 버블 오버레이.':'각 포인트를 불량률로 색칠·크기 (초록=낮음, 빨강=높음). 숫자=불량률%.', useOv?imageOverlayHTML(co,'bubble'):svgRateBubble(co,contentW,true), useOv?0.62:0.42); push(R,C0,CC,1,'fx-legend',rateLegend()); R++; }
     return R;
-  }, -1);
+  }, 3);
 }
 
 /* ══════════════ 이미지 정합 (실제 캡처에 좌표 오버레이) ══════════════ */
@@ -3719,13 +3719,13 @@ function showMainPage(){
   requestAnimationFrame(syncHScroll);
 }
 /* fx 시트 공통 레이아웃: build(ctx)가 push로 셀을 채우고 마지막 행을 반환 (엑셀 격자 룩) */
-function fxRender(cv, build, marginDelta){
+function fxRender(cv, build, fixMargin){
   const sh=sheet();
   const ROWH=21, CW=26, vw=cv.clientWidth||1200, vh=cv.clientHeight||700;
   let contentCols=Math.max(26, Math.min(46, Math.floor((vw-120)/CW))); if(contentCols%2) contentCols--;
   const contentW=contentCols*CW, leftover=Math.max(0, vw-42-contentW);
   let MARGIN=2; { const per=leftover/(MARGIN*2); if(per>90) MARGIN=3; else if(per<30) MARGIN=1; }
-  MARGIN=Math.max(0, MARGIN+(marginDelta||0));   // 양쪽 여백 열 조정 (시각화 시트: -1)
+  if(fixMargin!=null) MARGIN=Math.max(1, fixMargin);   // 시각화 시트: 양쪽 여백 열을 3으로 고정(A·B·C 비우고 콘텐츠 D열부터)
   const padW=Math.max(12, Math.round(leftover/((MARGIN||1)*2)));
   const C0=MARGIN+1, contentEnd=C0+contentCols-1, totalCols=contentEnd+MARGIN;
   const items=[], push=(r,c,cs,rs,cls,html,style)=>items.push({r,c,cs,rs,cls,html,style});
