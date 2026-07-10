@@ -2227,7 +2227,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783666832079;   // 2026-07-10 16:00 KST
+const BUILD_TS = 1783668822700;   // 2026-07-10 16:33 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2455,7 +2455,9 @@ function parseMeasurementCSV(text){
   return parseMeasurementRows(rows);
 }
 /* rows: 2차원 배열(문자열). CSV·xlsx 공용 파서. 한도(포인트 60 / 시료 ROWS-13) 초과분은 잘림 */
+let parseFail='';   // 마지막 파싱 실패 사유 — 업로드 토스트 진단용
 function parseMeasurementRows(rows){
+  parseFail='';
   rows=(rows||[]).filter(r=>r && r.some(c=>String(c==null?'':c).trim()!==''));
   const cell=(r,c)=>String(r&&r[c]!=null?r[c]:'');
   const norm=s=>String(s==null?'':s).replace(/\s|\(|\)/g,'');
@@ -2463,13 +2465,16 @@ function parseMeasurementRows(rows){
   const hdr=find('포인트'), specR=find('스펙'),
     uR=find('상한')||rows.find(r=>/USL/i.test(cell(r,0))),
     lR=find('하한')||rows.find(r=>/LSL/i.test(cell(r,0)));
-  if(!hdr||!specR||!uR||!lR) return null;
+  if(!hdr||!specR||!uR||!lR){
+    const miss=[!hdr&&"'포인트'",!specR&&"'스펙'",!uR&&"'상한(USL)'",!lR&&"'하한(LSL)'"].filter(Boolean).join(', ');
+    parseFail='A열에서 라벨 행을 찾지 못함: '+miss; return null; }
   let Praw=0; for(let c=1;c<hdr.length;c++){ if(cell(hdr,c).trim()!=='') Praw=c; else break; }
-  if(Praw<1) return null;
+  if(Praw<1){ parseFail='포인트 행의 B열부터 포인트 이름이 비어 있음'; return null; }
   const P=Math.min(Praw, MAX_POINTS);
   const pts=[];
   for(let c=1;c<=P;c++) pts.push({no:cell(hdr,c).trim()||pad2(c), spec:Number(specR[c]), usl:Number(uR[c]), lsl:Number(lR[c]), values:[]});
-  if(!pts.every(p=>isFinite(p.usl)&&isFinite(p.lsl))) return null;
+  const badP=pts.find(p=>!(isFinite(p.usl)&&isFinite(p.lsl)));
+  if(badP){ parseFail='상한/하한 값이 숫자가 아님 (포인트 '+badP.no+')'; return null; }
   const sHdr=rows.findIndex(r=>/시리얼|serial/i.test(cell(r,0)));
   const start=sHdr>=0?sHdr+1:rows.indexOf(lR)+1;
   const maxN=ROWS-13, serials=[]; let moreRows=false;
@@ -2478,7 +2483,10 @@ function parseMeasurementRows(rows){
     if(serials.length>=maxN){ moreRows=true; break; }
     serials.push(sn);
     for(let c=1;c<=P;c++){ const v=Number(rows[ri][c]); pts[c-1].values.push(isFinite(v)?v:null); } }
-  if(!serials.length) return null;
+  if(!serials.length){
+    const dataRows=rows.length-(start);
+    parseFail='시리얼 데이터 행을 인식하지 못함'+(dataRows>0?' — A열 시리얼 번호가 숫자인 행만 인식됩니다 (현재 '+dataRows+'행 모두 비숫자/빈값)':' — 데이터 행이 없음');
+    return null; }
   return {pts, serials, truncated: Praw>MAX_POINTS || moreRows};
 }
 /* 세로 테스트 로그(#INIT…#TEST…#END 블록이 대당 1개씩 반복) → 항목명으로 피벗 → {pts, serials} */
@@ -2510,7 +2518,7 @@ function parseTestLogRows(rows){
     }
   }
   const valid=units.filter(u=>Object.keys(u.map).length);
-  if(!valid.length || !itemOrder.length) return null;
+  if(!valid.length || !itemOrder.length){ parseFail='세로 로그(#INIT)는 감지했으나 측정 항목/값 행을 찾지 못함'; return null; }
   const meta={ model:headerKV['MODEL']||headerKV['모델']||null, pn:headerKV['P/N']||headerKV['PN']||headerKV['품번']||null,
     lot:headerKV['RTM_LOT']||headerKV['LOT']||headerKV['로트']||null, date:headerKV['DATE']||headerKV['검사일']||null,
     jig:headerKV['JIG']||headerKV['TESTCODE']||null, program:headerKV['PROGRAM']||headerKV['INIFILE']||null };
@@ -2611,7 +2619,7 @@ async function processUpload(file, mode){
       const uP=Math.min(parsed.pts.length,MAX_POINTS), uN=Math.min(parsed.serials.length,ROWS-13);
       msg='📤 업로드 완료 ('+(isLog?'세로 로그':'가로 템플릿')+') · 시료 '+uN+'개 · 포인트 '+uP+'개'+(parsed.truncated?' (한도 초과분은 잘림)':''); }
     else { sh=genQCData('측정데이터');
-      msg='📤 업로드 완료 (형식 미인식 → 더미 데이터로 시연)'; }
+      msg='⚠ 파일을 읽지 못해 더미 데이터로 대체 · 원인: '+(parseFail||'형식 미인식'); }
     hideLoading(); replaceQCSheet(sh); toast(msg);   // 새 시트 만들지 않고 측정데이터 교체
   }catch(e){ hideLoading(); toast('업로드 실패: '+(e&&e.message||e)); }
 }
