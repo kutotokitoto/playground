@@ -372,7 +372,21 @@ table.xl-grid td.info-title{text-align:left;font-weight:700;color:#0a7a34;backgr
 table.xl-grid td.pg-title{text-align:left;font-weight:700;color:#1e1e1e;background:#eef7f0;font-size:34px;letter-spacing:-.02em;padding:14px 14px 2px}
 table.xl-grid td.pg-sub{text-align:left;color:#777;background:#eef7f0;font-size:13px;padding:0 14px 12px}
 /* ── 메인 페이지(랜딩) 시안 A/B/C — 엑셀 셀 위에 얹은 디자인 ── */
-table.xl-grid td.lp-a-hero{background:linear-gradient(160deg,#f2fbf5,#e3f3ea);text-align:center;padding:36px 16px;vertical-align:middle;white-space:normal}
+table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#f2fbf5,#e3f3ea);text-align:center;padding:100px 16px;vertical-align:middle;white-space:normal}
+/* 각진 계단형 사각 그래디언트가 가운데→바깥으로 뻗어나오는 애니메이션 (링 2개 엇갈림) */
+table.xl-grid td.lp-a-hero::before,table.xl-grid td.lp-a-hero::after{
+  content:"";position:absolute;left:50%;top:50%;width:64px;height:64px;pointer-events:none;z-index:0;
+  transform:translate(-50%,-50%) scale(.35);
+  box-shadow:0 0 0 26px rgba(11,90,48,.08),0 0 0 52px rgba(11,90,48,.062),0 0 0 78px rgba(11,90,48,.046),0 0 0 104px rgba(11,90,48,.034),0 0 0 132px rgba(11,90,48,.023),0 0 0 162px rgba(11,90,48,.014);
+  animation:lpAemit 5s linear infinite;
+}
+table.xl-grid td.lp-a-hero::after{animation-delay:2.5s}
+table.xl-grid td.lp-a-hero>div{position:relative;z-index:1}
+@keyframes lpAemit{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}12%{opacity:1}100%{transform:translate(-50%,-50%) scale(2.7);opacity:0}}
+@media (prefers-reduced-motion:reduce){ table.xl-grid td.lp-a-hero::before,table.xl-grid td.lp-a-hero::after{animation:none;opacity:.5} }
+table.xl-grid td.lp-a-step{background:#f6faf7;text-align:left;padding:16px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd}
+table.xl-grid td.lp-a-step b{display:block;font-size:14.5px;font-weight:800;color:#0b5a30;margin-bottom:6px}
+table.xl-grid td.lp-a-step span{display:block;font-size:12.5px;color:#5a6b60;line-height:1.55}
 table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:58px;line-height:1}
 table.xl-grid td.lp-a-hero .lp-a-title{font-size:38px;font-weight:800;color:#0b5a30;letter-spacing:-.02em;margin-top:10px}
 table.xl-grid td.lp-a-hero .lp-a-sub{font-size:14.5px;color:#4b7a5e;margin-top:10px}
@@ -2213,7 +2227,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783653449916;   // 2026-07-10 12:17 KST
+const BUILD_TS = 1783654284041;   // 2026-07-10 12:31 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3198,15 +3212,21 @@ function landingFrame(buildRows){
   let rn=1, body='';
   const R=cells=>{ body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP+cells+RP+'</tr>'; rn++; };
   const blank=()=>R(fill(NC));
-  buildRows({R, blank});
+  const contRows=k=>{ for(let i=0;i<k;i++){ body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP+RP+'</tr>'; rn++; } };   // rowspan 셀 아래로 이어지는 행(패딩 열만)
+  buildRows({R, blank, contRows});
   const totalRows=Math.max(rn-1+3, Math.ceil(vh/ROWH)+1);
   for(; rn<=totalRows; rn++) body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+fill(totalCols)+'</tr>';
   return '<div class="xl-wrap"><table class="xl-grid"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
 }
 function landingA(){   // A · 히어로 센터
-  return landingFrame(({R,blank})=>{
+  return landingFrame(({R,blank,contRows})=>{
     blank();
     R('<td class="lp-a-hero" colspan="12"><div class="lp-a-emoji">🎯</div><div class="lp-a-title">불량률 시각화 도구</div><div class="lp-a-sub">측정 데이터를 정규분포·산점도·박스플롯으로 한눈에 시각화합니다</div><div class="lp-a-cta">📥 [데이터] 탭 → ‘측정 더미 불러오기’ 로 시작</div></td>');
+    blank();
+    R('<td class="lp-a-step" colspan="4" rowspan="3"><b>1단계 · 데이터 불러오기</b><span>[데이터] 탭 → ‘측정 더미 불러오기’ 또는 xlsx·CSV 업로드</span></td>'
+     +'<td class="lp-a-step" colspan="4" rowspan="3"><b>2단계 · 분포 확인</b><span>정규분포·산점도·박스플롯 탭으로 전환해 그래프를 확인</span></td>'
+     +'<td class="lp-a-step" colspan="4" rowspan="3"><b>3단계 · 저장·공유</b><span>포인트 카드에서 복사·저장, 상단에서 전체 저장</span></td>');
+    contRows(2);
     blank();
   });
 }
