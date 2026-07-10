@@ -2193,7 +2193,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783651772711;   // 2026-07-10 11:49 KST
+const BUILD_TS = 1783653172486;   // 2026-07-10 12:12 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3234,10 +3234,10 @@ function showChartSheet(){
   const cv=$('chart-view'); cv.style.display='block'; cv.scrollTop=0; cv.scrollLeft=0;
   const framed=!!sheet().framed; cv.classList.toggle('framed', framed);
   nameBox.value=sheet().name; fInput.value=''; $('sb-mode').textContent='준비'; $('sb-stats').innerHTML='';
-  const type=sheet().chart, label={normal:'정규분포',scatter:'산점도',box:'박스플롯',coordviz:'도면 시각화'}[type]||'차트';
+  const type=sheet().chart, label={normal:'정규분포',scatter:'산점도',box:'박스플롯',coordviz:'시각화'}[type]||'차트';
   showLoading(label+' 생성 중…','시각화를 그리는 중입니다');
   const token=++chartToken;
-  setTimeout(()=>{ if(token!==chartToken) return; try{ if(type==='coordviz') (framed?renderCoordVizFramed:renderCoordViz)(cv); else (framed?renderFramedChart:renderCharts)(type,cv); }catch(e){ cv.innerHTML='<div style="padding:40px;color:#c00">차트 생성 오류: '+escH(e.message)+'</div>'; } hideLoading(); requestAnimationFrame(syncHScroll); }, 320);
+  setTimeout(()=>{ if(token!==chartToken) return; try{ if(type==='coordviz') renderCoordVizFramed(cv); else (framed?renderFramedChart:renderCharts)(type,cv); }catch(e){ cv.innerHTML='<div style="padding:40px;color:#c00">차트 생성 오류: '+escH(e.message)+'</div>'; } hideLoading(); requestAnimationFrame(syncHScroll); }, 320);
 }
 
 /* ══════════════ 튜토리얼 위저드 ══════════════ */
@@ -3344,59 +3344,49 @@ $('hscroll').addEventListener('scroll', ()=>{
 
 /* ══════════════ 도면 좌표 매핑 + 삽입 불량 히트맵 ══════════════ */
 let coordSource = null;   // '시각화' 시트가 참조할 좌표 데이터 시트
-/* 판정 순서: 설삽(under) < 하한(lo) < [정상] < 상한(hi) < 과삽(over) */
-function coordStatus(p){
-  if(p.meas > p.over)  return 'over';   // 과삽 (치명)
-  if(p.meas < p.under) return 'under';  // 설삽 (치명)
-  if(p.meas > p.usl)   return 'hi';     // 상한 초과 (경고)
-  if(p.meas < p.lsl)   return 'lo';     // 하한 미만 (경고)
-  return 'ok';
+/* 포인트별 불량률(%) 모델. 색: 낮음(초록)→높음(빨강) */
+const RATE_MID=12, RATE_BAD=15;   // 12%→노랑, 24%→빨강 · ≥15% = 불량 포인트
+function rateColor(r){ return sevColor((r||0)/RATE_MID); }
+function rateStats(co){
+  const pts=(co&&co.pts)||[], N=pts.length; let sum=0,max=0,maxPos='-',bad=0;
+  pts.forEach(p=>{ const r=p.rate||0; sum+=r; if(r>max){max=r;maxPos=p.pos;} if(r>=RATE_BAD) bad++; });
+  return {N, avg:N?sum/N:0, max, maxPos, bad, good:N-bad};
 }
-const COORD_KO={over:'과삽',under:'설삽',hi:'상한초과',lo:'하한미만',ok:'정상'};
-const COORD_COL={ok:'#0ca30c',hi:'#e08a00',lo:'#e08a00',over:'#d03b3b',under:'#7a4dd0'};
-
-/* 더미 데이터: 커넥터형 24위치(2행×12열). 기준면=설계 위치, 측정면=삽입 편차만큼 이동 */
+/* 더미 데이터: 10×5 도면 격자. 각 포인트 = 좌표(기준면·측정면) + 불량률(%) */
 function genCoordData(name){
   const COLN=10, ROWN=5, N=COLN*ROWN, pitch=8, vpitch=9, x0=8, y0=8;
-  const r3=x=>Math.round(x*1000)/1000, r2=x=>Math.round(x*100)/100;
+  const r1=x=>Math.round(x*10)/10, r2=x=>Math.round(x*100)/100;
   const gauss=()=>{ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
+  const hx=x0+(COLN-1)*pitch*0.78, hy=y0+(ROWN-1)*vpitch*0.72, hsig=15;   // 불량 핫스팟(도면 특정 영역)
   const pts=[];
   for(let i=0;i<N;i++){
     const col=i%COLN, row=(i/COLN|0);
     const rx=r2(x0+col*pitch), ry=r2(y0+row*vpitch);          // 기준면(설계 위치)
-    const dir=row<ROWN/2?1:-1;                                // 삽입 방향(상/하 뱅크)
-    const nom=r2(1.7+0.06*col+0.10*row);                      // 위치별 기준치 (도면 위치 따라 점진 변화)
-    const tol=r3(0.14+0.02*(col%3));                          // 위치별 공차 0.14 / 0.16 / 0.18
-    const usl=r3(nom+tol), lsl=r3(nom-tol), over=r3(nom+tol*1.8), under=r3(nom-tol*1.8);
-    let meas=nom+gauss()*tol*0.42; const roll=Math.random();
-    if(roll<0.05) meas=over+Math.random()*tol*0.5;            // 과삽
-    else if(roll>0.95) meas=under-Math.random()*tol*0.5;      // 설삽
-    else if(roll<0.13) meas=usl+Math.random()*tol*0.5;        // 상한 경고
-    else if(roll>0.87) meas=lsl-Math.random()*tol*0.5;        // 하한 경고
-    meas=r3(meas);
-    const off=meas-nom;                                       // 삽입 편차(mm)
-    const mx=r2(rx+gauss()*0.03), my=r2(ry+dir*off);          // 측정면 = 기준면 + 편차(삽입방향) + 미세 측방
-    pts.push({pos:i+1, rx, ry, mx, my, usl, lsl, nom, over, under, tol, meas, dir});
+    const mx=r2(rx+gauss()*0.28), my=r2(ry+gauss()*0.28);     // 측정면(실측 위치 산포)
+    const d2=(rx-hx)**2+(ry-hy)**2;
+    let rate=13*Math.exp(-d2/(2*hsig*hsig)) + Math.abs(gauss())*1.4;   // 핫스팟 + 노이즈
+    if(Math.random()<0.06) rate+=10+Math.random()*18;         // 간헐 스파이크
+    rate=r1(Math.max(0, Math.min(45, rate)));
+    pts.push({pos:i+1, rx, ry, mx, my, rate});
   }
-  const sh=newSheet(name); sh.kind='data'; sh.coord={origin:{x:0,y:0}, pts, pitch, tol:0.16, nom:2.0};
+  const sh=newSheet(name); sh.kind='data'; sh.coord={origin:{x:0,y:0}, pts, pitch};
   writeCoordCells(sh);
   return sh;
 }
 /* 측정데이터 시트 셀에 표로 기록 (진짜 스프레드시트 데이터) */
 function writeCoordCells(sh){
   const put=(r,c,v,s)=>{ const cell={v:String(v)}; if(s) cell.s=Object.assign({},s); sh.data[key(r,c)]=cell; };
-  const r3=x=>Math.round(x*1000)/1000;
-  const H=['위치','측정면 X','측정면 Y','기준면 X','기준면 Y','상한','하한','기준치','과삽기준','설삽기준','측정 삽입량','편차','판정'];
+  const H=['포인트','측정면 X','측정면 Y','기준면 X','기준면 Y','편차','불량률(%)'];
   const hs={b:true,fill:'#2E74B5',col:'#FFFFFF',al:'center'};
-  put(0,0,'■ 측정 데이터 (도면 좌표·삽입량)',{b:true,fs:14,col:'#107C41'});
+  put(0,0,'■ 측정 데이터 (도면 좌표 · 포인트별 불량률)',{b:true,fs:14,col:'#107C41'});
   put(1,0,'오리진',{b:true,al:'right'}); put(1,1,'X='+sh.coord.origin.x+'  Y='+sh.coord.origin.y,{al:'left'});
   const hr=3;
   for(let c=0;c<H.length;c++) put(hr,c,H[c],hs);
-  sh.coord.pts.forEach((p,i)=>{ const r=hr+1+i, st=coordStatus(p);
-    const bad=(st==='over'||st==='under'), warn=(st==='hi'||st==='lo');
-    const js=bad?{al:'center',b:true,fill:'#FFC7CE',col:'#9C0006'}:warn?{al:'center',fill:'#FFF2CC',col:'#9C6500'}:{al:'center'};
-    const row=[p.pos,p.mx,p.my,p.rx,p.ry,p.usl,p.lsl,p.nom,p.over,p.under,p.meas,r3(p.meas-p.nom),COORD_KO[st]];
-    for(let c=0;c<row.length;c++) put(r,c,row[c], c===row.length-1?js:{al:'center'});
+  sh.coord.pts.forEach((p,i)=>{ const r=hr+1+i, dev=Math.round(Math.hypot(p.mx-p.rx,p.my-p.ry)*100)/100;
+    const bad=p.rate>=RATE_BAD, warn=p.rate>=6;
+    const rs=bad?{al:'center',b:true,fill:'#FFC7CE',col:'#9C0006'}:warn?{al:'center',fill:'#FFF2CC',col:'#9C6500'}:{al:'center'};
+    const row=[p.pos,p.mx,p.my,p.rx,p.ry,dev,p.rate];
+    for(let c=0;c<row.length;c++) put(r,c,row[c], c===row.length-1?rs:{al:'center'});
   });
 }
 function extractCoord(){ let src=coordSource; if(!src||!src.coord) src=sheets.find(s=>s.coord); return src?src.coord:null; }
@@ -3407,39 +3397,14 @@ function loadCoordSample(){
   setTimeout(()=>{ if(token!==chartToken) return;
     const sh=genCoordData('측정데이터'); let idx=sheets.findIndex(s=>s.coord); if(idx<0) idx=0;
     sheets[idx]=sh; coordSource=sh; hideLoading(); switchSheet(idx);
-    toast('📥 새 좌표 더미 데이터로 갱신했습니다 · 시각화 시트에 반영됨');
+    toast('📥 새 더미 데이터로 갱신했습니다 · 시각화 시트들에 반영됨');
   }, 320);
 }
-/* 측정데이터 시트 표시 (좌표 표) */
-function renderCoordTable(sh){
-  const co=sh.coord, pts=co.pts, N=pts.length;
-  const cnt={ok:0,hi:0,lo:0,over:0,under:0}; pts.forEach(p=>cnt[coordStatus(p)]++);
-  const bad=cnt.over+cnt.under, warn=cnt.hi+cnt.lo;
-  const H=['위치','측정면 X','측정면 Y','기준면 X','기준면 Y','상한','하한','기준치','과삽기준','설삽기준','측정 삽입량','편차','판정'];
-  let h='<div style="padding:14px 16px 40px;max-width:1500px;margin:0 auto">';
-  h+='<div style="background:#e5f5e5;border:1px solid #b6e0b6;border-radius:8px;padding:10px 14px;font-size:13px;color:#1b6b1b">'
-    +'<b>도면 좌표·삽입량 더미 데이터</b> · 위치 '+N+'개 · 오리진 (X='+co.origin.x+', Y='+co.origin.y+')'
-    +' · 정상 '+cnt.ok+' / 경고 '+warn+' / 불량(과삽·설삽) <b>'+bad+'</b>'
-    +' &nbsp;—&nbsp; <span style="color:#555">‘시각화’ 시트에서 도면 매핑·히트맵을 볼 수 있어요.</span></div>';
-  h+='<table class="dv-table" style="margin-top:12px"><thead><tr>'+H.map(x=>'<th>'+escH(x)+'</th>').join('')+'</tr></thead><tbody>';
-  pts.forEach(p=>{ const st=coordStatus(p), bad=(st==='over'||st==='under'), warn=(st==='hi'||st==='lo');
-    const tint=bad?' style="background:#fdecec"':warn?' style="background:#fff8e1"':'';
-    const jc=bad?'#c0272d':warn?'#a06a00':'#0a8a0a';
-    h+='<tr'+tint+'><td>'+p.pos+'</td><td>'+f2(p.mx)+'</td><td>'+f2(p.my)+'</td><td>'+f2(p.rx)+'</td><td>'+f2(p.ry)+'</td>'
-      +'<td>'+f3(p.usl)+'</td><td>'+f3(p.lsl)+'</td><td>'+f3(p.nom)+'</td><td>'+f3(p.over)+'</td><td>'+f3(p.under)+'</td>'
-      +'<td><b>'+f3(p.meas)+'</b></td><td>'+f3(p.meas-p.nom)+'</td>'
-      +'<td style="font-weight:700;color:'+jc+'">'+COORD_KO[st]+'</td></tr>';
-  });
-  h+='</tbody></table></div>';
-  return h;
-}
-/* 측정데이터 시트 — 엑셀 격자(A·B·C 열머리글 + 행번호) 위에 얹은 표 (시각화 시트와 동일 룩) */
+/* 측정데이터 시트 — 엑셀 격자(A·B·C 열머리글 + 행번호) 위에 얹은 표 (좌표 + 포인트별 불량률) */
 function renderCoordTableFramed(sh){
-  const co=sh.coord, pts=co.pts, N=pts.length, tol=co.tol||0.2;
-  const cnt={ok:0,hi:0,lo:0,over:0,under:0}; pts.forEach(p=>cnt[coordStatus(p)]++);
-  const bad=cnt.over+cnt.under, warn=cnt.hi+cnt.lo, verdict=bad?'NG':(warn?'WARN':'OK');
-  const labels=['위치','측정면 X','측정면 Y','기준면 X','기준면 Y','상한','하한','기준치','과삽기준','설삽기준','측정 삽입량','편차','판정'];
-  const NC=labels.length, PTW=64, DW=84, ROWH=21;
+  const co=sh.coord, pts=co.pts, st=rateStats(co);
+  const labels=['포인트','측정면 X','측정면 Y','기준면 X','기준면 Y','편차','불량률(%)'];
+  const NC=labels.length, PTW=70, DW=98, ROWH=21;
   const contentW=PTW+(NC-1)*DW;
   const dv=$('data-view'), vw=dv.clientWidth||1200, vh=dv.clientHeight||600;
   const leftover=Math.max(0, vw-42-contentW);
@@ -3459,22 +3424,18 @@ function renderCoordTableFramed(sh){
     for(const pr of pairs) s+='<td class="info-k">'+escH(pr[0])+'</td><td class="info-v'+(pr[2]?' '+pr[2]:'')+'">'+escH(pr[1])+'</td>';
     body+=s+RP+'</tr>'; rn++; };
   blankRow();
-  body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP+'<td class="info-title" colspan="'+NC+'">🗺️ 측정 데이터 — 도면 좌표·삽입량 (더미)</td>'+RP+'</tr>'; rn++;
-  infoRow([['오리진','X='+co.origin.x+' , Y='+co.origin.y],['위치 수',N],['기준치',f3(co.nom)],['공차','±'+f3(tol)]]);
-  infoRow([['종합 판정',verdict,verdict==='OK'?'ok':'ng'],['정상',cnt.ok+'개','ok'],['경고(상·하한)',warn+'개',warn?'ng':''],['과삽',cnt.over+'개',cnt.over?'ng':''],['설삽',cnt.under+'개',cnt.under?'ng':''],['불량률',(bad/N*100).toFixed(1)+'%',bad?'ng':'']]);
+  body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP+'<td class="info-title" colspan="'+NC+'">🗺️ 측정 데이터 — 도면 좌표 · 포인트별 불량률 (더미)</td>'+RP+'</tr>'; rn++;
+  infoRow([['오리진','X='+co.origin.x+' , Y='+co.origin.y],['포인트 수',st.N],['평균 불량률',st.avg.toFixed(1)+'%',st.avg>=8?'ng':''],['최대 불량률','P'+st.maxPos+' · '+st.max.toFixed(1)+'%',st.max>=RATE_BAD?'ng':''],['불량 포인트(≥'+RATE_BAD+'%)',st.bad+'개',st.bad?'ng':'ok']]);
   blankRow();
   let hr=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP;
   for(const lb of labels) hr+='<td class="hdr">'+escH(lb)+'</td>';
   body+=hr+RP+'</tr>'; rn++;
-  for(const p of pts){ const st=coordStatus(p), crit=(st==='over'||st==='under'), critCls=crit?' class="ng"':'';
-    const jc=crit?'#c0272d':(st==='hi'||st==='lo')?'#a06a00':'#0a8a0a';
+  for(const p of pts){ const dev=Math.hypot(p.mx-p.rx,p.my-p.ry), bad=p.rate>=RATE_BAD, warn=p.rate>=6, rc=bad?' class="ng"':'';
     body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP
       +'<td class="ptname">'+p.pos+'</td>'
       +'<td>'+f2(p.mx)+'</td><td>'+f2(p.my)+'</td><td>'+f2(p.rx)+'</td><td>'+f2(p.ry)+'</td>'
-      +'<td class="lim-u">'+f3(p.usl)+'</td><td class="lim-l">'+f3(p.lsl)+'</td><td>'+f3(p.nom)+'</td>'
-      +'<td>'+f3(p.over)+'</td><td>'+f3(p.under)+'</td>'
-      +'<td'+critCls+'><b>'+f3(p.meas)+'</b></td><td'+critCls+'>'+f3(p.meas-p.nom)+'</td>'
-      +'<td style="font-weight:700;color:'+jc+'">'+COORD_KO[st]+'</td>'
+      +'<td>'+dev.toFixed(1)+'</td>'
+      +'<td'+rc+' style="font-weight:700;color:'+(bad?'#c0272d':warn?'#a06a00':'#0a8a0a')+'">'+p.rate.toFixed(1)+'</td>'
       +RP+'</tr>'; rn++;
   }
   const bodyRows=rn-1, totalRows=Math.max(bodyRows, Math.ceil(vh/ROWH)+1);
@@ -3489,167 +3450,105 @@ function coordBounds(co){
 }
 function lerpCol(a,b,t){ const p=(s,i)=>parseInt(s.substr(i,2),16); const c=[0,1,2].map(k=>Math.round(p(a,1+k*2)+(p(b,1+k*2)-p(a,1+k*2))*t)); return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
 function sevColor(sev){ const u=Math.max(0,Math.min(1,sev/2)); return u<0.5?lerpCol('#2e9e2e','#f4c020',u/0.5):lerpCol('#f4c020','#d03b3b',(u-0.5)/0.5); }
-/* ① 도면 매핑: 기준면(회색) + 편차 화살표 + 측정면(색). W=캔버스 폭, fill=셀 채움(반응형) */
-function svgCoordMap(co, W, fill){
-  W=W||780; const H=Math.round(W*0.42), ml=44,mr=22,mt=20,mb=30, pw=W-ml-mr, ph=H-mt-mb;
+/* 측정도: 기준면(설계, 회색)·측정면(실측, 파랑) 위치 매핑 + 편차 벡터 */
+function svgMeasMap(co, W, fill){
+  W=W||780; const H=Math.round(W*0.5), ml=44,mr=22,mt=20,mb=30, pw=W-ml-mr, ph=H-mt-mb;
   const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, sc=Math.min(pw/(dx*1.12), ph/(dy*1.12));
   const cx=(b.minx+b.maxx)/2, cy=(b.miny+b.maxy)/2, X=x=>ml+pw/2+(x-cx)*sc, Y=y=>mt+ph/2-(y-cy)*sc;
   let maxdev=0; co.pts.forEach(p=>{ const d=Math.hypot(p.mx-p.rx,p.my-p.ry); if(d>maxdev)maxdev=d; });
-  const EXAG=maxdev>0?Math.max(3,Math.min(80,22/(maxdev*sc))):12;
+  const EXAG=maxdev>0?Math.max(2,Math.min(40,20/(maxdev*sc))):8;
   const ox=X(co.origin.x), oy=Y(co.origin.y);
   let s=sLine(ml,oy,ml+pw,oy,'#ececeb',1)+sLine(ox,mt,ox,mt+ph,'#ececeb',1);
   s+='<circle cx="'+rnd(ox)+'" cy="'+rnd(oy)+'" r="4" fill="none" stroke="#333" stroke-width="1.4"/>'
     +sLine(ox-7,oy,ox+7,oy,'#333',1.2)+sLine(ox,oy-7,ox,oy+7,'#333',1.2)+sTxt(ox+9,oy-6,'오리진 (0,0)','start','#555',9);
-  co.pts.forEach(p=>{
-    const rX=X(p.rx),rY=Y(p.ry), mX=X(p.rx+(p.mx-p.rx)*EXAG), mY=Y(p.ry+(p.my-p.ry)*EXAG), st=coordStatus(p), col=COORD_COL[st];
+  co.pts.forEach(p=>{ const rX=X(p.rx),rY=Y(p.ry), mX=X(p.rx+(p.mx-p.rx)*EXAG), mY=Y(p.ry+(p.my-p.ry)*EXAG);
     s+='<circle cx="'+rnd(rX)+'" cy="'+rnd(rY)+'" r="3" fill="none" stroke="#b9b9b4" stroke-width="1.1"/>'
-      +sLine(rX,rY,mX,mY,col,1.2)
-      +'<circle cx="'+rnd(mX)+'" cy="'+rnd(mY)+'" r="'+(st==='ok'?2.4:3.2)+'" fill="'+col+'"><title>위치 '+p.pos+' · 측정 '+f3(p.meas)+' · '+COORD_KO[st]+'</title></circle>'
+      +sLine(rX,rY,mX,mY,CHT.data,1.1)
+      +'<circle cx="'+rnd(mX)+'" cy="'+rnd(mY)+'" r="2.7" fill="'+CHT.data+'"><title>P'+p.pos+' · 기준면('+f2(p.rx)+', '+f2(p.ry)+') · 측정면('+f2(p.mx)+', '+f2(p.my)+')</title></circle>'
       +sTxt(rX,rY-5,String(p.pos),'middle','#9a9a96',7.5);
   });
-  s+=sTxt(ml,H-9,'편차 ×'+Math.round(EXAG)+' 확대 · 회색=기준면, 색점=측정면','start','#9a9a96',9);
+  s+=sTxt(ml,H-9,'편차 ×'+Math.round(EXAG)+' 확대 · 회색 원=기준면(설계), 파란 점=측정면(실측)','start','#9a9a96',9);
   const style=fill?'width:100%;height:auto;display:block':('min-width:'+W+'px;width:'+W+'px');
   return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="'+style+'">'+s+'</svg>';
 }
-/* ② 편차 히트맵: 각 위치를 |측정−기준치|/공차로 색칠, 과삽/설삽은 굵은 테두리 */
-function svgCoordHeatmap(co, W, fill){
-  W=W||780; const H=Math.round(W*0.34), ml=30,mr=22,mt=18,mb=24, pw=W-ml-mr, ph=H-mt-mb;
+/* 불량률 버블 히트맵: 각 포인트를 불량률로 색칠·크기, 값 표기 */
+function svgRateBubble(co, W, fill){
+  W=W||780; const H=Math.round(W*0.42), ml=30,mr=22,mt=18,mb=24, pw=W-ml-mr, ph=H-mt-mb;
   const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, sc=Math.min(pw/(dx*1.12), ph/(dy*1.12));
   const cx=(b.minx+b.maxx)/2, cy=(b.miny+b.maxy)/2, X=x=>ml+pw/2+(x-cx)*sc, Y=y=>mt+ph/2-(y-cy)*sc;
-  const R=Math.max(6,Math.min(15,co.pitch*sc*0.4));
+  const st=rateStats(co), Rmax=Math.max(6,Math.min(16,co.pitch*sc*0.46)), mxr=Math.max(1,st.max);
   let s='';
-  co.pts.forEach(p=>{ const x=X(p.rx), y=Y(p.ry), sev=pSev(p,co), st=coordStatus(p), crit=(st==='over'||st==='under');
-    s+='<circle cx="'+rnd(x)+'" cy="'+rnd(y)+'" r="'+rnd(R)+'" fill="'+sevColor(sev)+'"'+(crit?' stroke="'+(st==='over'?'#8a0000':'#3a1a7a')+'" stroke-width="2.4"':' stroke="#fff" stroke-width="1"')+'><title>위치 '+p.pos+' · 편차 '+f3(p.meas-p.nom)+' ('+sev.toFixed(2)+'×공차) · '+COORD_KO[st]+'</title></circle>'
-      +sTxt(x,y+3,String(p.pos),'middle',sev>1.1?'#fff':'#333',8);
+  co.pts.forEach(p=>{ const x=X(p.rx), y=Y(p.ry), R=Rmax*(0.45+0.55*Math.min(1,p.rate/mxr)), hi=p.rate>=RATE_BAD;
+    s+='<circle cx="'+rnd(x)+'" cy="'+rnd(y)+'" r="'+rnd(R)+'" fill="'+rateColor(p.rate)+'" stroke="'+(hi?'#8a0000':'#fff')+'" stroke-width="'+(hi?1.8:0.8)+'"><title>P'+p.pos+' · 불량률 '+p.rate.toFixed(1)+'%</title></circle>'
+      +sTxt(x,y+3,p.rate.toFixed(0),'middle',p.rate>=RATE_MID?'#fff':'#333',8);
   });
   const style=fill?'width:100%;height:auto;display:block':('min-width:'+W+'px;width:'+W+'px');
   return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="'+style+'">'+s+'</svg>';
 }
-function heatLegend(){
-  let stops=''; for(let i=0;i<=10;i++) stops+='<stop offset="'+(i*10)+'%" stop-color="'+sevColor(i/10*2)+'"/>';
-  return '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:10px auto 0;max-width:1600px;font-size:11px;color:#666">'
-    +'<span style="display:inline-flex;align-items:center;gap:6px"><svg width="160" height="12" viewBox="0 0 160 12"><defs><linearGradient id="hg">'+stops+'</linearGradient></defs><rect width="160" height="12" rx="2" fill="url(#hg)"/></svg>'
-    +'0 (기준치) · 1× 공차(규격 경계) · ≥2× (이탈)</span>'
-    +'<span style="display:inline-flex;align-items:center;gap:5px"><i style="width:12px;height:12px;border-radius:50%;border:2px solid #8a0000;display:inline-block"></i>과삽</span>'
-    +'<span style="display:inline-flex;align-items:center;gap:5px"><i style="width:12px;height:12px;border-radius:50%;border:2px solid #3a1a7a;display:inline-block"></i>설삽</span></div>';
+function rateLegend(){
+  let stops=''; for(let i=0;i<=10;i++) stops+='<stop offset="'+(i*10)+'%" stop-color="'+rateColor(i/10*RATE_MID*2)+'"/>';
+  return '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:8px auto 0;max-width:1600px;font-size:11px;color:#666">'
+    +'<span style="display:inline-flex;align-items:center;gap:6px"><svg width="160" height="12" viewBox="0 0 160 12"><defs><linearGradient id="rg">'+stops+'</linearGradient></defs><rect width="160" height="12" rx="2" fill="url(#rg)"/></svg>'
+    +'0% · '+RATE_MID+'% · ≥'+(RATE_MID*2)+'% (불량률)</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:5px"><i style="width:12px;height:12px;border-radius:50%;border:2px solid #8a0000;display:inline-block"></i>불량 포인트(≥'+RATE_BAD+'%)</span></div>';
 }
-/* 위치별 규격 대비 편차율(|측정−기준치|/공차). 공차는 위치별(p.tol) 우선 */
-function pSev(p,co){ const t=p.tol||(co&&co.tol)||0.2; return Math.abs(p.meas-p.nom)/t; }
-/* 규격·공차 맵: 각 위치에 상한(▲빨강)·기준치(◆초록)·하한(▼파랑) 값 표기 */
-function svgSpecMap(co, W, fill){
-  W=W||780; const H=Math.round(W*0.52), ml=26,mr=20,mt=16,mb=18, pw=W-ml-mr, ph=H-mt-mb;
-  const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, sc=Math.min(pw/(dx*1.12), ph/(dy*1.12));
-  const cx=(b.minx+b.maxx)/2, cy=(b.miny+b.maxy)/2, X=x=>ml+pw/2+(x-cx)*sc, Y=y=>mt+ph/2-(y-cy)*sc;
-  const FF='Segoe UI,Malgun Gothic,sans-serif';
-  let s='';
-  co.pts.forEach(p=>{ const x=X(p.rx), y=Y(p.ry), st=coordStatus(p), col=COORD_COL[st], lx=x+4, ly=y-9;
-    s+='<rect x="'+rnd(lx-1)+'" y="'+rnd(ly-6)+'" width="30" height="26" rx="2" fill="#ffffff" fill-opacity="0.72"/>'
-      +'<circle cx="'+rnd(x)+'" cy="'+rnd(y)+'" r="2.4" fill="'+col+'"/>'
-      +'<text x="'+rnd(lx)+'" y="'+rnd(ly)+'" font-size="6.6" font-family="'+FF+'">'
-      +'<tspan x="'+rnd(lx)+'" fill="'+CHT.usl+'">▲'+f3(p.usl)+'</tspan>'
-      +'<tspan x="'+rnd(lx)+'" dy="8" fill="'+CHT.spec+'" font-weight="700">◆'+f3(p.nom)+'</tspan>'
-      +'<tspan x="'+rnd(lx)+'" dy="8" fill="'+CHT.lsl+'">▼'+f3(p.lsl)+'</tspan></text>';
+/* 불량률 순위 (상위 포인트 가로 막대) */
+function rateRankHTML(co){
+  const top=[...co.pts].sort((a,b)=>b.rate-a.rate).slice(0,16), mx=Math.max(1, top[0]?top[0].rate:1);
+  let h='<div style="display:flex;flex-direction:column;gap:5px;padding:4px 8px">';
+  top.forEach(p=>{ const w=Math.max(2,p.rate/mx*100), hi=p.rate>=RATE_BAD;
+    h+='<div style="display:flex;align-items:center;gap:8px;font-size:12px">'
+      +'<span style="width:38px;color:#666;text-align:right">P'+p.pos+'</span>'
+      +'<div style="flex:1;background:#eef0ee;border-radius:4px;height:15px;overflow:hidden"><div style="width:'+w.toFixed(0)+'%;height:100%;background:'+rateColor(p.rate)+'"></div></div>'
+      +'<span style="width:54px;text-align:right;font-weight:700;color:'+(hi?'#c0272d':'#333')+'">'+p.rate.toFixed(1)+'%</span></div>';
   });
-  s+='<text x="'+ml+'" y="'+(H-6)+'" font-size="8.5" font-family="'+FF+'" fill="#9a9a96">각 위치: ▲상한 · ◆기준치 · ▼하한</text>';
-  const style=fill?'width:100%;height:auto;display:block':('min-width:'+W+'px;width:'+W+'px');
-  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="'+style+'">'+s+'</svg>';
+  return h+'</div>';
 }
-/* 연속 색 히트맵: 위치별 편차율을 거리가중(IDW)으로 보간해 색 필드로 */
-function svgCoordHeatmapCont(co, W, fill){
-  W=W||780; const H=Math.round(W*0.34), ml=8,mr=8,mt=8,mb=8, pw=W-ml-mr, ph=H-mt-mb;
+/* 연속 색 불량률 히트맵: 포인트 불량률을 거리가중(IDW) 보간해 색 필드로 */
+function svgRateCont(co, W, fill){
+  W=W||780; const H=Math.round(W*0.42), ml=8,mr=8,mt=8,mb=8, pw=W-ml-mr, ph=H-mt-mb;
   const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1;
-  const px=dx*0.06, py=dy*0.12, wx0=b.minx-px, wx1=b.maxx+px, wy0=b.miny-py, wy1=b.maxy+py;
+  const px=dx*0.06, py=dy*0.10, wx0=b.minx-px, wx1=b.maxx+px, wy0=b.miny-py, wy1=b.maxy+py;
   const GX=Math.max(24,Math.round(pw/13)), GY=Math.max(12,Math.round(ph/13)), cw=pw/GX, chh=ph/GY;
-  const P=co.pts.map(p=>({x:p.rx,y:p.ry,sev:pSev(p,co)}));
+  const P=co.pts.map(p=>({x:p.rx,y:p.ry,r:p.rate||0}));
   let s='';
   for(let gy=0;gy<GY;gy++) for(let gx=0;gx<GX;gx++){
     const wx=wx0+(gx+0.5)/GX*(wx1-wx0), wy=wy1-(gy+0.5)/GY*(wy1-wy0);
-    let num=0,den=0; for(const q of P){ const d2=(wx-q.x)**2+(wy-q.y)**2, w=1/(d2+0.5); num+=w*q.sev; den+=w; }
-    s+='<rect x="'+rnd(ml+gx*cw)+'" y="'+rnd(mt+gy*chh)+'" width="'+rnd(cw+0.6)+'" height="'+rnd(chh+0.6)+'" fill="'+sevColor(den?num/den:0)+'"/>';
+    let num=0,den=0; for(const q of P){ const d2=(wx-q.x)**2+(wy-q.y)**2, w=1/(d2+0.5); num+=w*q.r; den+=w; }
+    s+='<rect x="'+rnd(ml+gx*cw)+'" y="'+rnd(mt+gy*chh)+'" width="'+rnd(cw+0.6)+'" height="'+rnd(chh+0.6)+'" fill="'+rateColor(den?num/den:0)+'"/>';
   }
   const X=x=>ml+(x-wx0)/(wx1-wx0)*pw, Y=y=>mt+ph-(y-wy0)/(wy1-wy0)*ph;
-  co.pts.forEach(p=>{ const st=coordStatus(p), crit=(st==='over'||st==='under');
-    s+='<circle cx="'+rnd(X(p.rx))+'" cy="'+rnd(Y(p.ry))+'" r="2.3" fill="#ffffff" fill-opacity="0.7" stroke="'+(crit?(st==='over'?'#8a0000':'#3a1a7a'):'#666')+'" stroke-width="'+(crit?1.6:0.7)+'"/>'; });
+  co.pts.forEach(p=>{ const hi=p.rate>=RATE_BAD;
+    s+='<circle cx="'+rnd(X(p.rx))+'" cy="'+rnd(Y(p.ry))+'" r="2.3" fill="#ffffff" fill-opacity="0.75" stroke="'+(hi?'#8a0000':'#555')+'" stroke-width="'+(hi?1.5:0.7)+'"><title>P'+p.pos+' · '+p.rate.toFixed(1)+'%</title></circle>'; });
   const style=fill?'width:100%;height:auto;display:block':('min-width:'+W+'px;width:'+W+'px');
   return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="'+style+'">'+s+'</svg>';
 }
-function renderCoordViz(cv){
-  const co=extractCoord();
-  if(!co){ cv.innerHTML='<div style="padding:48px;color:#888;font-size:14px">좌표 데이터를 찾을 수 없습니다. 측정데이터 시트를 먼저 준비하세요.</div>'; return; }
-  const pts=co.pts, N=pts.length;
-  const cnt={ok:0,hi:0,lo:0,over:0,under:0}; let worst=0,worstPos='-';
-  pts.forEach(p=>{ cnt[coordStatus(p)]++; const sev=pSev(p,co); if(sev>worst){worst=sev;worstPos=p.pos;} });
-  const bad=cnt.over+cnt.under, warn=cnt.hi+cnt.lo, verdict=bad?'NG':(warn?'WARN':'OK'), rate=bad/N*100;
-  lastChartData={type:'coordviz', points:pts};
-  let h='<div class="cv-head"><div class="cv-head-l"><div class="cv-title"><span class="cv-ic">🗺️</span>도면 좌표 매핑 · 삽입 불량 히트맵</div>'
-    +'<div class="cv-sub">오리진 (X='+co.origin.x+', Y='+co.origin.y+') 기준 · 위치 '+N+'개 · 측정면↔기준면 편차와 과삽/설삽 판정 (더미 데이터)</div></div></div>';
-  h+='<div class="cv-tiles">'
-    +tile(verdict,'종합 판정',verdict==='OK'?'ok':verdict==='NG'?'ng':'warn')
-    +tile(N,'측정 위치')+tile(cnt.ok,'정상','ok')+tile(warn,'경고(상·하한)',warn?'warn':'ok')
-    +tile(cnt.over,'과삽',cnt.over?'ng':'ok')+tile(cnt.under,'설삽',cnt.under?'ng':'ok')
-    +tile(rate.toFixed(1)+'%','불량률(과삽+설삽)',bad?'ng':'ok')
-    +tile(worst.toFixed(2)+'×','최대 편차/공차 (P'+worstPos+')',worst>1?'ng':worst>0.66?'warn':'ok')+'</div>';
-  h+='<div class="cv-overview"><h3>① 도면 매핑 (측정면 vs 기준면)</h3><div class="oh-sub">회색 원 = 기준면(설계 위치), 색 점 = 측정면. 선은 편차 방향(가시성 위해 확대). 색 = 판정.</div>'
-    +'<div style="overflow-x:auto">'+svgCoordMap(co)+'</div></div>';
-  h+='<div class="cv-overview"><h3>② 규격·공차 맵 (위치별 상한·기준·하한)</h3><div class="oh-sub">각 위치에 상한(빨강)·기준치(초록)·하한(파랑) 값을 표기.</div>'
-    +'<div style="overflow-x:auto">'+svgSpecMap(co)+'</div></div>';
-  h+='<div class="cv-overview"><h3>③ 편차 히트맵 (버블)</h3><div class="oh-sub">각 위치를 규격 대비 편차(|측정−기준치|/공차)로 색칠. 초록=규격 내, 빨강=이탈. 과삽/설삽은 굵은 테두리.</div>'
-    +'<div style="overflow-x:auto">'+svgCoordHeatmap(co)+'</div></div>';
-  h+='<div class="cv-overview"><h3>④ 연속 색 히트맵 (거리가중 보간)</h3><div class="oh-sub">측정 위치들의 편차를 보간해 연속 색 필드로 표현.</div>'
-    +'<div style="overflow-x:auto">'+svgCoordHeatmapCont(co)+'</div>'+heatLegend()+'</div>';
-  cv.innerHTML=h;
-}
 /* 엑셀 셀 격자 위에 얹은 프레임 뷰 (예전 '…2' 시트처럼 A·B·C 열머리글 + 행번호) */
+/* 시각화 시트(4종) — sheet().viz 로 분기, 엑셀 격자 위에 얹음 */
 function renderCoordVizFramed(cv){
   const co=extractCoord();
   if(!co){ cv.innerHTML='<div style="padding:48px;color:#888;font-size:14px">좌표 데이터를 찾을 수 없습니다.</div>'; return; }
-  const pts=co.pts, N=pts.length, sh=sheet();
-  const cnt={ok:0,hi:0,lo:0,over:0,under:0}; let worst=0,worstPos='-';
-  pts.forEach(p=>{ cnt[coordStatus(p)]++; const sev=pSev(p,co); if(sev>worst){worst=sev;worstPos=p.pos;} });
-  const bad=cnt.over+cnt.under, warn=cnt.hi+cnt.lo, verdict=bad?'NG':(warn?'WARN':'OK'), rate=bad/N*100;
-  lastChartData={type:'coordviz', points:pts};
-  const ROWH=21, CW=26, vw=cv.clientWidth||1200, vh=cv.clientHeight||700;
-  let contentCols=Math.max(26, Math.min(46, Math.floor((vw-120)/CW))); if(contentCols%2) contentCols--;
-  const contentW=contentCols*CW, leftover=Math.max(0, vw-42-contentW);
-  let MARGIN=2; { const per=leftover/(MARGIN*2); if(per>90) MARGIN=3; else if(per<30) MARGIN=1; }
-  const padW=Math.max(12, Math.round(leftover/(MARGIN*2)));
-  const C0=MARGIN+1, contentEnd=C0+contentCols-1, totalCols=contentEnd+MARGIN;
-  const items=[], push=(r,c,cs,rs,cls,html)=>items.push({r,c,cs,rs,cls,html});
-  push(2,C0,Math.min(22,contentCols),1,'fx-title','🗺️ 도면 좌표 검사 · 시각화');
-  push(3,C0,Math.min(36,contentCols),1,'fx-sub','오리진 (X='+co.origin.x+', Y='+co.origin.y+') 기준 · 위치 '+N+'개 · 측정면↔기준면 편차와 규격·과삽/설삽 판정 (더미 데이터)');
-  const kpis=[[verdict,'종합판정',verdict==='OK'?'ok':verdict==='NG'?'ng':'warn'],[N,'측정 위치',''],[cnt.ok,'정상',''],[warn,'경고(상·하한)',warn?'warn':''],[cnt.over,'과삽',cnt.over?'ng':''],[cnt.under,'설삽',cnt.under?'ng':''],[rate.toFixed(1)+'%','불량률',bad?'ng':''],[worst.toFixed(2)+'×','최대편차/공차',worst>1?'ng':worst>0.66?'warn':'']];
-  const kStep=Math.max(3, Math.floor(contentCols/kpis.length));
-  kpis.forEach((k,i)=>{ const c=C0+i*kStep; if(c+kStep-1>contentEnd) return; push(5,c,kStep-1,2,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(String(k[0]))); push(7,c,kStep-1,1,'fx-kpi-l',escH(k[1])); });
-  let R=9;
-  const section=(title,sub,svg,aspect)=>{
-    push(R,C0,Math.min(34,contentCols),1,'fx-legend','<b style="font-size:13px;color:#333">'+title+'</b>'); R++;
-    push(R,C0,contentCols,1,'fx-sub',sub); R++;
-    const rs=Math.ceil(contentW*aspect/ROWH)+1;
-    push(R,C0,contentCols,rs,'fx-card','<div style="padding:2px 4px">'+svg+'</div>'); R+=rs+1;
-  };
-  section('① 도면 매핑 (측정면 vs 기준면)','회색 원=기준면, 색 점=측정면, 선=편차(가시성 위해 확대). 색=판정.', svgCoordMap(co,contentW,true), 0.42);
-  section('② 규격·공차 맵 (위치별 상한·기준·하한)','각 위치에 상한(빨강)·기준치(초록)·하한(파랑) 값을 표기.', svgSpecMap(co,contentW,true), 0.52);
-  section('③ 편차 히트맵 (버블)','각 위치를 |측정−기준치|/공차로 색칠. 과삽/설삽은 굵은 테두리.', svgCoordHeatmap(co,contentW,true), 0.34);
-  section('④ 연속 색 히트맵 (거리가중 보간)','측정 위치들의 편차를 보간해 연속 색 필드로 표현.', svgCoordHeatmapCont(co,contentW,true), 0.34);
-  push(R,C0,contentCols,1,'fx-legend',heatLegend()); R++;
-  const totalRows=Math.max(R+1, Math.ceil(vh/ROWH));
-  const occ=new Set(), origin={};
-  for(const it of items){ origin[it.r+','+it.c]=it; for(let dr=0;dr<it.rs;dr++)for(let dc=0;dc<it.cs;dc++){ if(dr||dc) occ.add((it.r+dr)+','+(it.c+dc)); } }
-  const widths=[]; for(let c=1;c<=totalCols;c++){ widths.push((c<=MARGIN||c>totalCols-MARGIN)?padW:CW); }
-  const cg=xlColgroup(widths, sh);
-  let head='<tr><th class="xh corner"></th>'; for(let c=1;c<=totalCols;c++) head+='<th class="xh">'+colName(c-1)+'</th>'; head+='</tr>';
-  let body='';
-  for(let r=1;r<=totalRows;r++){
-    body+=trTag(r,sh)+'<th class="rn">'+r+'</th>';
-    for(let c=1;c<=totalCols;c++){
-      if(occ.has(r+','+c)) continue;
-      const it=origin[r+','+c];
-      if(it) body+='<td class="'+it.cls+'"'+(it.cs>1?' colspan="'+it.cs+'"':'')+(it.rs>1?' rowspan="'+it.rs+'"':'')+'>'+it.html+'</td>';
-      else body+='<td class="fill"></td>';
-    }
-    body+='</tr>';
-  }
-  cv.innerHTML='<div class="xl-wrap"><table class="xl-grid fx"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  const st=rateStats(co), viz=sheet().viz||'bubble';
+  lastChartData={type:'coordviz', points:co.pts};
+  const T={ map:['🗺️ 측정도 (X·Y 좌표 매핑)','기준면(설계) 대비 측정면(실측) 위치와 편차'],
+    bubble:['🌡️ 포인트별 불량률 히트맵 (버블)','각 포인트를 불량률로 색칠'],
+    cont:['🌡️ 연속 색 불량률 히트맵','포인트 불량률을 거리가중 보간해 연속 색 필드로'],
+    summary:['📊 불량률 요약','포인트별 불량률 순위와 통계'] }[viz]||['시각화',''];
+  fxRender(cv, ctx=>{
+    const {contentCols:CC, C0, contentEnd:CE, contentW, ROWH, push}=ctx;
+    push(2,C0,Math.min(26,CC),1,'fx-title',T[0]);
+    push(3,C0,Math.min(40,CC),1,'fx-sub','오리진 (X='+co.origin.x+', Y='+co.origin.y+') · 포인트 '+st.N+'개 · '+T[1]+' (더미 데이터)');
+    const kpis=[[st.N,'포인트 수',''],[st.avg.toFixed(1)+'%','평균 불량률',st.avg>=8?'warn':'ok'],[st.max.toFixed(1)+'%','최대 불량률 (P'+st.maxPos+')',st.max>=RATE_BAD?'ng':'warn'],[st.bad,'불량 포인트(≥'+RATE_BAD+'%)',st.bad?'ng':'ok'],[st.good,'양호 포인트','ok']];
+    const kStep=Math.max(3, Math.floor(CC/kpis.length));
+    kpis.forEach((k,i)=>{ const c=C0+i*kStep; if(c+kStep-1>CE) return; push(5,c,kStep-1,2,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(String(k[0]))); push(7,c,kStep-1,1,'fx-kpi-l',escH(k[1])); });
+    let R=9;
+    const bigCard=(sub,html,aspect)=>{ push(R,C0,CC,1,'fx-sub',sub); R++; const rs=Math.ceil(contentW*aspect/ROWH)+1; push(R,C0,CC,rs,'fx-card','<div style="padding:2px 4px">'+html+'</div>'); R+=rs+1; };
+    if(viz==='map') bigCard('회색 원=기준면(설계), 파란 점=측정면(실측), 선=편차(가시성 위해 확대).', svgMeasMap(co,contentW,true), 0.5);
+    else if(viz==='cont'){ bigCard('포인트 불량률을 거리가중 보간해 연속 색 필드로. 흰 점=측정 포인트.', svgRateCont(co,contentW,true), 0.42); push(R,C0,CC,1,'fx-legend',rateLegend()); R++; }
+    else if(viz==='summary'){ push(R,C0,Math.min(24,CC),1,'fx-legend','<b style="font-size:13px;color:#333">불량률 상위 포인트</b>'); R++; const rs=Math.ceil(contentW*0.5/ROWH)+1; push(R,C0,CC,rs,'fx-card',rateRankHTML(co)); R+=rs+1; }
+    else { bigCard('각 포인트를 불량률로 색칠·크기 (초록=낮음, 빨강=높음). 숫자=불량률%.', svgRateBubble(co,contentW,true), 0.42); push(R,C0,CC,1,'fx-legend',rateLegend()); R++; }
+    return R;
+  });
 }
 
 /* ══════════════ 메인 페이지 (엑셀 창 안의 랜딩/대시보드) ══════════════ */
@@ -3693,12 +3592,8 @@ function fxRender(cv, build){
 }
 function mpData(){
   const co=extractCoord();
-  const d={co, N:0, ok:0, warn:0, bad:0, over:0, under:0, verdict:'—', rate:'—', worst:0, worstPos:'-', origin:{x:0,y:0}, nom:null, tol:null};
-  if(co){ const cnt={ok:0,hi:0,lo:0,over:0,under:0}; let worst=0,wp='-';
-    co.pts.forEach(p=>{ cnt[coordStatus(p)]++; const s=pSev(p,co); if(s>worst){worst=s;wp=p.pos;} });
-    const bad=cnt.over+cnt.under, warn=cnt.hi+cnt.lo, N=co.pts.length;
-    Object.assign(d,{N, ok:cnt.ok, warn, bad, over:cnt.over, under:cnt.under, verdict:bad?'NG':(warn?'WARN':'OK'), rate:(bad/N*100).toFixed(1)+'%', worst, worstPos:wp, origin:co.origin, nom:co.nom, tol:co.tol});
-  }
+  const d={co, N:0, avg:0, max:0, maxPos:'-', bad:0, good:0, origin:{x:0,y:0}};
+  if(co){ const st=rateStats(co); Object.assign(d,{N:st.N, avg:st.avg, max:st.max, maxPos:st.maxPos, bad:st.bad, good:st.good, origin:co.origin}); }
   return d;
 }
 function vCol(v){ return v==='OK'?'#0ca30c':v==='NG'?'#d03b3b':v==='WARN'?'#e08a00':'#888'; }
@@ -3715,19 +3610,19 @@ function renderMainPage(cv){
 function buildMainA(ctx,d){
   const {contentCols:CC, C0, contentEnd:CE, CW, push}=ctx;
   push(2,C0,CC,3,'fx-card','<div style="height:100%;box-sizing:border-box;background:linear-gradient(120deg,#107C41,#0b5a30);border-radius:12px;padding:16px 20px;color:#fff;display:flex;flex-direction:column;justify-content:center">'
-    +'<div style="font-size:22px;font-weight:800">🗺️ 도면 좌표 검사 · 대시보드</div>'
-    +'<div style="font-size:12.5px;opacity:.9;margin-top:5px">측정면·기준면 좌표를 오리진 기준으로 매핑하고 삽입 불량을 한눈에.</div></div>');
-  const tiles=[[d.verdict,'종합판정',vCol(d.verdict)],[d.N||'—','측정 위치','#1e1e1e'],[d.ok,'정상','#0ca30c'],[d.warn,'경고','#e08a00'],[d.bad,'불량(과삽·설삽)','#d03b3b'],[d.rate,'불량률',d.bad?'#d03b3b':'#0ca30c']];
-  const step=Math.floor(CC/6), tw=step-1;
+    +'<div style="font-size:22px;font-weight:800">🗺️ 도면 좌표 불량률 · 대시보드</div>'
+    +'<div style="font-size:12.5px;opacity:.9;margin-top:5px">각 포인트의 X·Y 좌표 매핑과 포인트별 불량률을 한눈에.</div></div>');
+  const tiles=[[d.N||'—','포인트 수','#1e1e1e'],[d.avg.toFixed(1)+'%','평균 불량률',d.avg>=8?'#e08a00':'#0ca30c'],[d.max.toFixed(1)+'%','최대 불량률 (P'+d.maxPos+')',d.max>=15?'#d03b3b':'#e08a00'],[d.bad,'불량 포인트(≥15%)',d.bad?'#d03b3b':'#0ca30c'],[d.good,'양호 포인트','#0ca30c']];
+  const step=Math.floor(CC/5), tw=step-1;
   tiles.forEach((t,i)=>{ const c=C0+i*step; if(c+tw-1>CE) return; push(6,c,tw,3,'fx-card',mpTile(t[0],t[1],t[2])); });
-  push(10,C0,CC,1,'fx-legend','<b style="font-size:12.5px;color:#555">도면 미리보기</b>');
+  push(10,C0,CC,1,'fx-legend','<b style="font-size:12.5px;color:#555">미리보기 (측정도 · 불량률 히트맵)</b>');
   const gap=1, half=Math.floor((CC-gap)/2), rs=8;
   if(d.co){
-    push(11,C0,half,rs,'fx-card','<div style="padding:6px 8px">'+svgCoordMap(d.co, half*CW, true)+'</div>');
-    const rw=CE-(C0+half+gap)+1; push(11,C0+half+gap,rw,rs,'fx-card','<div style="padding:6px 8px">'+svgCoordHeatmap(d.co, rw*CW, true)+'</div>');
+    push(11,C0,half,rs,'fx-card','<div style="padding:6px 8px">'+svgMeasMap(d.co, half*CW, true)+'</div>');
+    const rw=CE-(C0+half+gap)+1; push(11,C0+half+gap,rw,rs,'fx-card','<div style="padding:6px 8px">'+svgRateBubble(d.co, rw*CW, true)+'</div>');
   }
   const br=11+rs+1;
-  push(br,C0,CC,2,'fx-card','<div style="display:flex;gap:12px;align-items:center;padding:6px 4px;flex-wrap:wrap">'+mpBtn('측정데이터','측정데이터 열기','#107C41')+mpBtn('시각화','시각화 열기','#2a78d6')+'<span style="font-size:11.5px;color:#999">데이터 탭 ▸ 측정 더미 불러오기로 새 데이터를 만들 수 있어요.</span></div>');
+  push(br,C0,CC,2,'fx-card','<div style="display:flex;gap:12px;align-items:center;padding:6px 4px;flex-wrap:wrap">'+mpBtn('측정데이터','측정데이터 열기','#107C41')+mpBtn('불량률 히트맵','히트맵 열기','#2a78d6')+'<span style="font-size:11.5px;color:#999">데이터 탭 ▸ 측정 더미 불러오기로 새 데이터를 만들 수 있어요.</span></div>');
   return br+2;
 }
 /* B) 히어로/랜딩형 — 넉넉한 여백, 큰 타이틀, 3개 특징, CTA 버튼 */
@@ -3736,9 +3631,9 @@ function buildMainB(ctx,d){
   push(3,C0,CC,7,'fx-card','<div style="height:100%;box-sizing:border-box;background:linear-gradient(160deg,#f0f7f2,#eaf1fb);border:1px solid #e2ece4;border-radius:16px;padding:34px 28px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center">'
     +'<div style="font-size:12px;letter-spacing:.14em;font-weight:700;color:#0a7a34;text-transform:uppercase">Drawing Coordinate Inspection</div>'
     +'<div style="font-size:34px;font-weight:800;color:#14251b;margin-top:10px;letter-spacing:-.02em">도면 좌표 검사</div>'
-    +'<div style="font-size:14px;color:#5a6b60;margin-top:12px;max-width:520px;line-height:1.6">측정면과 기준면의 좌표를 오리진 기준으로 도면에 얹고, 규격·과삽·설삽 기준으로 삽입 불량을 시각화합니다.</div>'
-    +'<div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">'+mpBtn('시각화','시각화 보기','#107C41')+mpBtn('측정데이터','데이터 보기','#2a78d6')+'</div></div>');
-  const feats=[['🗺️','좌표 매핑','오리진 기준 측정면·기준면 배치'],['🌡️','불량 히트맵','규격 대비 편차를 색으로'],['⚖️','규격 판정','과삽·설삽·상하한 자동 판정']];
+    +'<div style="font-size:14px;color:#5a6b60;margin-top:12px;max-width:520px;line-height:1.6">각 포인트의 X·Y 좌표를 오리진 기준으로 도면에 매핑하고, 포인트별 불량률을 히트맵으로 봅니다.</div>'
+    +'<div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">'+mpBtn('불량률 히트맵','히트맵 보기','#107C41')+mpBtn('측정데이터','데이터 보기','#2a78d6')+'</div></div>');
+  const feats=[['🗺️','좌표 매핑','기준면·측정면 X·Y 배치'],['🌡️','불량률 히트맵','포인트별 불량률을 색으로'],['📊','불량률 요약','상위 불량 포인트 순위']];
   const gap=1, tw=Math.floor((CC-2*gap)/3);
   feats.forEach((f,i)=>{ const c=C0+i*(tw+gap); if(c+tw-1>CE) return; push(11,c,tw,3,'fx-card','<div style="box-sizing:border-box;padding:14px 16px;border:1px solid #eaeae6;border-radius:12px;background:#fff;text-align:center">'
     +'<div style="font-size:24px">'+f[0]+'</div><div style="font-size:14px;font-weight:700;color:#222;margin-top:6px">'+escH(f[1])+'</div>'
@@ -3749,21 +3644,21 @@ function buildMainB(ctx,d){
 function buildMainC(ctx,d){
   const {contentCols:CC, C0, contentEnd:CE, push}=ctx;
   push(3,C0,CC-8,2,'fx-card','<div style="border-left:4px solid #107C41;padding:2px 0 2px 14px">'
-    +'<div style="font-size:11px;letter-spacing:.12em;color:#0a7a34;font-weight:700">INSPECTION REPORT</div>'
-    +'<div style="font-size:26px;font-weight:800;color:#1b1b1b;margin-top:4px">도면 좌표 검사 리포트</div></div>');
-  push(3,CE-7,8,2,'fx-card','<div style="text-align:right"><div style="display:inline-block;background:'+vCol(d.verdict)+';color:#fff;font-size:22px;font-weight:800;padding:8px 20px;border-radius:10px">'+escH(d.verdict)+'</div>'
-    +'<div style="font-size:11px;color:#999;margin-top:6px">종합 판정</div></div>');
-  const rows=[['오리진','X='+d.origin.x+'  ·  Y='+d.origin.y],['측정 위치',d.N+' 개'],['기준치',d.nom==null?'—':f3(d.nom)],['공차',d.tol==null?'—':'±'+f3(d.tol)],['정상',d.ok+' 개'],
-    ['경고(상·하한)',d.warn+' 개'],['불량(과삽·설삽)',d.bad+' 개'],['불량률',d.rate],['검사일','2026-07-10 (더미)'],['리포트 번호','RPT-'+(1000+(d.N||0))]];
-  const half=Math.floor(CC/2), kw=Math.floor(half*0.42), r0=6;
-  rows.forEach((rw,i)=>{ const col=i<5?C0:C0+half, rr=r0+(i%5)*2;
+    +'<div style="font-size:11px;letter-spacing:.12em;color:#0a7a34;font-weight:700">DEFECT-RATE REPORT</div>'
+    +'<div style="font-size:26px;font-weight:800;color:#1b1b1b;margin-top:4px">도면 좌표 불량률 리포트</div></div>');
+  push(3,CE-7,8,2,'fx-card','<div style="text-align:right"><div style="display:inline-block;background:'+rateColor(d.max)+';color:#fff;font-size:20px;font-weight:800;padding:8px 18px;border-radius:10px">'+d.max.toFixed(1)+'%</div>'
+    +'<div style="font-size:11px;color:#999;margin-top:6px">최대 불량률 (P'+d.maxPos+')</div></div>');
+  const rows=[['오리진','X='+d.origin.x+'  ·  Y='+d.origin.y],['포인트 수',d.N+' 개'],['평균 불량률',d.avg.toFixed(1)+'%',d.avg>=8?'ng':''],['최대 불량률','P'+d.maxPos+' · '+d.max.toFixed(1)+'%',d.max>=15?'ng':''],
+    ['불량 포인트(≥15%)',d.bad+' 개',d.bad?'ng':''],['양호 포인트',d.good+' 개',''],['검사일','2026-07-10 (더미)'],['리포트 번호','RPT-'+(1000+(d.N||0))]];
+  const half=Math.floor(CC/2), kw=Math.floor(half*0.44), r0=6;
+  rows.forEach((rw,i)=>{ const col=i<4?C0:C0+half, rr=r0+(i%4)*2;
     push(rr,col,kw,2,'fx-card','<div style="padding:2px 0;color:#888;font-size:11.5px">'+escH(rw[0])+'</div>');
-    push(rr,col+kw,half-kw-1,2,'fx-card','<div style="padding:2px 0;color:#1e1e1e;font-size:13.5px;font-weight:600">'+escH(rw[1])+'</div>');
+    push(rr,col+kw,half-kw-1,2,'fx-card','<div style="padding:2px 0;color:'+(rw[2]==='ng'?'#c0272d':'#1e1e1e')+';font-size:13.5px;font-weight:600">'+escH(rw[1])+'</div>');
   });
-  const tr=r0+10+1;
+  const tr=r0+8+1;
   push(tr,C0,CC,1,'fx-legend','<b style="font-size:12.5px;color:#555">시트 안내</b>');
-  push(tr+1,C0,CC,2,'fx-card','<div data-goto="측정데이터" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #eee"><span style="width:22px;height:22px;border-radius:6px;background:#107C41;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">1</span><b style="font-size:13px;color:#222">측정데이터</b><span style="font-size:11.5px;color:#888">위치별 좌표·규격·판정 원본 표</span><span style="margin-left:auto;color:#2a78d6;font-size:12px">열기 →</span></div>');
-  push(tr+3,C0,CC,2,'fx-card','<div data-goto="시각화" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 10px"><span style="width:22px;height:22px;border-radius:6px;background:#2a78d6;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">2</span><b style="font-size:13px;color:#222">시각화</b><span style="font-size:11.5px;color:#888">도면 매핑 · 삽입 불량 히트맵</span><span style="margin-left:auto;color:#2a78d6;font-size:12px">열기 →</span></div>');
+  push(tr+1,C0,CC,2,'fx-card','<div data-goto="측정데이터" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #eee"><span style="width:22px;height:22px;border-radius:6px;background:#107C41;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">1</span><b style="font-size:13px;color:#222">측정데이터</b><span style="font-size:11.5px;color:#888">포인트별 좌표·불량률 원본 표</span><span style="margin-left:auto;color:#2a78d6;font-size:12px">열기 →</span></div>');
+  push(tr+3,C0,CC,2,'fx-card','<div data-goto="불량률 히트맵" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 10px"><span style="width:22px;height:22px;border-radius:6px;background:#2a78d6;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">2</span><b style="font-size:13px;color:#222">시각화</b><span style="font-size:11.5px;color:#888">측정도 · 불량률 히트맵 · 요약</span><span style="margin-left:auto;color:#2a78d6;font-size:12px">열기 →</span></div>');
   return tr+5;
 }
 
@@ -3773,7 +3668,10 @@ sheets.push({name:'메인 B·히어로', kind:'main', mainVariant:'b', data:{}, 
 sheets.push({name:'메인 C·리포트', kind:'main', mainVariant:'c', data:{}, colW:{}, rowH:{}});
 const _coord = genCoordData('측정데이터');
 sheets.push(_coord); coordSource = _coord;
-sheets.push(newChartSheet('시각화','coordviz',true));
+sheets.push(Object.assign(newChartSheet('측정도','coordviz',true), {viz:'map'}));
+sheets.push(Object.assign(newChartSheet('불량률 히트맵','coordviz',true), {viz:'bubble'}));
+sheets.push(Object.assign(newChartSheet('연속 히트맵','coordviz',true), {viz:'cont'}));
+sheets.push(Object.assign(newChartSheet('불량률 요약','coordviz',true), {viz:'summary'}));
 cur = 0;
 renderTabs();
 renderSheetFull();
