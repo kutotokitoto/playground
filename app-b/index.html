@@ -2194,7 +2194,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783654166865;   // 2026-07-10 12:29 KST
+const BUILD_TS = 1783654639368;   // 2026-07-10 12:37 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3053,6 +3053,7 @@ $('chart-view').addEventListener('click', e=>{
   }
 });
 $('chart-view').addEventListener('change', e=>{
+  if(e.target.id==='viz-overlay'){ calib.overlayOnViz=e.target.checked; showChartSheet(); return; }
   const cb=e.target.closest('.cc-cb'); if(!cb) return;
   const card=cb.closest('.chart-card'), idx=+card.dataset.idx;
   if(cb.checked){ selectedIdx.add(idx); card.classList.add('sel'); } else { selectedIdx.delete(idx); card.classList.remove('sel'); }
@@ -3544,10 +3545,15 @@ function renderCoordVizFramed(cv){
     kpis.forEach((k,i)=>{ const c=C0+i*kStep; if(c+kStep-1>CE) return; push(5,c,kStep-1,2,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(String(k[0]))); push(7,c,kStep-1,1,'fx-kpi-l',escH(k[1])); });
     let R=9;
     const bigCard=(sub,html,aspect)=>{ push(R,C0,CC,1,'fx-sub',sub); R++; const rs=Math.ceil(contentW*aspect/ROWH)+1; push(R,C0,CC,rs,'fx-card','<div style="padding:2px 4px">'+html+'</div>'); R+=rs+1; };
-    if(viz==='map') bigCard('회색 원=기준면(설계), 파란 점=측정면(실측), 선=편차(가시성 위해 확대).', svgMeasMap(co,contentW,true), 0.5);
-    else if(viz==='cont'){ bigCard('포인트 불량률을 거리가중 보간해 연속 색 필드로. 흰 점=측정 포인트.', svgRateCont(co,contentW,true), 0.42); push(R,C0,CC,1,'fx-legend',rateLegend()); R++; }
-    else if(viz==='summary'){ push(R,C0,Math.min(24,CC),1,'fx-legend','<b style="font-size:13px;color:#333">불량률 상위 포인트</b>'); R++; const rs=Math.ceil(contentW*0.5/ROWH)+1; push(R,C0,CC,rs,'fx-card',rateRankHTML(co)); R+=rs+1; }
-    else { bigCard('각 포인트를 불량률로 색칠·크기 (초록=낮음, 빨강=높음). 숫자=불량률%.', svgRateBubble(co,contentW,true), 0.42); push(R,C0,CC,1,'fx-legend',rateLegend()); R++; }
+    const calAvail=!!(calib.af&&calib.img), useOv=calAvail&&calib.overlayOnViz!==false&&viz!=='summary';
+    if(viz!=='summary'){
+      if(calAvail) { push(R,C0,Math.min(44,CC),1,'fx-legend','<label style="font-size:12px;color:#333;display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input id="viz-overlay" type="checkbox"'+(calib.overlayOnViz!==false?' checked':'')+'> 🎯 캡처 이미지 위에 표시 (정합 결과)</label>'); R++; }
+      else { push(R,C0,Math.min(52,CC),1,'fx-sub','🎯 캡처 위에 겹쳐 보려면 <b>‘이미지 정합’</b> 시트에서 기준 3점을 먼저 찍으세요 — <span data-goto="이미지 정합" style="color:#2a78d6;cursor:pointer;font-weight:600">이미지 정합 열기 →</span>'); R++; }
+    }
+    if(viz==='summary'){ push(R,C0,Math.min(24,CC),1,'fx-legend','<b style="font-size:13px;color:#333">불량률 상위 포인트</b>'); R++; const rs=Math.ceil(contentW*0.5/ROWH)+1; push(R,C0,CC,rs,'fx-card',rateRankHTML(co)); R+=rs+1; }
+    else if(viz==='map') bigCard(useOv?'캡처 위에 측정면(파란 점) 오버레이. 배지 위치와 겹치면 정합 정상.':'회색 원=기준면(설계), 파란 점=측정면(실측), 선=편차(가시성 위해 확대).', useOv?imageOverlayHTML(co,'map'):svgMeasMap(co,contentW,true), useOv?0.62:0.5);
+    else if(viz==='cont'){ bigCard(useOv?'캡처 위에 연속 불량률 필드 오버레이.':'포인트 불량률을 거리가중 보간해 연속 색 필드로. 흰 점=측정 포인트.', useOv?imageOverlayHTML(co,'cont'):svgRateCont(co,contentW,true), useOv?0.62:0.42); push(R,C0,CC,1,'fx-legend',rateLegend()); R++; }
+    else { bigCard(useOv?'캡처 위에 포인트별 불량률 버블 오버레이.':'각 포인트를 불량률로 색칠·크기 (초록=낮음, 빨강=높음). 숫자=불량률%.', useOv?imageOverlayHTML(co,'bubble'):svgRateBubble(co,contentW,true), useOv?0.62:0.42); push(R,C0,CC,1,'fx-legend',rateLegend()); R++; }
     return R;
   });
 }
@@ -3602,7 +3608,32 @@ function genBoardImage(co){
   return { url:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg),
     refClicks: refs.map(p=>{ const q=P(p.rx,p.ry); return {fx:q.u/IW, fy:q.v/IH}; }) };
 }
-const calib={ img:null, clicks:[], af:null, dummyRefs:null, refPts:[], opacity:0.85, heat:true, errPx:0 };
+const calib={ img:null, clicks:[], af:null, dummyRefs:null, refPts:[], opacity:0.85, heat:true, errPx:0, overlayOnViz:true };
+function oobN(q){ return q.fx<-0.06||q.fx>1.06||q.fy<-0.06||q.fy>1.06; }
+/* 정합 이미지 위에 연속 불량률 필드 (정규 0..100 좌표를 이미지에 stretch) */
+function svgRateFieldOnImage(co, af){
+  const P=co.pts.map(p=>{ const q=mapPt(af,p.rx,p.ry); return {x:q.fx*100,y:q.fy*100,r:p.rate||0}; });
+  const G=46, cell=100/G; let s='';
+  for(let gy=0;gy<G;gy++) for(let gx=0;gx<G;gx++){ const cx=(gx+0.5)*cell, cy=(gy+0.5)*cell;
+    let num=0,den=0; for(const q of P){ const d2=(cx-q.x)**2+(cy-q.y)**2, w=1/(d2+6); num+=w*q.r; den+=w; }
+    s+='<rect x="'+rnd(gx*cell)+'" y="'+rnd(gy*cell)+'" width="'+rnd(cell+0.4)+'" height="'+rnd(cell+0.4)+'" fill="'+rateColor(den?num/den:0)+'"/>'; }
+  co.pts.forEach(p=>{ const q=mapPt(af,p.rx,p.ry), hi=p.rate>=RATE_BAD;
+    s+='<circle cx="'+rnd(q.fx*100)+'" cy="'+rnd(q.fy*100)+'" r="0.7" fill="#fff" fill-opacity="0.85" stroke="'+(hi?'#8a0000':'#555')+'" stroke-width="0.24"/>'; });
+  return '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;opacity:'+calib.opacity+'">'+s+'</svg>';
+}
+/* 정합 이미지 + 오버레이(HTML). kind: map(측정면 점) / bubble(불량률 버블) / cont(연속 필드) */
+function imageOverlayHTML(co, kind){
+  const af=calib.af, op=calib.opacity; let ov='';
+  if(kind==='cont') ov=svgRateFieldOnImage(co, af);
+  else if(kind==='map') co.pts.forEach(p=>{ const m=mapPt(af,p.mx,p.my); if(oobN(m)) return;
+    ov+='<div title="P'+p.pos+'" style="position:absolute;left:'+rnd(m.fx*100)+'%;top:'+rnd(m.fy*100)+'%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:#2a78d6;opacity:'+op+';border:1.4px solid rgba(255,255,255,.9)"></div>'; });
+  else { const st=rateStats(co), mxr=Math.max(1,st.max);
+    co.pts.forEach(p=>{ const q=mapPt(af,p.rx,p.ry); if(oobN(q)) return; const big=p.rate>=RATE_BAD, sz=Math.round(8+11*Math.min(1,p.rate/mxr));
+      ov+='<div title="P'+p.pos+' · '+p.rate.toFixed(1)+'%" style="position:absolute;left:'+rnd(q.fx*100)+'%;top:'+rnd(q.fy*100)+'%;transform:translate(-50%,-50%);width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:'+rateColor(p.rate)+';opacity:'+op+';border:1.5px solid '+(big?'#7a0000':'rgba(255,255,255,.9)')+'"></div>'; }); }
+  return '<div style="position:relative;display:inline-block;max-width:100%;line-height:0;border:1px solid #ccc;border-radius:6px;overflow:hidden">'
+    +'<img src="'+calib.img+'" style="display:block;max-width:100%;height:auto">'
+    +'<div style="position:absolute;inset:0">'+ov+'</div></div>';
+}
 function solveCalib(co){
   const refs=calib.refPts; if(!co||refs.length<3||calib.clicks.length<3){ calib.af=null; return; }
   const D=refs.map(p=>[p.rx,p.ry]), I=calib.clicks.map(c=>[c.fx,c.fy]);
