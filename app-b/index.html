@@ -2192,7 +2192,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783649438489;   // 2026-07-10 11:10 KST
+const BUILD_TS = 1783649811547;   // 2026-07-10 11:16 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3106,7 +3106,7 @@ function showDataView(){
   const dv=$('data-view'); dv.style.display='block'; dv.scrollTop=0;
   nameBox.value=sheet().name; fInput.value=''; $('sb-mode').textContent='준비'; $('sb-stats').innerHTML='';
   const D=sheet().data;
-  if(sheet().coord){ dv.innerHTML=renderCoordTable(sheet()); requestAnimationFrame(syncHScroll); return; }
+  if(sheet().coord){ dv.innerHTML=renderCoordTableFramed(sheet()); requestAnimationFrame(syncHScroll); return; }
   const qc=extractQC();
   let h='';
   if(qc){
@@ -3427,6 +3427,54 @@ function renderCoordTable(sh){
   });
   h+='</tbody></table></div>';
   return h;
+}
+/* 측정데이터 시트 — 엑셀 격자(A·B·C 열머리글 + 행번호) 위에 얹은 표 (시각화 시트와 동일 룩) */
+function renderCoordTableFramed(sh){
+  const co=sh.coord, pts=co.pts, N=pts.length, tol=co.tol||0.2;
+  const cnt={ok:0,hi:0,lo:0,over:0,under:0}; pts.forEach(p=>cnt[coordStatus(p)]++);
+  const bad=cnt.over+cnt.under, warn=cnt.hi+cnt.lo, verdict=bad?'NG':(warn?'WARN':'OK');
+  const labels=['위치','측정면 X','측정면 Y','기준면 X','기준면 Y','상한','하한','기준치','과삽기준','설삽기준','측정 삽입량','편차','판정'];
+  const NC=labels.length, PTW=64, DW=84, ROWH=21;
+  const contentW=PTW+(NC-1)*DW;
+  const dv=$('data-view'), vw=dv.clientWidth||1200, vh=dv.clientHeight||600;
+  const leftover=Math.max(0, vw-42-contentW);
+  let padPer=2; { const per=leftover/(padPer*2); if(per>95) padPer=3; else if(per<40) padPer=1; }
+  const padW=Math.max(12, Math.round(leftover/(padPer*2)));
+  const totalCols=padPer+NC+padPer;
+  const fill=n=>{ let s=''; for(let i=0;i<n;i++) s+='<td class="fill"></td>'; return s; };
+  const LP=fill(padPer), RP=fill(padPer);
+  const widths=[]; for(let i=0;i<padPer;i++) widths.push(padW);
+  widths.push(PTW); for(let i=1;i<NC;i++) widths.push(DW);
+  for(let i=0;i<padPer;i++) widths.push(padW);
+  const cg=xlColgroup(widths, sh);
+  let head='<tr><th class="xh corner"></th>'; for(let c=0;c<totalCols;c++) head+='<th class="xh">'+colName(c)+'</th>'; head+='</tr>';
+  let body='', rn=1;
+  const blankRow=()=>{ body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP+fill(NC)+RP+'</tr>'; rn++; };
+  const infoRow=pairs=>{ let s=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP;
+    for(const pr of pairs) s+='<td class="info-k">'+escH(pr[0])+'</td><td class="info-v'+(pr[2]?' '+pr[2]:'')+'">'+escH(pr[1])+'</td>';
+    body+=s+RP+'</tr>'; rn++; };
+  blankRow();
+  body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP+'<td class="info-title" colspan="'+NC+'">🗺️ 측정 데이터 — 도면 좌표·삽입량 (더미)</td>'+RP+'</tr>'; rn++;
+  infoRow([['오리진','X='+co.origin.x+' , Y='+co.origin.y],['위치 수',N],['기준치',f3(co.nom)],['공차','±'+f3(tol)]]);
+  infoRow([['종합 판정',verdict,verdict==='OK'?'ok':'ng'],['정상',cnt.ok+'개','ok'],['경고(상·하한)',warn+'개',warn?'ng':''],['과삽',cnt.over+'개',cnt.over?'ng':''],['설삽',cnt.under+'개',cnt.under?'ng':''],['불량률',(bad/N*100).toFixed(1)+'%',bad?'ng':'']]);
+  blankRow();
+  let hr=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP;
+  for(const lb of labels) hr+='<td class="hdr">'+escH(lb)+'</td>';
+  body+=hr+RP+'</tr>'; rn++;
+  for(const p of pts){ const st=coordStatus(p), crit=(st==='over'||st==='under'), critCls=crit?' class="ng"':'';
+    const jc=crit?'#c0272d':(st==='hi'||st==='lo')?'#a06a00':'#0a8a0a';
+    body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP
+      +'<td class="ptname">'+p.pos+'</td>'
+      +'<td>'+f2(p.mx)+'</td><td>'+f2(p.my)+'</td><td>'+f2(p.rx)+'</td><td>'+f2(p.ry)+'</td>'
+      +'<td class="lim-u">'+f3(p.usl)+'</td><td class="lim-l">'+f3(p.lsl)+'</td><td>'+f3(p.nom)+'</td>'
+      +'<td>'+f3(p.over)+'</td><td>'+f3(p.under)+'</td>'
+      +'<td'+critCls+'><b>'+f3(p.meas)+'</b></td><td'+critCls+'>'+f3(p.meas-p.nom)+'</td>'
+      +'<td style="font-weight:700;color:'+jc+'">'+COORD_KO[st]+'</td>'
+      +RP+'</tr>'; rn++;
+  }
+  const bodyRows=rn-1, totalRows=Math.max(bodyRows, Math.ceil(vh/ROWH)+1);
+  for(; rn<=totalRows; rn++) body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+fill(totalCols)+'</tr>';
+  return '<div class="xl-wrap"><table class="xl-grid"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
 }
 /* 좌표 → 화면 변환용 경계 */
 function coordBounds(co){
