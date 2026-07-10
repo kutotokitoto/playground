@@ -2232,7 +2232,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783672084884;   // 2026-07-10 17:28 KST
+const BUILD_TS = 1783673117652;   // 2026-07-10 17:45 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3534,7 +3534,10 @@ function parseCoordRows(rows){
   const norm=s=>String(s==null?'':s).replace(/\s|\(|\)|%/g,'').toLowerCase();
   const isPt=h=>/포인트|위치|번호|point/.test(h)||h==='no';                     // 포인트 열 표기 변형
   const isRt=h=>/불량[률율]|ng[률율]|불량%|rate|defect/.test(h);                 // 불량률/불량율/NG율/rate…
-  const hi=rows.findIndex(r=>r.some(c=>isPt(norm(c)))&&r.some(c=>isRt(norm(c))));
+  // 헤더 행: '포인트'와 '불량률'이 서로 다른 셀에 있어야 함 (템플릿 1행 같은 설명 문장 한 칸에 둘 다 들어간 경우 배제)
+  const looksHeader=r=>{ const cs=r.map(norm); const pi=cs.findIndex(isPt), ri=cs.findIndex(isRt);
+    return pi>=0 && ri>=0 && pi!==ri && r.filter(c=>String(c==null?'':c).trim()!=='').length>=3; };
+  const hi=rows.findIndex(looksHeader);
   if(hi<0) return positionalCoordParse(rows)||{err:"헤더 행을 찾지 못함 — '포인트'(또는 위치/번호)와 '불량률'(또는 불량율/NG율) 열이 같은 행에 있어야 합니다"};
   let origin={x:0,y:0};
   for(let i=0;i<hi;i++){ if(norm(rows[i][0]).includes('오리진')){ const ox=Number(rows[i][1]), oy=Number(rows[i][2]); if(isFinite(ox)&&isFinite(oy)) origin={x:ox,y:oy}; } }
