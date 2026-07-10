@@ -414,12 +414,15 @@ table.xl-grid tr.total td.ptname{background:#e3ebe4}
 table.xl-grid.fx td{text-align:center;vertical-align:middle;padding:0;border-color:#e2e2e1;color:#222;overflow:visible}
 table.xl-grid.fx td.fx-title{font-size:23px;font-weight:600;color:#222;text-align:left;padding:2px 12px}
 table.xl-grid.fx td.fx-sub{font-size:12.5px;color:#777;text-align:left;padding:2px 12px}
-table.xl-grid.fx td.fx-kpi-v{font-size:24px;font-weight:600;color:#1e1e1e;line-height:1;white-space:nowrap}
+table.xl-grid.fx td.fx-kpi-v{font-size:24px;font-weight:600;color:#1e1e1e;line-height:1;white-space:nowrap;padding:16px 0 4px}
 table.xl-grid.fx td.fx-kpi-v.ok{color:#0ca30c}
 table.xl-grid.fx td.fx-kpi-v.ng{color:#d03b3b}
 table.xl-grid.fx td.fx-kpi-v.warn{color:#e08a00}
 table.xl-grid.fx td.fx-kpi-l{font-size:11px;color:#888;white-space:nowrap}
 table.xl-grid.fx td.fx-legend{text-align:left;padding:2px 12px}
+table.xl-grid.fx td.fx-ovh{font-size:12px;font-weight:700;color:#0b5a30;text-align:left;padding:4px 12px 2px}
+table.xl-grid.fx td.fx-ov{padding:2px 8px 6px;vertical-align:top;background:#fff}
+table.xl-grid.fx td.fx-ov svg{display:block}
 table.xl-grid.fx td.fx-card{border:none;padding:4px 8px;vertical-align:middle;text-align:left;background:#fff}
 table.xl-grid.fx td.fx-card .chart-card{box-shadow:none;border:none;border-radius:0;padding:2px 4px 4px}
 table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈 칸)은 엷은 회색(#f2f0ee) */
@@ -2210,7 +2213,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783650782282;   // 2026-07-10 11:33 KST
+const BUILD_TS = 1783651594560;   // 2026-07-10 11:46 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2784,8 +2787,26 @@ function svgScatter(pt){
   s+=valueStrip(ml,pw,CH-6,pt);
   return wrapSVG(s);
 }
+/* 값이 가로축인 차트(정규분포)용: 하한/목표/평균/상한 숫자를 각자의 x 위치에 배치.
+   겹치면 최소 간격으로 밀고, 밀린 라벨은 실제 위치로 콜아웃 선을 그어 연결. */
+function alignedValueLabels(pt, xP, ml, pw, yTop, yLabel){
+  const src=[[pt.lsl,'하한',CHT.lsl],[pt.spec,'목표',CHT.spec],[pt.mean,'평균',CHT.mean],[pt.usl,'상한',CHT.usl]];
+  const arr=[];
+  for(const o of src){ if(isFinite(o[0])) arr.push({v:o[0],t:o[1],c:o[2],x:Math.max(ml,Math.min(ml+pw,xP(o[0])))}); }
+  arr.sort((a,b)=>a.x-b.x);
+  const gap=48, lx=[];
+  arr.forEach((o,i)=>{ let x=o.x; if(i>0 && x<lx[i-1]+gap) x=lx[i-1]+gap; lx.push(x); });
+  const over=lx.length?lx[lx.length-1]-(ml+pw):0;
+  if(over>0) for(let i=0;i<lx.length;i++) lx[i]=Math.max(ml, lx[i]-over);
+  let s='';
+  arr.forEach((o,i)=>{ const x=lx[i];
+    if(Math.abs(x-o.x)>1.5) s+='<path d="M'+rnd(o.x)+' '+rnd(yTop)+' L'+rnd(o.x)+' '+rnd(yTop+6)+' L'+rnd(x)+' '+rnd(yLabel-9)+' L'+rnd(x)+' '+rnd(yLabel-5)+'" fill="none" stroke="'+o.c+'" stroke-width="0.7" stroke-opacity="0.75"/>';
+    s+=sTxt(x, yLabel, o.t+' '+f3(o.v), 'middle', o.c, 8.3);
+  });
+  return s;
+}
 function svgNormal(pt){
-  const ml=44,mr=14,mt=30,mb=46,pw=CW-ml-mr,ph=CH-mt-mb;
+  const ml=44,mr=14,mt=30,mb=54,pw=CW-ml-mr,ph=CH-mt-mb;
   const v=pt.values, n=v.length;
   let lo=Math.min(pt.min,pt.lsl), hi=Math.max(pt.max,pt.usl); const pad=(hi-lo)*0.10||1; lo-=pad; hi+=pad;
   const K=11, bw=(hi-lo)/K, freq=new Array(K).fill(0);
@@ -2809,8 +2830,7 @@ function svgNormal(pt){
   s+=sLine(xP(pt.mean),mt,xP(pt.mean),mt+ph,CHT.mean,1);
   s+=sTxt2(xP(pt.lsl),12,'하한','LSL','middle',CHT.lsl);
   s+=sTxt2(xP(pt.usl),12,'상한','USL','middle',CHT.usl);
-  s+=sTxt(ml,mt+ph+12,f3(lo),'start',CHT.muted,8)+sTxt(ml+pw,mt+ph+12,f3(hi),'end',CHT.muted,8)+sTxt(ml+pw/2,mt+ph+12,'측정값 (빈도)','middle',CHT.muted,8.5);
-  s+=valueStrip(ml,pw,CH-6,pt);
+  s+=alignedValueLabels(pt, xP, ml, pw, mt+ph, CH-7);   // 하한/목표/평균/상한을 실제 x 위치에(겹치면 콜아웃)
   return wrapSVG(s);
 }
 function svgBox(pt){
@@ -2958,10 +2978,18 @@ function renderFramedChart(type, cv){
   const kpis=[[(verdict==='OK'?'✅ ':'❌ ')+verdict,'종합판정',verdict==='OK'?'ok':'ng'],[pts.length,'포인트 수',''],[qc.N,'시료 수',''],[totNG,'총 NG',totNG?'ng':''],[ngPts+'/'+pts.length,'NG 포인트',ngPts?'ng':''],[f2(worst),'최저 Cpk',worst==null?'':(worst<1.33?'warn':'')]];
   kpis.forEach((k,i)=>{ const c=C0+i*2; push(5,c,1,1,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(k[0])); push(6,c,1,1,'fx-kpi-l',escH(kEmoji[i]+' '+k[1])); });
   push(8,C0,infoCS,1,'fx-legend', chartLegendHTML(type));
+  // 박스플롯: 상단에 전체 포인트 비교(규격 정규화) 요약 — 정규분포1/박스플롯1처럼
+  let cardStart=10;
+  if(type==='box'){
+    const OVH=13;   // 오버뷰 셀 높이(행) ≈ 273px (SVG 250px + 여백)
+    push(9, C0, contentCols, 1, 'fx-ovh', '📦 전체 포인트 비교 (규격 정규화 · 상·하한 = ±1 · 목표 = 0)');
+    push(10, C0, contentCols, OVH, 'fx-ov', '<div style="overflow-x:auto">'+svgBoxOverview(pts)+'</div>');
+    cardStart = 10 + OVH + 1;
+  }
   const cardCols=[]; for(let i=0;i<PERROW;i++) cardCols.push(C0+i*(CS+1));
-  pts.forEach((p,idx)=>{ const rr=Math.floor(idx/PERROW), r=10+rr*(RS+GAP), c=cardCols[idx%PERROW];
+  pts.forEach((p,idx)=>{ const rr=Math.floor(idx/PERROW), r=cardStart+rr*(RS+GAP), c=cardCols[idx%PERROW];
     push(r,c,CS,RS,'fx-card', buildChartCard(p,type,idx)); });
-  const lastRow = pts.length ? (10+(Math.ceil(pts.length/PERROW)-1)*(RS+GAP)+RS) : 12;
+  const lastRow = pts.length ? (cardStart+(Math.ceil(pts.length/PERROW)-1)*(RS+GAP)+RS) : cardStart+2;
   const totalRows=Math.max(lastRow+2, Math.ceil(vh/ROWH));
   const occ=new Set(), origin={};
   for(const it of items){ origin[it.r+','+it.c]=it; for(let dr=0;dr<it.rs;dr++)for(let dc=0;dc<it.cs;dc++){ if(dr||dc) occ.add((it.r+dr)+','+(it.c+dc)); } }
@@ -3419,12 +3447,9 @@ sheets.push(Object.assign(newSheet('메인B'), {kind:'data', landing:'B'}));
 sheets.push(Object.assign(newSheet('메인C'), {kind:'data', landing:'C'}));
 const _qcSheet = genQCData('측정데이터');
 sheets.push(_qcSheet); qcSource = _qcSheet;
-sheets.push(newChartSheet('정규분포','normal'));
-sheets.push(newChartSheet('산점도','scatter'));
-sheets.push(newChartSheet('박스플롯','box'));
-sheets.push(newChartSheet('정규분포 2','normal',true));
-sheets.push(newChartSheet('산점도 2','scatter',true));
-sheets.push(newChartSheet('박스플롯 2','box',true));
+sheets.push(newChartSheet('정규분포','normal',true));
+sheets.push(newChartSheet('산점도','scatter',true));
+sheets.push(newChartSheet('박스플롯','box',true));
 cur = 0;   // 검토용: 메인A 컨셉을 먼저 표시 (시안 확정 후 되돌리면 됨)
 renderTabs();
 renderSheetFull();
