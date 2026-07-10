@@ -268,6 +268,13 @@ select.rsel:hover{border-color:var(--green)}
   box-shadow:inset 0 -2px 0 var(--green);
 }
 .stab .rn{outline:none;min-width:20px}
+/* 가로 스크롤바를 시트탭 줄의 오른쪽 끝(상태표시줄 바로 위)으로 분리 — 엑셀식 */
+#hscroll{flex:1;min-width:40px;align-self:stretch;overflow-x:auto;overflow-y:hidden}
+#hscroll-inner{height:1px}
+/* 내용 뷰의 가로 스크롤바는 숨기고(세로는 유지) → 위 #hscroll이 대신 표시·구동 */
+#data-view::-webkit-scrollbar:horizontal,
+#chart-view::-webkit-scrollbar:horizontal,
+#grid-scroll::-webkit-scrollbar:horizontal{height:0}
 /* ───────── 상태 표시줄 ───────── */
 #statusbar{
   height:24px;background:var(--ribbon-bg);border-top:1px solid #e1e1e1;display:flex;align-items:center;
@@ -757,6 +764,7 @@ table.xl-grid.fx td.fill{background:#f8f8f7}   /* 정보 없는 셀(갭 열·빈
     <button class="dummy" title="다음 시트">▶</button>
   </div>
   <div id="sheet-tabs"></div>
+  <div id="hscroll"><div id="hscroll-inner"></div></div>
 </div>
 
 <!-- 상태 표시줄 -->
@@ -3088,6 +3096,7 @@ document.addEventListener('mouseup', ()=>{
   if(xlRz.type==='col' && xlRz.nw!=null){ sh.fxCol=sh.fxCol||{}; sh.fxCol[xlRz.idx]=xlRz.nw; }
   if(xlRz.type==='row' && xlRz.nh!=null){ sh.fxRow=sh.fxRow||{}; sh.fxRow[xlRz.rn]=xlRz.nh; }
   xlRz=null; document.body.style.cursor='';
+  requestAnimationFrame(syncHScroll);
 });
 
 /* 측정데이터 요약 뷰 (무거운 19,200셀 그리드 대신 — 성공 배너 + 지표 + 30행 미리보기) */
@@ -3106,6 +3115,7 @@ function showDataView(){
     h+=renderSampleTable(D);
   }
   dv.innerHTML=h;
+  requestAnimationFrame(syncHScroll);
 }
 /* 포인트별 요약을 "엑셀 리포트처럼" — 상단 1~4행에 정보, 표는 여백 열(A) 다음부터 (오른쪽/아래 더미 격자 포함) */
 function renderPointStatsTable(qc){
@@ -3223,7 +3233,7 @@ function showChartSheet(){
   const type=sheet().chart, label={normal:'정규분포',scatter:'산점도',box:'박스플롯'}[type]||'차트';
   showLoading(label+' 차트 생성 중…','포인트별 그래프를 그리는 중입니다');
   const token=++chartToken;
-  setTimeout(()=>{ if(token!==chartToken) return; try{ (framed?renderFramedChart:renderCharts)(type,cv); }catch(e){ cv.innerHTML='<div style="padding:40px;color:#c00">차트 생성 오류: '+escH(e.message)+'</div>'; } hideLoading(); }, 320);
+  setTimeout(()=>{ if(token!==chartToken) return; try{ (framed?renderFramedChart:renderCharts)(type,cv); }catch(e){ cv.innerHTML='<div style="padding:40px;color:#c00">차트 생성 오류: '+escH(e.message)+'</div>'; } hideLoading(); requestAnimationFrame(syncHScroll); }, 320);
 }
 
 /* ══════════════ 튜토리얼 위저드 ══════════════ */
@@ -3302,6 +3312,32 @@ $('wz-skip').addEventListener('click', endTutorial);
 $('wz-hint').addEventListener('click', startTutorial);
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $('wizard').style.display==='block') endTutorial(); });
 
+/* ══════════════ 가로 스크롤바 분리 (시트탭 줄 오른쪽 끝) ══════════════ */
+/* 내용 뷰의 네이티브 가로바는 숨기고, 시트탭 줄의 #hscroll이 대신 표시·구동 */
+function activeScroller(){
+  for(const id of ['data-view','chart-view','grid-scroll']){ const el=$(id); if(el && el.style.display!=='none') return el; }
+  return null;
+}
+let hsSyncing=false;
+function syncHScroll(){
+  const hs=$('hscroll'), inner=$('hscroll-inner'), el=activeScroller();
+  if(!el){ inner.style.width='0px'; return; }
+  const need=el.scrollWidth-el.clientWidth;                 // 내용의 최대 가로 스크롤량
+  if(need<=1){ inner.style.width='0px'; return; }           // 넘치지 않으면 바 숨김
+  inner.style.width=(need+hs.clientWidth)+'px';             // hs 최대 scrollLeft === 내용 최대 scrollLeft (범위 일치)
+  hsSyncing=true; hs.scrollLeft=el.scrollLeft; hsSyncing=false;
+}
+$('hscroll').addEventListener('scroll', ()=>{
+  if(hsSyncing) return; const el=activeScroller(); if(!el) return;
+  hsSyncing=true; el.scrollLeft=$('hscroll').scrollLeft; hsSyncing=false;
+});
+['data-view','chart-view','grid-scroll'].forEach(id=>{
+  $(id).addEventListener('scroll', ()=>{                    // 휠·트랙패드 가로 스크롤을 바에 반영
+    if(hsSyncing || $(id)!==activeScroller()) return;
+    hsSyncing=true; $('hscroll').scrollLeft=$(id).scrollLeft; hsSyncing=false;
+  });
+});
+
 /* ══════════════ 초기화 ══════════════ */
 const _qcSheet = genQCData('측정데이터');
 sheets.push(_qcSheet); qcSource = _qcSheet;
@@ -3322,6 +3358,7 @@ window.addEventListener('resize', ()=>{
   if(sheet().kind==='data'){ clearTimeout(_dvT); _dvT=setTimeout(showDataView,120); }   // 화면 커지면 더미 격자 다시 채움
   if(sheet().kind==='chart' && sheet().framed){ clearTimeout(_dvT); _dvT=setTimeout(()=>{ try{ renderFramedChart(sheet().chart,$('chart-view')); }catch(e){} },150); }
   if($('wizard').style.display==='block') positionWz();
+  requestAnimationFrame(syncHScroll);
 });
 // 빈 영역 클릭으로 포커스가 빠져나가면 그리드로 되돌려 키보드가 항상 살아있게 함
 document.addEventListener('mouseup', ()=>{ setTimeout(()=>{ if(document.activeElement===document.body && isGridSheet()) focusGrid(); },0); });
