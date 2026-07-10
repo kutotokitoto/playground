@@ -2207,7 +2207,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783660713095;   // 2026-07-10 14:18 KST
+const BUILD_TS = 1783661302862;   // 2026-07-10 14:28 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3554,8 +3554,8 @@ function renderCoordVizFramed(cv){
     push(2,C0,Math.min(26,CC),1,'fx-title',T[0]);
     push(3,C0,Math.min(40,CC),1,'fx-sub','오리진 (X='+co.origin.x+', Y='+co.origin.y+') · 포인트 '+st.N+'개 · '+T[1]+' (더미 데이터)');
     const kpis=[[st.N,'포인트 수',''],[st.avg.toFixed(1)+'%','평균 불량률',st.avg>=8?'warn':'ok'],[st.max.toFixed(1)+'%','최대 불량률 (P'+st.maxPos+')',st.max>=RATE_BAD?'ng':'warn'],[st.bad,'불량 포인트(≥'+RATE_BAD+'%)',st.bad?'ng':'ok'],[st.good,'양호 포인트','ok']];
-    const kStep=Math.max(3, Math.floor(CC/kpis.length));
-    kpis.forEach((k,i)=>{ const c=C0+i*kStep; if(c+kStep-1>CE) return; push(5,c,kStep-1,2,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(String(k[0]))); push(7,c,kStep-1,1,'fx-kpi-l',escH(k[1])); });
+    const kStep=Math.max(3, Math.floor((CC+1)/kpis.length));   // 마지막 타일 뒤 갭 불필요 → CC+1 (KPI 행이 콘텐츠 폭을 꽉 채움)
+    kpis.forEach((k,i)=>{ const c=C0+i*kStep; if(c+kStep-2>CE) return; push(5,c,kStep-1,2,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(String(k[0]))); push(7,c,kStep-1,1,'fx-kpi-l',escH(k[1])); });
     let R=9;
     const bigCard=(sub,html,aspect)=>{ push(R,C0,CC,1,'fx-sub',sub); R++; const rs=Math.ceil(contentW*aspect/ROWH)+1; push(R,C0,CC,rs,'fx-card','<div style="padding:2px 4px">'+html+'</div>'); R+=rs+1; };
     const calAvail=!!(calib.af&&calib.img), useOv=calAvail&&calib.overlayOnViz!==false&&viz!=='summary';
@@ -3568,7 +3568,7 @@ function renderCoordVizFramed(cv){
     else if(viz==='cont'){ bigCard(useOv?'캡처 위에 연속 불량률 필드 오버레이.':'포인트 불량률을 거리가중 보간해 연속 색 필드로. 흰 점=측정 포인트.', useOv?imageOverlayHTML(co,'cont'):svgRateCont(co,contentW,true), useOv?0.62:0.42); push(R,C0,CC,1,'fx-legend',rateLegend()); R++; }
     else { bigCard(useOv?'캡처 위에 포인트별 불량률 버블 오버레이.':'각 포인트를 불량률로 색칠·크기 (초록=낮음, 빨강=높음). 숫자=불량률%.', useOv?imageOverlayHTML(co,'bubble'):svgRateBubble(co,contentW,true), useOv?0.62:0.42); push(R,C0,CC,1,'fx-legend',rateLegend()); R++; }
     return R;
-  }, -1);
+  }, true);   // 갭 레이아웃: A·B 패딩 + C 갭 + 콘텐츠(D~) + 갭 + 패딩
 }
 
 /* ══════════════ 이미지 정합 (실제 캡처에 좌표 오버레이) ══════════════ */
@@ -3713,15 +3713,18 @@ function showMainPage(){
   requestAnimationFrame(syncHScroll);
 }
 /* fx 시트 공통 레이아웃: build(ctx)가 push로 셀을 채우고 마지막 행을 반환 (엑셀 격자 룩) */
-function fxRender(cv, build, marginDelta){
+function fxRender(cv, build, gapLayout){
   const sh=sheet();
   const ROWH=21, CW=26, vw=cv.clientWidth||1200, vh=cv.clientHeight||700;
   let contentCols=Math.max(26, Math.min(46, Math.floor((vw-120)/CW))); if(contentCols%2) contentCols--;
-  const contentW=contentCols*CW, leftover=Math.max(0, vw-42-contentW);
-  let MARGIN=2; { const per=leftover/(MARGIN*2); if(per>90) MARGIN=3; else if(per<30) MARGIN=1; }
-  MARGIN=Math.max(0, MARGIN+(marginDelta||0));   // 양쪽 여백 열 조정 (시각화 시트: -1)
-  const padW=Math.max(12, Math.round(leftover/((MARGIN||1)*2)));
-  const C0=MARGIN+1, contentEnd=C0+contentCols-1, totalCols=contentEnd+MARGIN;
+  const GAP=gapLayout?1:0;                          // 고정 갭 열(26px) — 좌:C · 우:콘텐츠 끝 다음
+  if(GAP) contentCols=Math.max(8, contentCols-2);   // 갭 두 칸이 콘텐츠 두 칸을 대체 (D~AU)
+  const contentW=contentCols*CW, leftover=Math.max(0, vw-42-(contentCols+2*GAP)*CW);
+  let MARGIN=2;
+  if(!gapLayout){ const per=leftover/(MARGIN*2); if(per>90) MARGIN=3; else if(per<30) MARGIN=1; }
+  else { /* 갭 레이아웃: 패딩은 A·B 두 열 고정, 폭만 반응형 */ }
+  const padW=Math.max(12, Math.round(leftover/(MARGIN*2)));
+  const C0=MARGIN+GAP+1, contentEnd=C0+contentCols-1, totalCols=contentEnd+GAP+MARGIN;
   const items=[], push=(r,c,cs,rs,cls,html,style)=>items.push({r,c,cs,rs,cls,html,style});
   const lastRow=build({contentCols,contentW,C0,contentEnd,CW,ROWH,vh,push})||1;
   const totalRows=Math.max(lastRow+1, Math.ceil(vh/ROWH));
