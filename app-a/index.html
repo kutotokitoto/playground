@@ -370,7 +370,7 @@ table.xl-grid td{border:1px solid #e0e0e0;padding:2px 9px;text-align:right;white
 table.xl-grid td.hdr{font-weight:600;text-align:center;background:#fafafa;color:#333}
 table.xl-grid td.info-title{text-align:left;font-weight:700;color:#0a7a34;background:#eef7f0;font-size:13.5px}
 table.xl-grid td.pg-title{text-align:left;font-weight:700;color:#1e1e1e;background:#eef7f0;font-size:34px;letter-spacing:-.02em;padding:14px 14px 2px}
-table.xl-grid td.pg-sub{text-align:left;color:#777;background:#eef7f0;font-size:13px;padding:0 14px 12px}
+table.xl-grid td.pg-sub{text-align:left;color:#777;background:#eef7f0;font-size:13px;padding:6px 14px;vertical-align:middle}
 /* ── 메인 페이지(랜딩) 시안 A/B/C — 엑셀 셀 위에 얹은 디자인 ── */
 table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background:#083d21;text-align:center;padding:118px 16px;vertical-align:middle;white-space:normal}
 /* 등간격 사각 링이 가운데→바깥으로 연속으로 번지는 애니메이션 (레이더/리플, 음수 딜레이로 항상 6겹) */
@@ -427,11 +427,13 @@ table.xl-grid.fx td.fx-kpi-v.ng{color:#d03b3b}
 table.xl-grid.fx td.fx-kpi-v.warn{color:#e08a00}
 table.xl-grid.fx td.fx-kpi-l{font-size:11px;color:#888;white-space:nowrap}
 table.xl-grid.fx td.fx-legend{text-align:left;padding:2px 12px}
+table.xl-grid.fx td.fx-btn{border:none;background:transparent;padding:0;text-align:center;vertical-align:middle;overflow:visible}
+table.xl-grid.fx td.fx-btn .cv-actbtn{display:inline-flex;white-space:nowrap;padding:6px 11px}
 table.xl-grid.fx td.fx-ovh{font-size:12px;font-weight:700;color:#0b5a30;text-align:left;padding:4px 12px 2px}
 table.xl-grid.fx td.fx-ov{padding:2px 8px 6px;vertical-align:top;background:#fff}
 table.xl-grid.fx td.fx-ov svg{display:block}
 table.xl-grid.fx td.fx-card{border:none;padding:5px;vertical-align:top;text-align:left;background:#fff}   /* top 정렬: 상단 여유 = 좌우 여유(8px)로 통일 */
-table.xl-grid.fx td.fx-card .chart-card{box-shadow:none;border:none;border-radius:0;padding:7px 8px 3px 3px}   /* 상·우 여유 확대(top 12/right 13), 좌·하 8px */
+table.xl-grid.fx td.fx-card .chart-card{box-shadow:none;border:none;border-radius:0;padding:7px 8px 3px 6px}   /* 상 12 / 우 13 / 좌 11 / 하 8 */
 table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈 칸)은 엷은 회색(#f2f0ee) */
 .cv-head{max-width:1600px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .cv-title{font-size:19px;font-weight:600;color:#1e1e1e;display:flex;align-items:center;gap:9px}
@@ -2220,7 +2222,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783664105006;   // 2026-07-10 15:15 KST
+const BUILD_TS = 1783664545686;   // 2026-07-10 15:22 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2829,7 +2831,7 @@ function alignedValueLabelsY(pt, yP, xLine, xLabel, yTopBound, yBotBound){
   return s;
 }
 function svgNormal(pt){
-  const ml=44,mr=14,mt=30,mb=54,pw=CW-ml-mr,ph=CH-mt-mb;
+  const ml=29,mr=29,mt=30,mb=54,pw=CW-ml-mr,ph=CH-mt-mb;   // 좌우 대칭 마진 → 플롯이 카드 정중앙
   const v=pt.values, n=v.length;
   let lo=Math.min(pt.min,pt.lsl), hi=Math.max(pt.max,pt.usl); const pad=(hi-lo)*0.10||1; lo-=pad; hi+=pad;
   const K=11, bw=(hi-lo)/K, freq=new Array(K).fill(0);
@@ -2992,10 +2994,13 @@ function renderFramedChart(type, cv){
   let MARGIN=2; { const per=leftover/(MARGIN*2); if(per>95) MARGIN=3; else if(per<40) MARGIN=1; }
   const padW=Math.max(12, Math.round(leftover/(MARGIN*2)));
   const C0=MARGIN+2, contentEnd=C0+contentCols-1, totalCols=contentEnd+1+MARGIN;
-  const titleCS=Math.min(8,contentCols), infoCS=Math.min(16,contentCols);
+  const titleCS=Math.min(8,contentCols), infoCS=titleCS;   // 3행 부제도 제목과 같은 폭(=K열까지)
   const items=[], push=(r,c,cs,rs,cls,html)=>items.push({r,c,cs,rs,cls,html});
   push(2,C0,titleCS,1,'fx-title', CHART_META[type][1]+' '+meta[0]+'분석');
   push(3,C0,infoCS,1,'fx-sub', escH(meta[2]+' · 포인트 '+pts.length+'개 · 소스: '+qc.src));
+  // 전체 복사/저장 — 2행 오른쪽 끝의 넓은 열 2개(기본 레이아웃에서 X2·Z2)
+  push(2,contentEnd-2,1,1,'fx-btn','<button class="cv-actbtn" data-allact="copy" title="전체 차트를 이미지로 클립보드에 복사">📋 전체 복사</button>');
+  push(2,contentEnd,1,1,'fx-btn','<button class="cv-actbtn primary" data-allact="save" title="전체 차트를 PNG로 저장">💾 전체 저장</button>');
   const kEmoji=['🏁','📍','🧪','⚠️','🔴','📉'];
   const kpis=[[(verdict==='OK'?'✅ ':'❌ ')+verdict,'종합판정',verdict==='OK'?'ok':'ng'],[pts.length,'포인트 수',''],[qc.N,'시료 수',''],[totNG,'총 NG',totNG?'ng':''],[ngPts+'/'+pts.length,'NG 포인트',ngPts?'ng':''],[f2(worst),'최저 Cpk',worst==null?'':(worst<1.33?'warn':'')]];
   kpis.forEach((k,i)=>{ const c=C0+i*2; push(5,c,1,1,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(k[0])); push(6,c,1,1,'fx-kpi-l',escH(kEmoji[i]+' '+k[1])); });
