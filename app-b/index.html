@@ -386,24 +386,18 @@ table.xl-grid tbody tr:hover td.ng{background:#fbe1e1}
 table.xl-grid tr.total td,table.xl-grid tr.total th.rn{background:#efeee9;font-weight:700;border-top:2px solid #a9a9a9}
 table.xl-grid tr.total td.ptname{background:#e3ebe4}
 /* ── 메인 페이지(랜딩 · 히어로 센터) — 엑셀 셀 위에 얹은 디자인 (app-a landingA 이식) ── */
-table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background:#083d21;text-align:center;padding:100px 16px;vertical-align:middle;white-space:normal}
-table.xl-grid td.lp-a-hero>i{position:absolute;left:50%;top:50%;width:80px;height:80px;z-index:0;pointer-events:none;border:6px solid #7bf3a8;opacity:0;animation:lpArip 3s linear infinite}
-table.xl-grid td.lp-a-hero>i:nth-of-type(2){animation-delay:-.5s}
-table.xl-grid td.lp-a-hero>i:nth-of-type(3){animation-delay:-1s}
-table.xl-grid td.lp-a-hero>i:nth-of-type(4){animation-delay:-1.5s}
-table.xl-grid td.lp-a-hero>i:nth-of-type(5){animation-delay:-2s}
-table.xl-grid td.lp-a-hero>i:nth-of-type(6){animation-delay:-2.5s}
+table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background-color:#06351d;background-repeat:repeat-x;background-position:0 center;animation:heroSweep 9s linear infinite;text-align:center;padding:120px 16px;vertical-align:middle;white-space:normal}
 table.xl-grid td.lp-a-hero>div{position:relative;z-index:1}
-@keyframes lpArip{0%{transform:translate(-50%,-50%) scale(.25,.1);border-color:#7bf3a8;opacity:0}6%{opacity:1}100%{transform:translate(-50%,-50%) scale(20,6);border-color:#0a3d22;opacity:1}}
-@media (prefers-reduced-motion:reduce){ table.xl-grid td.lp-a-hero>i{animation:none;opacity:0} }
+@keyframes heroSweep{from{background-position:0 center}to{background-position:320px center}}   /* 모자이크가 우측으로 진행(1주기=320px) */
+@media (prefers-reduced-motion:reduce){ table.xl-grid td.lp-a-hero{animation:none} }
 table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:16px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd}
 table.xl-grid td.lp-a-step .st-ic{font-size:30px;line-height:1;margin-bottom:8px}
 table.xl-grid td.lp-a-step b{display:block;font-size:14.5px;font-weight:800;color:#0b5a30;margin-bottom:6px}
 table.xl-grid td.lp-a-step span{display:block;font-size:12.5px;color:#5a6b60;line-height:1.55}
-table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:58px;line-height:1}
-table.xl-grid td.lp-a-hero .lp-a-title{font-size:38px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:10px}
-table.xl-grid td.lp-a-hero .lp-a-sub{font-size:14.5px;color:rgba(255,255,255,.82);margin-top:10px}
-table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:22px;font-size:13px;color:#0b5a30;background:#fff;border:1px solid #fff;border-radius:999px;padding:9px 20px;font-weight:700}
+table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:70px;line-height:1}
+table.xl-grid td.lp-a-hero .lp-a-title{font-size:46px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:12px}
+table.xl-grid td.lp-a-hero .lp-a-sub{font-size:17.5px;color:rgba(255,255,255,.82);margin-top:12px}
+table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:26px;font-size:16px;color:#0b5a30;background:#fff;border:1px solid #fff;border-radius:999px;padding:11px 24px;font-weight:700}
 
 /* ───────── 차트 시트 뷰 ───────── */
 #chart-view{
@@ -2213,7 +2207,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783658164782;   // 2026-07-10 13:36 KST
+const BUILD_TS = 1783658716829;   // 2026-07-10 13:45 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3752,17 +3746,17 @@ function fxRender(cv, build, marginDelta){
 /* ── 메인 페이지: 히어로 센터 + 3단계 (app-a landingA 이식, 문구는 app-b 맥락) ── */
 /* 히어로 배경: 사선(좌→우) 계단식 모자이크 초록 그래디언트 (SVG data URI, 색은 타일 단위로 양자화) */
 function mosaicBg(){
-  const W=1200, H=300, T=48, cols=Math.ceil(W/T), rows=Math.ceil(H/T);
-  const dirx=1, diry=0.42, maxp=W*dirx+H*diry, L=10;   // dir=사선(우측+약간 아래), L=계단 단계 수
-  const lo=[6,53,29], hi=[46,181,110];                 // #06351d(어두운 초록) → #2eb56e(밝은 초록)
+  const T=40, P=8, ROWS=14, W=P*T, H=ROWS*T;   // 한 주기=8타일(=320px, repeat-x로 끊김없이 이어짐)
+  const lo=[6,53,29], hi=[52,190,116];         // 어두운 초록 → 밝은 초록
   const hx=n=>n.toString(16).padStart(2,'0');
+  const tri=x=>{ const f=x-Math.floor(x); return 1-Math.abs(1-2*f); };   // 삼각파(0→1→0): 좌우 경계 이음매 없음
   let s='';
-  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
-    const cx=(c+0.5)*T, cy=(r+0.5)*T, lv=Math.min(L-1,Math.floor((cx*dirx+cy*diry)/maxp*L))/(L-1);
+  for(let r=0;r<ROWS;r++) for(let c=0;c<P;c++){
+    const lv=tri((c+r*0.5)/P);   // 사선: 행마다 0.5칸 위상 이동
     const col='#'+hx(Math.round(lo[0]+(hi[0]-lo[0])*lv))+hx(Math.round(lo[1]+(hi[1]-lo[1])*lv))+hx(Math.round(lo[2]+(hi[2]-lo[2])*lv));
-    s+='<rect x="'+(c*T)+'" y="'+(r*T)+'" width="'+(T+1)+'" height="'+(T+1)+'" fill="'+col+'"/>';
+    s+='<rect x="'+(c*T)+'" y="'+(r*T)+'" width="'+T+'" height="'+T+'" fill="'+col+'"/>';
   }
-  return 'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'+s+'</svg>');
+  return 'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" shape-rendering="crispEdges">'+s+'</svg>');
 }
 function landingFrame(cv, buildRows){
   const NC=12, PTW=112, DW=92, ROWH=21, sh=sheet();
@@ -3788,7 +3782,7 @@ function landingFrame(cv, buildRows){
 function landingMain(cv){   // 히어로 센터 + 3단계
   return landingFrame(cv, ({R,blank,contRows})=>{
     blank();
-    R('<td class="lp-a-hero" colspan="12" style="background:#06351d url('+mosaicBg()+') center/cover"><i></i><i></i><i></i><i></i><i></i><i></i><div class="lp-a-emoji">🎯</div><div class="lp-a-title">도면 좌표 불량률 시각화</div><div class="lp-a-sub">각 포인트의 X·Y 좌표를 도면에 매핑하고, 포인트별 불량률을 히트맵으로 봅니다</div><div class="lp-a-cta">📥 [데이터] 탭 → ‘측정 더미 불러오기’ 로 시작</div></td>');
+    R('<td class="lp-a-hero" colspan="12" style="background-image:url('+mosaicBg()+')"><div class="lp-a-emoji">🎯</div><div class="lp-a-title">도면 좌표 불량률 시각화</div><div class="lp-a-sub">각 포인트의 X·Y 좌표를 도면에 매핑하고, 포인트별 불량률을 히트맵으로 봅니다</div><div class="lp-a-cta">📥 [데이터] 탭 → ‘측정 더미 불러오기’ 로 시작</div></td>');
     blank();
     R('<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📥</div><b>1단계 · 데이터 불러오기</b><span>[데이터] 탭 → ‘측정 더미 불러오기’ 로 좌표·불량률 더미 생성 (또는 업로드)</span></td>'
      +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">🎯</div><b>2단계 · 이미지 정합</b><span>‘이미지 정합’ 시트에서 캡처를 불러와 기준 3점을 클릭해 좌표를 맞춤</span></td>'
