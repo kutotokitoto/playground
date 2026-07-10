@@ -88,8 +88,8 @@ input,select{font-family:inherit}
   display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:4px;font-size:12px;color:#333;
 }
 #menubar-right .mb-btn:hover{background:#f2f2f2}
-#btn-share{background:var(--green);color:#fff !important}
-#btn-share:hover{background:var(--green-dark) !important}
+#ribbon-toggle{position:absolute;right:8px;bottom:3px;width:24px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#666;border-radius:3px;z-index:5}
+#ribbon-toggle:hover{background:#e4e4e4}
 
 /* ───────── 리본 ───────── */
 #ribbon{
@@ -594,8 +594,7 @@ table.xl-grid td.xl-empty{background:#fbfbfa;color:#999;font-size:14px;line-heig
   <button class="rtab" data-tab="view">보기</button>
   <button class="rtab" data-tab="help">도움말</button>
   <div id="menubar-right">
-    <button class="mb-btn dummy">🗨 메모</button>
-    <button class="mb-btn" id="btn-share">⤴ 공유 ▾</button>
+    <button class="mb-btn" id="ribbon-expand" title="리본 펼치기" style="display:none">리본 ▾</button>
   </div>
 </div>
 
@@ -752,6 +751,7 @@ table.xl-grid td.xl-empty{background:#fbfbfa;color:#999;font-size:14px;line-heig
     </div>
   </div>
   <!-- 나머지 탭 패널은 JS에서 생성 -->
+  <button id="ribbon-toggle" title="리본 접기">▴</button>
 </div>
 
 <!-- 수식 입력줄 -->
@@ -2132,9 +2132,18 @@ document.querySelectorAll('.rtab').forEach(t=>{
     document.querySelectorAll('.rtab').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
     document.querySelectorAll('.rpanel').forEach(p=>p.classList.toggle('active', p.dataset.tab===t.dataset.tab));
+    if($('ribbon').style.display==='none') setRibbonCollapsed(false);   // 접힌 상태에서 탭 클릭 → 펼침
     focusGrid();
   });
 });
+/* 리본 접기/펼치기 (우측 하단 ▴ / 메뉴바 우측 '리본 ▾') */
+function setRibbonCollapsed(c){
+  $('ribbon').style.display=c?'none':'';
+  $('ribbon-expand').style.display=c?'':'none';
+  window.dispatchEvent(new Event('resize'));   // 프레임 시트가 늘어난 높이로 다시 그리도록
+}
+$('ribbon-toggle').onclick=()=>setRibbonCollapsed(true);
+$('ribbon-expand').onclick=()=>setRibbonCollapsed(false);
 $('ribbon').addEventListener('click', e=>{
   const btn=e.target.closest('[data-act]');
   if(!btn) return;
@@ -2216,7 +2225,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783665782479;   // 2026-07-10 15:43 KST
+const BUILD_TS = 1783665937777;   // 2026-07-10 15:45 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
