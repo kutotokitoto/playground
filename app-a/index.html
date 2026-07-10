@@ -190,9 +190,9 @@ select.rsel:hover{border-color:var(--green)}
   background:var(--hdr-bg);font-weight:400;font-size:11.5px;color:#444;
   position:sticky;z-index:3;
 }
-#tbl .hdr th{top:0;border-right:1px solid #cfcfcf;border-bottom:1px solid #cfcfcf;height:21px}
-#tbl th.rh{left:0;border-right:1px solid #cfcfcf;border-bottom:1px solid #cfcfcf;text-align:center;z-index:4}
-#tbl th#corner{left:0;z-index:6;cursor:cell}
+#tbl .hdr th{top:0;border-right:1px solid #cfcfcf;border-bottom:1px solid #cfcfcf;height:21px;box-shadow:inset 0 -1px 0 #cfcfcf}
+#tbl th.rh{left:0;border-right:1px solid #cfcfcf;border-bottom:1px solid #cfcfcf;text-align:center;z-index:4;box-shadow:inset -1px 0 0 #cfcfcf}
+#tbl th#corner{left:0;z-index:6;cursor:cell;box-shadow:inset -1px -1px 0 #cfcfcf}
 #corner .tri{
   position:absolute;right:3px;bottom:3px;width:0;height:0;
   border-left:11px solid transparent;border-bottom:11px solid #b5b5b5;
@@ -201,8 +201,8 @@ select.rsel:hover{border-color:var(--green)}
 #tbl th.ch{cursor:s-resize}
 #tbl th.ch,#tbl th.rh{cursor:cell}
 #tbl th.hl{background:var(--hdr-hl);color:var(--green-dark);font-weight:600}
-#tbl th.ch.hl{border-bottom:2px solid var(--green)}
-#tbl th.rh.hl{border-right:2px solid var(--green)}
+#tbl th.ch.hl{border-bottom:2px solid var(--green);box-shadow:none}
+#tbl th.rh.hl{border-right:2px solid var(--green);box-shadow:none}
 #tbl th.full{background:var(--green);color:#fff}
 #tbl td{
   border-right:1px solid var(--grid-line);border-bottom:1px solid var(--grid-line);
@@ -265,7 +265,7 @@ select.rsel:hover{border-color:var(--green)}
 .stab:hover{background:#ececec}
 .stab.active{
   background:#fff;color:var(--green);font-weight:600;
-  box-shadow:inset 0 2px 0 var(--green);
+  box-shadow:inset 0 -2px 0 var(--green);
 }
 .stab .rn{outline:none;min-width:20px}
 /* ───────── 상태 표시줄 ───────── */
