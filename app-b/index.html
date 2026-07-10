@@ -386,9 +386,9 @@ table.xl-grid tbody tr:hover td.ng{background:#fbe1e1}
 table.xl-grid tr.total td,table.xl-grid tr.total th.rn{background:#efeee9;font-weight:700;border-top:2px solid #a9a9a9}
 table.xl-grid tr.total td.ptname{background:#e3ebe4}
 /* ── 메인 페이지(랜딩 · 히어로 센터) — 엑셀 셀 위에 얹은 디자인 (app-a landingA 이식) ── */
-table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background-color:#165834;background-repeat:repeat-x;background-position:0 center;animation:heroSweep 7.2s steps(8) infinite;text-align:center;padding:120px 16px;vertical-align:middle;white-space:normal}
+table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background-color:#165834;background-repeat:repeat-x;background-position:0 center;animation:heroSweep 12s steps(16) infinite;text-align:center;padding:120px 16px;vertical-align:middle;white-space:normal}
 table.xl-grid td.lp-a-hero>div{position:relative;z-index:1}
-@keyframes heroSweep{from{background-position:0 center}to{background-position:320px center}}   /* 모자이크가 우측으로 진행(1주기=320px) */
+@keyframes heroSweep{from{background-position:0 center}to{background-position:640px center}}   /* 모자이크가 우측으로 진행(1주기=640px) */
 @media (prefers-reduced-motion:reduce){ table.xl-grid td.lp-a-hero{animation:none} }
 table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:16px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd}
 table.xl-grid td.lp-a-step .st-ic{font-size:30px;line-height:1;margin-bottom:8px}
@@ -2207,7 +2207,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783660166714;   // 2026-07-10 14:09 KST
+const BUILD_TS = 1783660369871;   // 2026-07-10 14:12 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3746,7 +3746,7 @@ function fxRender(cv, build, marginDelta){
 /* ── 메인 페이지: 히어로 센터 + 3단계 (app-a landingA 이식, 문구는 app-b 맥락) ── */
 /* 히어로 배경: 사선(좌→우) 계단식 모자이크 초록 그래디언트 (SVG data URI, 색은 타일 단위로 양자화) */
 function mosaicBg(){
-  const T=40, P=8, ROWS=14, W=P*T, H=ROWS*T;   // 한 주기=8타일(=320px, repeat-x로 끊김없이 이어짐)
+  const T=40, P=16, ROWS=14, W=P*T, H=ROWS*T;   // 한 주기=16타일(=640px, repeat-x로 끊김없이 이어짐)
   const lo=[22,88,52], hi=[60,205,128];        // 어두운 초록(검정 아님) → 밝은 초록 (전체 약간 밝게)
   const hx=n=>n.toString(16).padStart(2,'0');
   const tri=x=>{ const f=x-Math.floor(x); return 1-Math.abs(1-2*f); };   // 삼각파(0→1→0): 좌우 경계 이음매 없음
