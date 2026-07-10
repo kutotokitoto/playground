@@ -2230,7 +2230,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783666391303;   // 2026-07-10 15:53 KST
+const BUILD_TS = 1783666770944;   // 2026-07-10 15:59 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3472,8 +3472,10 @@ function lerpCol(a,b,t){ const p=(s,i)=>parseInt(s.substr(i,2),16); const c=[0,1
 function sevColor(sev){ const u=Math.max(0,Math.min(1,sev/2)); return u<0.5?lerpCol('#2e9e2e','#f4c020',u/0.5):lerpCol('#f4c020','#d03b3b',(u-0.5)/0.5); }
 /* 측정도: 기준면(설계, 회색)·측정면(실측, 파랑) 위치 매핑 + 편차 벡터 */
 function svgMeasMap(co, W, fill){
-  W=W||780; const H=Math.round(W*0.5), ml=44,mr=22,mt=20,mb=30, pw=W-ml-mr, ph=H-mt-mb;
-  const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, sc=Math.min(pw/(dx*1.12), ph/(dy*1.12));
+  W=W||780; const ml=44,mr=22,mt=20,mb=30, pw=W-ml-mr;
+  const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1;
+  const ph=pw*dy/dx, H=Math.round(mt+ph+mb);          // 데이터 종횡비에 맞춰 세로 산정 → 여백 최소
+  const sc=Math.min(pw/(dx*1.05), ph/(dy*1.05));
   const cx=(b.minx+b.maxx)/2, cy=(b.miny+b.maxy)/2, X=x=>ml+pw/2+(x-cx)*sc, Y=y=>mt+ph/2-(y-cy)*sc;
   let maxdev=0; co.pts.forEach(p=>{ const d=Math.hypot(p.mx-p.rx,p.my-p.ry); if(d>maxdev)maxdev=d; });
   const EXAG=maxdev>0?Math.max(2,Math.min(40,20/(maxdev*sc))):8;
@@ -3493,8 +3495,10 @@ function svgMeasMap(co, W, fill){
 }
 /* 불량률 버블 히트맵: 각 포인트를 불량률로 색칠·크기, 값 표기 */
 function svgRateBubble(co, W, fill){
-  W=W||780; const H=Math.round(W*0.42), ml=30,mr=22,mt=18,mb=24, pw=W-ml-mr, ph=H-mt-mb;
-  const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1, sc=Math.min(pw/(dx*1.12), ph/(dy*1.12));
+  W=W||780; const ml=30,mr=22,mt=18,mb=24, pw=W-ml-mr;
+  const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1;
+  const ph=pw*dy/dx, H=Math.round(mt+ph+mb);          // 데이터 종횡비에 맞춰 세로 산정 → 여백 최소
+  const sc=Math.min(pw/(dx*1.08), ph/(dy*1.08));
   const cx=(b.minx+b.maxx)/2, cy=(b.miny+b.maxy)/2, X=x=>ml+pw/2+(x-cx)*sc, Y=y=>mt+ph/2-(y-cy)*sc;
   const st=rateStats(co), Rmax=Math.max(6,Math.min(16,co.pitch*sc*0.46)), mxr=Math.max(1,st.max);
   let s='';
@@ -3526,9 +3530,10 @@ function rateRankHTML(co){
 }
 /* 연속 색 불량률 히트맵: 포인트 불량률을 거리가중(IDW) 보간해 색 필드로 */
 function svgRateCont(co, W, fill){
-  W=W||780; const H=Math.round(W*0.42), ml=8,mr=8,mt=8,mb=8, pw=W-ml-mr, ph=H-mt-mb;
+  W=W||780; const ml=8,mr=8,mt=8,mb=8, pw=W-ml-mr;
   const b=coordBounds(co), dx=(b.maxx-b.minx)||1, dy=(b.maxy-b.miny)||1;
-  const px=dx*0.06, py=dy*0.10, wx0=b.minx-px, wx1=b.maxx+px, wy0=b.miny-py, wy1=b.maxy+py;
+  const px=dx*0.05, py=dy*0.07, wx0=b.minx-px, wx1=b.maxx+px, wy0=b.miny-py, wy1=b.maxy+py;
+  const ph=pw*(wy1-wy0)/(wx1-wx0), H=Math.round(mt+ph+mb);   // 필드 종횡비에 맞춰 세로 산정
   const GX=Math.max(24,Math.round(pw/13)), GY=Math.max(12,Math.round(ph/13)), cw=pw/GX, chh=ph/GY;
   const P=co.pts.map(p=>({x:p.rx,y:p.ry,r:p.rate||0}));
   let s='';
@@ -3589,7 +3594,11 @@ function renderCoordVizFramed(cv){
     const kStep=Math.max(3, Math.floor((CC+1)/kpis.length));   // 마지막 타일 뒤 갭 불필요 → CC+1 (KPI 행이 콘텐츠 폭을 꽉 채움)
     kpis.forEach((k,i)=>{ const c=C0+i*kStep; if(c+kStep-2>CE) return; push(6,c,kStep-1,2,'fx-kpi-v'+(k[2]?' '+k[2]:''),escH(String(k[0]))); push(8,c,kStep-1,1,'fx-kpi-l',escH(k[1])); });
     let R=10;
-    const bigCard=(sub,html,aspect)=>{ push(R,C0,CC,1,'fx-sub',sub); R++; const rs=Math.ceil(contentW*aspect/ROWH)+1; push(R,C0,CC,rs,'fx-card','<div style="padding:2px 4px">'+html+'</div>'); R+=rs+1; };
+    const bigCard=(sub,html,aspect)=>{ push(R,C0,CC,1,'fx-sub',sub); R++;
+      const m=/^<svg[^>]*viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(html);   // 차트는 실제 종횡비로 셀 높이 산정 (이미지 오버레이는 aspect 인자 사용)
+      const a=m ? (+m[2]/+m[1]) : aspect;
+      const rs=Math.max(4, Math.ceil(contentW*a/ROWH)+1);
+      push(R,C0,CC,rs,'fx-card','<div style="padding:2px 4px">'+html+'</div>'); R+=rs+1; };
     const calAvail=!!(calib.af&&calib.img), useOv=calAvail&&calib.overlayOnViz!==false&&viz!=='summary';
     if(viz!=='summary'){
       if(calAvail) { push(R,C0,Math.min(44,CC),1,'fx-legend','<label style="font-size:12px;color:#333;display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input id="viz-overlay" type="checkbox"'+(calib.overlayOnViz!==false?' checked':'')+'> 🎯 캡처 이미지 위에 표시 (정합 결과)</label>'); R++; }
