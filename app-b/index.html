@@ -2192,7 +2192,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783647397162;   // 2026-07-10 10:36 KST
+const BUILD_TS = 1783647732652;   // 2026-07-10 10:42 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3239,7 +3239,7 @@ function showChartSheet(){
 /* ══════════════ 튜토리얼 위저드 ══════════════ */
 function wzEnsureChart(done){
   if(isChartSheet() && document.querySelector('#chart-view .chart-card')) done();
-  else { gotoSheet('정규분포'); setTimeout(done, 980); }
+  else { const i=sheets.findIndex(s=>s.kind==='chart'); if(i>=0 && i!==cur) switchSheet(i); setTimeout(done, 980); }
 }
 function wzRevealFirstCard(){ const c=document.querySelector('#chart-view .chart-card'); if(c) c.classList.add('wz-reveal'); }
 function wzSelectDemo(nSel){
@@ -3341,9 +3341,7 @@ $('hscroll').addEventListener('scroll', ()=>{
 /* ══════════════ 초기화 ══════════════ */
 const _qcSheet = genQCData('측정데이터');
 sheets.push(_qcSheet); qcSource = _qcSheet;
-sheets.push(newChartSheet('정규분포','normal'));
-sheets.push(newChartSheet('산점도','scatter'));
-sheets.push(newChartSheet('박스플롯','box'));
+sheets.push(newChartSheet('정규분포 2','normal',true));
 cur = 0;
 renderTabs();
 renderSheetFull();
