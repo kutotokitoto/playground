@@ -2188,7 +2188,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783648188733;   // 2026-07-10 10:49 KST
+const BUILD_TS = 1783648568582;   // 2026-07-10 10:56 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3189,6 +3189,11 @@ function renderPointStatsTable(qc){
   let hr=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP;
   for(const lb of labels) hr+='<td class="hdr">'+escH(lb)+'</td>';
   body+=hr+RP+'</tr>'; rn++;
+  // 불량률 그라디언트(높을수록 진하게): 데이터셋 내 최악 불량률 기준, 최소 5% 스케일
+  let maxRate=0;
+  for(const p of qc.points){ const nn=p.n||1; maxRate=Math.max(maxRate, p.uNG/nn*100, p.lNG/nn*100, (p.uNG+p.lNG)/nn*100); }
+  const rScale=Math.max(maxRate,5);
+  const heat=(cnt,n)=>{ if(!cnt||!n) return ''; const a=Math.min(1,0.14+(cnt/n*100/rScale)*0.86); return ' style="background:rgba(208,39,45,'+a.toFixed(3)+');color:'+(a>0.5?'#fff':'#9c1c1c')+';font-weight:600"'; };
   // 포인트 데이터
   for(const p of qc.points){
     const n=p.n,u=p.uNG,l=p.lNG,t=u+l;
@@ -3196,8 +3201,8 @@ function renderPointStatsTable(qc){
       +'<td class="ptname">'+escH(ptLabel(p.no))+'</td>'
       +'<td>'+f3(p.spec)+'</td><td class="lim-u">'+f3(p.usl)+'</td><td class="lim-l">'+f3(p.lsl)+'</td>'
       +'<td>'+n+'</td><td>'+f3(p.mean)+'</td>'
-      +'<td'+ng(u)+'>'+u+'</td><td'+ng(l)+'>'+l+'</td><td'+ng(t)+'>'+t+'</td>'
-      +'<td'+ng(u)+'>'+pct(u,n)+'</td><td'+ng(l)+'>'+pct(l,n)+'</td><td'+ng(t)+'>'+pct(t,n)+'</td>'
+      +'<td'+heat(u,n)+'>'+u+'</td><td'+heat(l,n)+'>'+l+'</td><td'+heat(t,n)+'>'+t+'</td>'
+      +'<td'+heat(u,n)+'>'+pct(u,n)+'</td><td'+heat(l,n)+'>'+pct(l,n)+'</td><td'+heat(t,n)+'>'+pct(t,n)+'</td>'
       +RP+'</tr>'; rn++;
   }
   const sT=sU+sL;
@@ -3207,7 +3212,7 @@ function renderPointStatsTable(qc){
     +'<td>'+pct(sU,sN)+'</td><td>'+pct(sL,sN)+'</td><td>'+pct(sT,sN)+'</td>'
     +RP+'</tr>'; rn++;
   // 더미 행 — 화면 세로 채우기 (좌우 패딩 포함 전체 회색)
-  const bodyRows=rn-1, totalRows=Math.max(bodyRows, Math.ceil(vh/ROWH)+1);
+  const bodyRows=rn-1, totalRows=Math.max(bodyRows+3, Math.ceil(vh/ROWH)+1);   // +3행: 표 아래 여백
   for(; rn<=totalRows; rn++) body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+fill(totalCols)+'</tr>';
   return '<div class="xl-wrap"><table class="xl-grid"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
 }
