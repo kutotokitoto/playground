@@ -281,6 +281,11 @@ select.rsel:hover{border-color:var(--green)}
 }
 #sb-views button:hover{background:#e4e4e4}
 #sb-views button.on{background:#d6d6d6}
+#sb-updated{display:flex;align-items:center;gap:5px;color:#6a6a6a;cursor:default;white-space:nowrap}
+#sb-updated .dot{width:6px;height:6px;border-radius:50%;background:#9aa0a6;flex-shrink:0;transition:background .2s}
+#sb-updated .dot.fresh{background:#3aa76d;box-shadow:0 0 0 2px rgba(58,167,109,.18)}
+#sb-updated .dot.recent{background:#e0a11b}
+#sb-updated .dot.old{background:#9aa0a6}
 #zoom-area{display:flex;align-items:center;gap:8px}
 #zoom-slider{width:100px;accent-color:#666;height:2px;cursor:pointer}
 #zoom-pct{width:38px;text-align:right;cursor:pointer}
@@ -764,6 +769,7 @@ table.xl-grid.fx td.fill{background:#f8f8f7}   /* 정보 없는 셀(갭 열·빈
     <button class="dummy" title="페이지 레이아웃">▤</button>
     <button class="dummy" title="페이지 나누기 미리 보기">▥</button>
   </div>
+  <span id="sb-updated" title=""><span class="dot fresh"></span><span class="utxt">방금 전 수정됨</span></span>
   <div id="zoom-area">
     <input type="range" id="zoom-slider" min="50" max="200" value="100" step="10">
     <span id="zoom-pct">100%</span>
@@ -2175,6 +2181,29 @@ function setZoom(z){
 }
 $('zoom-slider').addEventListener('input', e=>setZoom(+e.target.value));
 $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoom(100); });
+
+/* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
+/* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
+const BUILD_TS = 1783645924357;   // 2026-07-10 10:12 KST
+function relUpdated(ts){
+  const s = Math.max(0, (Date.now()-ts)/1000);
+  if(s < 45) return '방금 전 수정됨';
+  const m = Math.floor(s/60);
+  if(m < 60) return m+'분 전 수정 완료';
+  const h = Math.floor(m/60);
+  if(h < 24) return h+'시간 전 수정 완료';
+  return Math.floor(h/24)+'일 전 수정 완료';
+}
+function refreshUpdated(){
+  const el=$('sb-updated'); if(!el) return;
+  const d=new Date(BUILD_TS), p=n=>String(n).padStart(2,'0');
+  const mins=(Date.now()-BUILD_TS)/60000;
+  el.querySelector('.utxt').textContent = relUpdated(BUILD_TS);
+  el.querySelector('.dot').className = 'dot '+(mins<10?'fresh':(mins<60*24?'recent':'old'));
+  el.title = '최종 수정: '+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+refreshUpdated();
+setInterval(refreshUpdated, 30000);
 
 /* ══════════════ 컨텍스트 메뉴 ══════════════ */
 const ctx=$('ctxmenu');
