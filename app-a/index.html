@@ -385,7 +385,7 @@ table.xl-grid td.lp-a-hero .lp-a-glow{position:absolute;inset:0;z-index:0;pointe
 table.xl-grid td.lp-a-hero>div{position:relative;z-index:1}
 @keyframes lpZoom{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-50%) scale(3.297304)}}
 @media (prefers-reduced-motion:reduce){ table.xl-grid td.lp-a-hero .lp-zoom{animation:none} }
-table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:22px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd}
+table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:12px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd}
 table.xl-grid td.lp-a-step .st-ic{font-size:30px;line-height:1;margin-bottom:8px}
 table.xl-grid td.lp-a-step b{display:block;font-size:14.5px;font-weight:800;color:#0b5a30;margin-bottom:6px}
 table.xl-grid td.lp-a-step span{display:block;font-size:12.5px;color:#5a6b60;line-height:1.55}
@@ -393,20 +393,11 @@ table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:58px;line-height:1}
 table.xl-grid td.lp-a-hero .lp-a-title{font-size:57px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:10px}
 table.xl-grid td.lp-a-hero .lp-a-sub{font-size:14.5px;color:rgba(255,255,255,.82);margin-top:10px}
 table.xl-grid td.lp-a-hero .lp-a-cta{display:inline-block;margin-top:22px;font-size:13px;color:#0b5a30;background:#fff;border:1px solid #fff;border-radius:999px;padding:9px 20px;font-weight:700}
-table.xl-grid td.lp-b-head{background:#eef7f0;text-align:left;padding:15px 16px;font-size:23px;font-weight:700;color:#1e1e1e;white-space:normal}
-table.xl-grid td.lp-b-head .lp-b-sub{font-size:13px;color:#888;font-weight:400}
-table.xl-grid td.lp-tile{background:#fff;text-align:center;padding:22px 12px;vertical-align:middle;white-space:normal}
-table.xl-grid td.lp-tile .tl-ic{font-size:30px;line-height:1}
-table.xl-grid td.lp-tile .tl-t{font-size:14.5px;font-weight:700;color:#222;margin-top:9px}
-table.xl-grid td.lp-tile .tl-d{font-size:12px;color:#888;margin-top:4px}
-table.xl-grid td.lp-c-left{background:linear-gradient(135deg,#0e6a38,#0b5a30);color:#fff;text-align:left;padding:32px 24px;vertical-align:middle;white-space:normal}
-table.xl-grid td.lp-c-left .lp-c-kicker{font-size:11px;letter-spacing:.14em;color:#a9e0c1;font-weight:700}
-table.xl-grid td.lp-c-left .lp-c-title{font-size:34px;font-weight:800;line-height:1.16;margin-top:12px;letter-spacing:-.01em}
-table.xl-grid td.lp-c-left .lp-c-sub{font-size:13px;color:#d6efe0;margin-top:12px}
-table.xl-grid td.lp-c-right{background:#f6faf7;text-align:left;padding:26px 22px;vertical-align:middle;white-space:normal}
-table.xl-grid td.lp-c-right .lp-c-panel-t{font-size:15px;font-weight:800;color:#0b5a30;margin-bottom:8px}
-table.xl-grid td.lp-c-right .lp-c-step{font-size:13px;color:#333;padding:8px 0;border-top:1px solid #e2ede6}
-table.xl-grid td.lp-c-right .lp-c-step b{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;background:#0a7a34;color:#fff;border-radius:50%;font-size:11px;margin-right:8px}
+/* 메인페이지 하단 내비 버튼(시트 이동) */
+table.xl-grid td.lp-a-nav{background:#fff;text-align:center;padding:16px 10px;vertical-align:middle;white-space:normal;border-color:#d7e8dd;cursor:pointer;transition:background .12s}
+table.xl-grid td.lp-a-nav:hover{background:#eef7f0}
+table.xl-grid td.lp-a-nav .nv-ic{font-size:24px;line-height:1;margin-bottom:6px}
+table.xl-grid td.lp-a-nav b{display:block;font-size:13.5px;font-weight:700;color:#0b5a30}
 table.xl-grid td.info-k{text-align:left;color:#777;background:#fafafa;font-size:11.5px}
 table.xl-grid td.info-v{text-align:left;font-weight:600;color:#222}
 table.xl-grid td.info-v.ok{color:#0a8a0a}
@@ -2229,7 +2220,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783662171731;   // 2026-07-10 14:42 KST
+const BUILD_TS = 1783662381488;   // 2026-07-10 14:46 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3241,35 +3232,14 @@ function landingA(){   // A · 히어로 센터
      +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📊</div><b>2단계 · 분포 확인</b><span>정규분포·산점도·박스플롯 탭으로 전환해 그래프를 확인</span></td>'
      +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">💾</div><b>3단계 · 저장·공유</b><span>포인트 카드에서 복사·저장, 상단에서 전체 저장</span></td>');
     contRows(2);
+    R('<td class="lp-a-nav" colspan="3" onclick="gotoSheet(\'측정데이터\')"><div class="nv-ic">📋</div><b>측정데이터</b></td>'
+     +'<td class="lp-a-nav" colspan="3" onclick="gotoSheet(\'정규분포\')"><div class="nv-ic">📊</div><b>정규분포</b></td>'
+     +'<td class="lp-a-nav" colspan="3" onclick="gotoSheet(\'산점도\')"><div class="nv-ic">⚬</div><b>산점도</b></td>'
+     +'<td class="lp-a-nav" colspan="3" onclick="gotoSheet(\'박스플롯\')"><div class="nv-ic">📦</div><b>박스플롯</b></td>');
     blank();
   });
 }
-function landingB(){   // B · 대시보드 타일
-  return landingFrame(({R,blank})=>{
-    blank();
-    R('<td class="lp-b-head" colspan="12">🎯 불량률 시각화 도구 <span class="lp-b-sub">— 측정 데이터 분석 홈</span></td>');
-    blank();
-    R('<td class="lp-tile" colspan="4"><div class="tl-ic">📥</div><div class="tl-t">데이터 불러오기</div><div class="tl-d">더미 · xlsx · CSV</div></td>'
-     +'<td class="lp-tile" colspan="4"><div class="tl-ic">📊</div><div class="tl-t">분포 분석</div><div class="tl-d">정규분포·산점도·박스플롯</div></td>'
-     +'<td class="lp-tile" colspan="4"><div class="tl-ic">🎯</div><div class="tl-t">공정 능력</div><div class="tl-d">Cp·Cpk·불량률 요약</div></td>');
-    R('<td class="lp-tile" colspan="4"><div class="tl-ic">🖼️</div><div class="tl-t">차트 내보내기</div><div class="tl-d">PNG 복사 · 저장</div></td>'
-     +'<td class="lp-tile" colspan="4"><div class="tl-ic">📄</div><div class="tl-t">템플릿 받기</div><div class="tl-d">측정 양식 CSV</div></td>'
-     +'<td class="lp-tile" colspan="4"><div class="tl-ic">📖</div><div class="tl-t">사용법</div><div class="tl-d">분석 마법사 안내</div></td>');
-    blank();
-  });
-}
-function landingC(){   // C · 리포트 표지(좌우 분할)
-  return landingFrame(({R,blank})=>{
-    blank();
-    R('<td class="lp-c-left" colspan="7"><div class="lp-c-kicker">MEASUREMENT · QC</div><div class="lp-c-title">🎯 불량률<br>시각화 도구</div><div class="lp-c-sub">측정 데이터를 한눈에 시각화합니다</div></td>'
-     +'<td class="lp-c-right" colspan="5"><div class="lp-c-panel-t">시작하기</div>'
-       +'<div class="lp-c-step"><b>1</b> [데이터] 탭 → 측정 더미 불러오기</div>'
-       +'<div class="lp-c-step"><b>2</b> 정규분포·산점도·박스플롯 탭 클릭</div>'
-       +'<div class="lp-c-step"><b>3</b> 포인트 카드에서 복사·저장</div></td>');
-    blank();
-  });
-}
-function renderLanding(id){ return id==='B'?landingB():id==='C'?landingC():landingA(); }
+function renderLanding(){ return landingA(); }
 function showDataView(){
   $('grid-scroll').style.display='none';
   $('chart-view').style.display='none';
@@ -3491,15 +3461,13 @@ $('wz-hint').addEventListener('click', startTutorial);
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $('wizard').style.display==='block') endTutorial(); });
 
 /* ══════════════ 초기화 ══════════════ */
-sheets.push(Object.assign(newSheet('메인A'), {kind:'data', landing:'A'}));   // 메인 페이지 시안 3종(측정데이터 왼쪽)
-sheets.push(Object.assign(newSheet('메인B'), {kind:'data', landing:'B'}));
-sheets.push(Object.assign(newSheet('메인C'), {kind:'data', landing:'C'}));
+sheets.push(Object.assign(newSheet('메인페이지'), {kind:'data', landing:true}));   // 메인 페이지(측정데이터 왼쪽)
 const _qcSheet = genQCData('측정데이터');
 sheets.push(_qcSheet); qcSource = _qcSheet;
 sheets.push(newChartSheet('정규분포','normal',true));
 sheets.push(newChartSheet('산점도','scatter',true));
 sheets.push(newChartSheet('박스플롯','box',true));
-cur = 0;   // 검토용: 메인A 컨셉을 먼저 표시 (시안 확정 후 되돌리면 됨)
+cur = 0;   // 메인페이지부터 표시
 renderTabs();
 renderSheetFull();
 setActive(0,0,false);
