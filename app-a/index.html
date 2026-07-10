@@ -2213,7 +2213,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783653188377;   // 2026-07-10 12:13 KST
+const BUILD_TS = 1783653449916;   // 2026-07-10 12:17 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2762,7 +2762,7 @@ function vBands(ml,pw,mt,ph,yU,yL){
 function svgScatter(pt){
   const ml=46,mr=52,mt=14,mb=30,pw=CW-ml-mr,ph=CH-mt-mb;
   const v=pt.values, n=v.length;
-  let lo=0, hi=Math.max(pt.max,pt.usl,pt.spec); const pad=(hi-lo)*0.08||1; hi+=pad;   // 0부터 시작(임의 크롭 없음)
+  let lo=Math.min(pt.min,pt.lsl), hi=Math.max(pt.max,pt.usl); const pad=(hi-lo)*0.12||1; lo-=pad; hi+=pad;   // 데이터 구간에 맞춰 자동 스케일
   const yP=x=>mt+ph-(x-lo)/(hi-lo)*ph, xP=i=>ml+(n<=1?pw/2:i/(n-1)*pw);
   let s='';
   s+=vBands(ml,pw,mt,ph,yP(pt.usl),yP(pt.lsl));
@@ -2851,7 +2851,7 @@ function svgNormal(pt){
 }
 function svgBox(pt){
   const ml=46,mr=52,mt=14,mb=30,pw=CW-ml-mr,ph=CH-mt-mb;
-  let lo=0, hi=Math.max(pt.max,pt.usl,pt.spec); const pad=(hi-lo)*0.08||1; hi+=pad;   // 0부터 시작(임의 크롭 없음)
+  let lo=Math.min(pt.min,pt.lsl), hi=Math.max(pt.max,pt.usl); const pad=(hi-lo)*0.12||1; lo-=pad; hi+=pad;   // 데이터 구간에 맞춰 자동 스케일
   const yP=x=>mt+ph-(x-lo)/(hi-lo)*ph, cx=ml+pw/2, bw=Math.min(74,pw*0.36);
   const iqr=pt.q3-pt.q1, loF=pt.q1-1.5*iqr, hiF=pt.q3+1.5*iqr;
   const inl=pt.values.filter(x=>x>=loF&&x<=hiF); const wl=inl.length?Math.min(...inl):pt.min, wh=inl.length?Math.max(...inl):pt.max;
