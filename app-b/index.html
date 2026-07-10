@@ -2192,7 +2192,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783645924357;   // 2026-07-10 10:12 KST
+const BUILD_TS = 1783647397162;   // 2026-07-10 10:36 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3344,9 +3344,6 @@ sheets.push(_qcSheet); qcSource = _qcSheet;
 sheets.push(newChartSheet('정규분포','normal'));
 sheets.push(newChartSheet('산점도','scatter'));
 sheets.push(newChartSheet('박스플롯','box'));
-sheets.push(newChartSheet('정규분포 2','normal',true));
-sheets.push(newChartSheet('산점도 2','scatter',true));
-sheets.push(newChartSheet('박스플롯 2','box',true));
 cur = 0;
 renderTabs();
 renderSheetFull();
