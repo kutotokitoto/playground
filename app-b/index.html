@@ -386,19 +386,19 @@ table.xl-grid tbody tr:hover td.ng{background:#fbe1e1}
 table.xl-grid tr.total td,table.xl-grid tr.total th.rn{background:#efeee9;font-weight:700;border-top:2px solid #a9a9a9}
 table.xl-grid tr.total td.ptname{background:#e3ebe4}
 /* ── 메인 페이지(랜딩 · 히어로 센터) — 엑셀 셀 위에 얹은 디자인 (app-a landingA 이식) ── */
-table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background-color:#165834;background-repeat:repeat-x;background-position:0 center;animation:heroSweep 11s steps(24) infinite;text-align:center;padding:120px 16px;vertical-align:middle;white-space:normal}
+table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background-color:#165834;background-repeat:repeat-x;background-position:0 center;animation:heroSweep 11s steps(24) infinite;text-align:center;padding:100px 16px;vertical-align:middle;white-space:normal}
 table.xl-grid td.lp-a-hero>div{position:relative;z-index:1}
 @keyframes heroSweep{from{background-position:0 center}to{background-position:624px center}}   /* 모자이크가 우측으로 진행(1주기=624px) */
 @media (prefers-reduced-motion:reduce){ table.xl-grid td.lp-a-hero{animation:none} }
-table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:16px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd}
+table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:10px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd}
 /* 기능 바로가기 버튼 4개 (3칸 × 4 = 12칸) */
 table.xl-grid td.lp-a-fn{cursor:pointer;background:#eef7f0;border-color:#c9dccf;text-align:center;vertical-align:middle;white-space:normal;padding:8px 6px}
 table.xl-grid td.lp-a-fn:hover,table.xl-grid tbody tr:hover td.lp-a-fn:hover{background:#dff0e4}
 table.xl-grid td.lp-a-fn .fn-ic{font-size:20px;line-height:1}
 table.xl-grid td.lp-a-fn b{display:block;font-size:14px;font-weight:800;color:#0b5a30;margin-top:4px}
 table.xl-grid td.lp-a-fn span{display:block;font-size:11px;color:#2a78d6;font-weight:600;margin-top:3px}
-table.xl-grid td.lp-a-step .st-ic{font-size:30px;line-height:1;margin-bottom:8px}
-table.xl-grid td.lp-a-step b{display:block;font-size:14.5px;font-weight:800;color:#0b5a30;margin-bottom:6px}
+table.xl-grid td.lp-a-step .st-ic{font-size:30px;line-height:1;margin-bottom:6px}
+table.xl-grid td.lp-a-step b{display:inline-block;font-size:14px;font-weight:800;color:#0b5a30;border:1.5px solid #8dbf9f;border-radius:999px;padding:3px 14px;margin-bottom:7px}
 table.xl-grid td.lp-a-step span{display:block;font-size:12.5px;color:#5a6b60;line-height:1.55}
 table.xl-grid td.lp-a-hero .lp-a-emoji{font-size:70px;line-height:1}
 table.xl-grid td.lp-a-hero .lp-a-title{font-size:46px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-top:12px}
@@ -2225,7 +2225,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783662555606;   // 2026-07-10 14:49 KST
+const BUILD_TS = 1783662795740;   // 2026-07-10 14:53 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
