@@ -2207,7 +2207,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783660527475;   // 2026-07-10 14:15 KST
+const BUILD_TS = 1783660713095;   // 2026-07-10 14:18 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3747,7 +3747,7 @@ function fxRender(cv, build, marginDelta){
 /* 히어로 배경: 사선(좌→우) 계단식 모자이크 초록 그래디언트 (SVG data URI, 색은 타일 단위로 양자화) */
 function mosaicBg(){
   const T=40, P=16, ROWS=14, W=P*T, H=ROWS*T;   // 한 주기=16타일(=640px, repeat-x로 끊김없이 이어짐)
-  const lo=[34,108,66], hi=[60,205,128];        // 어두운 초록(조금 더 밝게) → 밝은 초록
+  const lo=[48,126,80], hi=[60,205,128];        // 어두운 초록(조금 더 밝게) → 밝은 초록
   const hx=n=>n.toString(16).padStart(2,'0');
   const tri=x=>{ const f=x-Math.floor(x); return 1-Math.abs(1-2*f); };   // 삼각파(0→1→0): 좌우 경계 이음매 없음
   let s='';
@@ -3783,7 +3783,6 @@ function landingMain(cv){   // 히어로 센터 + 3단계
   return landingFrame(cv, ({R,blank,contRows})=>{
     blank();
     R('<td class="lp-a-hero" colspan="12" style="background-image:url('+mosaicBg()+')"><div class="lp-a-emoji">🎯</div><div class="lp-a-title">도면 좌표 불량률 시각화</div><div class="lp-a-sub">각 포인트의 X·Y 좌표를 도면에 매핑하고, 포인트별 불량률을 히트맵으로 봅니다</div><div class="lp-a-cta">📥 [데이터] 탭 → ‘측정 더미 불러오기’ 로 시작</div></td>');
-    blank();
     R('<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📥</div><b>1단계 · 데이터 불러오기</b><span>[데이터] 탭 → ‘측정 더미 불러오기’ 로 좌표·불량률 더미 생성 (또는 업로드)</span></td>'
      +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">🎯</div><b>2단계 · 이미지 정합</b><span>‘이미지 정합’ 시트에서 캡처를 불러와 기준 3점을 클릭해 좌표를 맞춤</span></td>'
      +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">🌡️</div><b>3단계 · 히트맵 확인</b><span>측정도·불량률 히트맵·연속 히트맵에서 캡처 위 오버레이 확인</span></td>');
