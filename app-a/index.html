@@ -582,9 +582,17 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
   #data-view .xl-grid col{width:auto!important}                /* 고정 폭·패딩 열 해제 → 우측 NG/불량률 열 잘림 방지 */
   #data-view table.xl-grid{width:auto!important}
   #data-view .xl-wrap{zoom:.9!important}
-  #chart-view .xl-wrap{zoom:var(--przoom,.72)!important}       /* 인쇄 직전 JS가 용지 폭에 맞춰 계산 */
   .chart-card,td.fx-card{break-inside:avoid!important;page-break-inside:avoid!important}   /* 카드가 페이지 경계에서 잘리지 않게 */
+  /* 차트 인쇄 전용 레이아웃: 3열 × 5행 ≈ 한 장에 15카드 (세로 A4) */
+  body.print-charts #grid-scroll,body.print-charts #data-view,body.print-charts #chart-view{display:none!important}
+  body.print-charts #print-out{display:block!important;zoom:.55}
+  .po-title{font-size:20px;font-weight:700;margin:0 0 12px;color:#107C41}
+  .po-grid{display:grid;grid-template-columns:repeat(3,356px);gap:14px;justify-content:start}
+  #print-out .chart-card{break-inside:avoid!important;page-break-inside:avoid!important;border:1px solid #e4e4e0;border-radius:6px;padding:8px;background:#fff}
+  #print-out .cc-actions,#print-out .cc-cb{display:none!important}
 }
+@page{size:A4 portrait;margin:10mm}   /* 인쇄는 항상 세로 */
+#print-out{display:none}              /* 화면에서는 숨김 — 인쇄 시에만 등장 */
 /* ───────── 튜토리얼 위저드 ───────── */
 #wizard{position:fixed;inset:0;z-index:3000;display:none}
 #wz-spot{
@@ -2327,7 +2335,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783742737130;   // 2026-07-11 13:05 KST
+const BUILD_TS = 1783743383433;   // 2026-07-11 13:16 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2438,20 +2446,28 @@ $('print-dlg').addEventListener('click', e=>{
   $('print-dlg').classList.remove('show');
   const name=b.dataset.print, idx=sheets.findIndex(s=>s.name===name);
   if(idx<0){ toast('시트를 찾을 수 없습니다: '+name); return; }
-  const prev=cur, isChart=name!=='측정데이터';
+  if(name!=='측정데이터'){   // 차트: 시트 전환 없이 인쇄 전용 3열 레이아웃으로
+    const qc=extractQC(); if(!qc){ toast('인쇄할 측정데이터가 없습니다 — 먼저 데이터를 불러오세요'); return; }
+    printCharts({'정규분포':'normal','산점도':'scatter','박스플롯':'box'}[name], qc);
+    return;
+  }
+  const prev=cur;
   if(idx!==cur) switchSheet(idx);
-  // 용지 방향 자동: 차트=가로, 표=세로 (@page를 동적으로 주입)
-  let ps=$('print-page'); if(!ps){ ps=document.createElement('style'); ps.id='print-page'; document.head.appendChild(ps); }
-  ps.textContent='@page{size:A4 '+(isChart?'landscape':'portrait')+';margin:10mm}';
   window.addEventListener('afterprint', ()=>{ if(prev!==idx) switchSheet(prev); }, {once:true});
-  setTimeout(()=>{   // 시트 렌더가 자리 잡은 뒤: 차트는 용지 폭에 맞춰 배율 계산
-    if(isChart){
-      const t=document.querySelector('#chart-view .xl-wrap>table');
-      if(t&&t.offsetWidth) document.documentElement.style.setProperty('--przoom', Math.min(1, 1040/t.offsetWidth).toFixed(3));
-    }
-    window.print();
-  }, 350);
+  setTimeout(()=>window.print(), 350);   // 시트 렌더가 자리 잡은 뒤 인쇄
 });
+/* 차트 인쇄: 카드들을 인쇄 전용 컨테이너에 3열로 다시 그려 A4 세로 한 장당 ~15개 */
+function printCharts(type, qc){
+  let po=$('print-out'); if(po) po.remove();
+  po=document.createElement('div'); po.id='print-out';
+  let h='<div class="po-title">'+escH(TYPE_KO[type]+' 분석 — 전체 '+qc.points.length+'개 포인트 · '+new Date().toLocaleDateString('ko-KR'))+'</div><div class="po-grid">';
+  qc.points.forEach((p,i)=>{ h+=buildChartCard(p,type,i); });
+  po.innerHTML=h+'</div>';
+  document.body.appendChild(po);
+  document.body.classList.add('print-charts');
+  window.addEventListener('afterprint', ()=>{ document.body.classList.remove('print-charts'); po.remove(); }, {once:true});
+  setTimeout(()=>window.print(), 150);
+}
 /* 닫기 = 창 닫기 시도, 막히면 포털로 */
 $('bs-close').addEventListener('click', ()=>{ window.close(); setTimeout(()=>{ location.href='../index.html'; },200); });
 document.addEventListener('keydown', e=>{
