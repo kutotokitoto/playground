@@ -568,11 +568,16 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 #sv-go:hover{background:#0b5a30}
 /* ───────── 인쇄: 앱 크롬 숨기고 현재 뷰만 ───────── */
 @media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}   /* 배경색 강제 — 히트맵·판정 셀의 흰 글자가 사라지지 않게 */
   #titlebar,#menubar,#ribbon,#formulabar,#sheetbar,#statusbar,#backstage,#toast,#loading,
-  #imp-preview,#save-dlg,#dv-copyall,#wz-hint,#wizard,#rb-fold,.cv-selbar{display:none!important}
+  #imp-preview,#save-dlg,#print-dlg,#dv-copyall,#wz-hint,#wizard,#rb-fold,.cv-selbar{display:none!important}
   html,body{overflow:visible!important;height:auto!important}
   #grid-scroll,#data-view,#chart-view{overflow:visible!important;height:auto!important;position:static!important}
-  .xl-wrap{zoom:.72}   /* 넓은 표/차트를 용지에 맞게 축소 */
+  .xl-grid th{position:static!important}                       /* sticky 헤더는 인쇄에서 어긋남 */
+  .xl-wrap{zoom:.72!important}                                 /* 넓은 표/차트를 용지에 맞게 축소 */
+  #data-view .xl-grid col{width:auto!important}                /* 화면용 고정 폭·패딩 열 해제 → 우측 NG/불량률 열 잘림 방지 */
+  #data-view table.xl-grid{width:auto!important}
+  #data-view .xl-wrap{zoom:.9!important}
 }
 /* ───────── 튜토리얼 위저드 ───────── */
 #wizard{position:fixed;inset:0;z-index:3000;display:none}
@@ -2316,7 +2321,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783741094316;   // 2026-07-11 12:38 KST
+const BUILD_TS = 1783742062137;   // 2026-07-11 12:54 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
