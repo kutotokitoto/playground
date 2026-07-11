@@ -423,6 +423,9 @@ table.xl-grid.fx td.fx-legend{text-align:left;padding:2px 12px}
 table.xl-grid.fx td.fx-card{border:none;padding:4px 8px;vertical-align:middle;text-align:left;background:#fff}
 table.xl-grid.fx td.fx-card .chart-card{box-shadow:none;border:none;border-radius:0;padding:2px 4px 4px}
 table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈 칸)은 엷은 회색 — app-a와 동일(#f2f0ee) */
+/* 측정데이터 표 셀 선택 (엑셀식 드래그 복사) */
+#data-view td[data-sr]{cursor:cell}
+#data-view td.csel{background:#d2e7da;box-shadow:inset 0 0 0 1px #58a679}
 /* 셀형 컨트롤 — 버튼/컨트롤/안내를 엑셀 셀처럼 (이미지 정합 등) */
 table.xl-grid td.xl-btn{cursor:pointer;font-weight:700;font-size:12.5px;color:#1e5c38;background:#eef7f0}
 table.xl-grid.fx td.xl-btn{border-color:#c9dbd0}
@@ -2231,7 +2234,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783737149357;   // 2026-07-11 11:32 KST
+const BUILD_TS = 1783737895696;   // 2026-07-11 11:44 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3296,7 +3299,7 @@ function showDataView(){
   const dv=$('data-view'); dv.style.display='block'; dv.scrollTop=0;
   nameBox.value=sheet().name; fInput.value=''; $('sb-mode').textContent='준비'; $('sb-stats').innerHTML='';
   const D=sheet().data;
-  if(sheet().coord){ renderCoordTableFramed(dv, sheet()); requestAnimationFrame(syncHScroll); return; }
+  if(sheet().coord){ renderCoordTableFramed(dv, sheet()); dselApply(); requestAnimationFrame(syncHScroll); return; }
   const qc=extractQC();
   let h='';
   if(qc){
@@ -3731,17 +3734,65 @@ function renderCoordTableFramed(cv, sh){
     let R=10, hc=C0;
     labels.forEach((lb,i)=>{ push(R,hc,spans[i],1,'hdr',escH(lb)); hc+=spans[i]; });
     R++;
+    let pi=0;
     for(const p of pts){ const dev=Math.hypot(p.mx-p.rx,p.my-p.ry), bad=!p.miss&&p.rate>=RATE_BAD, warn=!p.miss&&p.rate>=6;
       const cells=[[String(p.pos),'ptname',''],[f2(p.mx),'',''],[f2(p.my),'',''],[f2(p.rx),'',''],[f2(p.ry),'',''],[dev.toFixed(1),'',''],
         p.miss? ['– (미측정)','','color:#9a9a9a']
               : [p.rate.toFixed(1), bad?'ng':'', 'font-weight:700;color:'+(bad?'#c0272d':warn?'#a06a00':'#0a8a0a')]];
       let cc=C0;
-      cells.forEach((cell,i)=>{ push(R,cc,spans[i],1,cell[1],escH(cell[0]),cell[2]); cc+=spans[i]; });
-      R++;
+      cells.forEach((cell,i)=>{ push(R,cc,spans[i],1,cell[1],escH(cell[0]),cell[2],'data-sr="'+pi+'" data-sc="'+i+'"'); cc+=spans[i]; });
+      pi++; R++;
     }
     return R;
   }, true);
 }
+/* ── 측정데이터 표: 엑셀식 드래그 범위 선택 → Ctrl+C 복사(TSV, 엑셀에 셀 단위로 붙여넣기 가능) ── */
+let dsel=null, dselAnchor=null, dselDragging=false;
+function dselApply(){
+  const s=dsel;
+  $('data-view').querySelectorAll('td[data-sr]').forEach(td=>{
+    const r=+td.dataset.sr, c=+td.dataset.sc;
+    td.classList.toggle('csel', !!s && r>=s.r1&&r<=s.r2&&c>=s.c1&&c<=s.c2);
+  });
+}
+function dselTSV(){
+  if(!dsel) return null;
+  const co=extractCoord(); if(!co) return null;
+  const val=(p,c)=>{ const dev=Math.round(Math.hypot(p.mx-p.rx,p.my-p.ry)*100)/100;
+    return [p.pos,p.mx,p.my,p.rx,p.ry,dev, p.miss?'':p.rate][c]; };   // 미측정 → 빈칸 (재업로드 왕복 호환)
+  const lines=[];
+  for(let r=dsel.r1;r<=dsel.r2;r++){ const p=co.pts[r]; if(!p) continue;
+    const row=[]; for(let c=dsel.c1;c<=dsel.c2;c++) row.push(String(val(p,c)));
+    lines.push(row.join('\t')); }
+  return lines.join('\n');
+}
+$('data-view').addEventListener('mousedown', e=>{
+  const td=e.target.closest('td[data-sr]');
+  if(!td){ if(dsel){ dsel=null; dselApply(); } return; }
+  e.preventDefault();
+  dselAnchor={r:+td.dataset.sr, c:+td.dataset.sc};
+  dsel={r1:dselAnchor.r,r2:dselAnchor.r,c1:dselAnchor.c,c2:dselAnchor.c};
+  dselDragging=true; dselApply();
+});
+$('data-view').addEventListener('mousemove', e=>{
+  if(!dselDragging) return;
+  const td=e.target.closest('td[data-sr]'); if(!td) return;
+  const r=+td.dataset.sr, c=+td.dataset.sc;
+  dsel={r1:Math.min(dselAnchor.r,r), r2:Math.max(dselAnchor.r,r), c1:Math.min(dselAnchor.c,c), c2:Math.max(dselAnchor.c,c)};
+  dselApply();
+});
+document.addEventListener('mouseup', ()=>{
+  if(!dselDragging) return; dselDragging=false;
+  if(dsel&&(dsel.r1!==dsel.r2||dsel.c1!==dsel.c2)) toast('선택 '+(dsel.r2-dsel.r1+1)+'행 × '+(dsel.c2-dsel.c1+1)+'열 — Ctrl+C로 복사', 1800);
+});
+document.addEventListener('keydown', e=>{
+  if(!((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='c')) return;
+  if(!dsel || !sheet().coord || $('data-view').style.display==='none') return;
+  const tsv=dselTSV(); if(!tsv) return;
+  e.preventDefault();
+  const done=()=>toast('📋 '+(dsel.r2-dsel.r1+1)+'행 × '+(dsel.c2-dsel.c1+1)+'열 복사됨 — 엑셀에 붙여넣기 하세요');
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(tsv).then(done, ()=>toast('복사 실패 — 브라우저 클립보드 권한을 확인하세요', 4000));
+});
 /* 좌표 → 화면 변환용 경계 */
 function coordBounds(co){
   let minx=co.origin.x,maxx=co.origin.x,miny=co.origin.y,maxy=co.origin.y;
@@ -4064,7 +4115,7 @@ function fxRender(cv, build, gapLayout){
   else { /* 갭 레이아웃: 패딩은 A·B 두 열 고정, 폭만 반응형 */ }
   const padW=Math.max(12, Math.round(leftover/(MARGIN*2)));
   const C0=MARGIN+GAP+1, contentEnd=C0+contentCols-1, totalCols=contentEnd+GAP+MARGIN;
-  const items=[], push=(r,c,cs,rs,cls,html,style)=>items.push({r,c,cs,rs,cls,html,style});
+  const items=[], push=(r,c,cs,rs,cls,html,style,attr)=>items.push({r,c,cs,rs,cls,html,style,attr});
   const lastRow=build({contentCols,contentW,C0,contentEnd,CW,ROWH,vh,push})||1;
   const totalRows=Math.max(lastRow+1, Math.ceil(vh/ROWH));
   const occ=new Set(), origin={};
@@ -4078,7 +4129,7 @@ function fxRender(cv, build, gapLayout){
     for(let c=1;c<=totalCols;c++){
       if(occ.has(r+','+c)) continue;
       const it=origin[r+','+c];
-      if(it) body+='<td class="'+(it.cls||'')+'"'+(it.cs>1?' colspan="'+it.cs+'"':'')+(it.rs>1?' rowspan="'+it.rs+'"':'')+(it.style?' style="'+it.style+'"':'')+'>'+it.html+'</td>';
+      if(it) body+='<td class="'+(it.cls||'')+'"'+(it.cs>1?' colspan="'+it.cs+'"':'')+(it.rs>1?' rowspan="'+it.rs+'"':'')+(it.style?' style="'+it.style+'"':'')+(it.attr?' '+it.attr:'')+'>'+it.html+'</td>';
       else body+='<td class="fill"></td>';
     }
     body+='</tr>';
