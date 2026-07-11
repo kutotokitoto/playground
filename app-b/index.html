@@ -2232,7 +2232,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783732509606;   // 2026-07-11 10:15 KST
+const BUILD_TS = 1783732635011;   // 2026-07-11 10:17 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3585,21 +3585,32 @@ function parseCoordOnce(rows){
   // 헤더 행: '포인트'와 '불량률'이 서로 다른 셀에 있어야 함 (템플릿 1행 같은 설명 문장 한 칸에 둘 다 들어간 경우 배제)
   const looksHeader=r=>{ const cs=r.map(norm); const pi=cs.findIndex(isPt), ri=cs.findIndex(isRt);
     return pi>=0 && ri>=0 && pi!==ri && r.filter(c=>String(c==null?'':c).trim()!=='').length>=3; };
-  const hi=rows.findIndex(looksHeader);
+  // 2행(병합) 헤더 합성: 그룹행(측정면/기준면 — 병합 셀은 빈칸으로 옴)을 왼쪽 carry-forward로 채워 아랫행(X/Y)과 결합
+  const carryFwd=r=>{ const o=[]; let last=''; for(let c=0;c<r.length;c++){ const v=String(r[c]==null?'':r[c]).trim(); if(v!=='') last=v; o.push(last); } return o; };
+  const synthPair=i=>{ const g=carryFwd(rows[i]||[]), s=rows[i+1]||[]; const W=Math.max(g.length,s.length); const out=[];
+    for(let c=0;c<W;c++){ const sv=String(s[c]==null?'':s[c]).trim(); out.push(sv? ((g[c]||'')+' '+sv) : (g[c]||'')); } return out; };
+  const mapIdx=h=>{ const ax=(kw,a)=>h.findIndex(x=>kw.test(x)&&x.includes(a));
+    return { iP:h.findIndex(isPt), iMX:ax(/측정|meas/,'x'), iMY:ax(/측정|meas/,'y'), iRX:ax(/기준|설계|ref/,'x'), iRY:ax(/기준|설계|ref/,'y'), iRT:h.findIndex(isRt) }; };
+  let hi=rows.findIndex(looksHeader), hdrCells=hi>=0?rows[hi]:null, dataStart=hi+1, synth=false;
+  if(hi<0){   // 단독 행으로 못 찾으면 2행 합성으로 스캔
+    for(let i=0;i<rows.length-1;i++){ const c=synthPair(i); if(looksHeader(c)){ hi=i; hdrCells=c; dataStart=i+2; synth=true; break; } }
+  }
   if(hi<0) return positionalCoordParse(rows)||{err:"헤더 행을 찾지 못함 — '포인트'(또는 위치/번호)와 '불량률'(또는 불량율/NG율) 열이 같은 행에 있어야 합니다"};
   let origin={x:0,y:0};
   for(let i=0;i<hi;i++){ if(norm(rows[i][0]).includes('오리진')){ const ox=numClean(rows[i][1]), oy=numClean(rows[i][2]); if(isFinite(ox)&&isFinite(oy)) origin={x:ox,y:oy}; } }
-  const hdr=rows[hi].map(norm);
-  const ax=(kw,a)=>hdr.findIndex(h=>kw.test(h)&&h.includes(a));   // '측정면 X'·'측정 X'·'Meas X' 등 변형 인식
-  const iP=hdr.findIndex(isPt),
-        iMX=ax(/측정|meas/,'x'), iMY=ax(/측정|meas/,'y'), iRX=ax(/기준|설계|ref/,'x'), iRY=ax(/기준|설계|ref/,'y'), iRT=hdr.findIndex(isRt);
-  if(iRX<0||iRY<0) return positionalCoordParse(rows)||{err:"'기준면 X'/'기준면 Y' 열을 찾지 못함 ('기준'+'X'가 열 이름에 있어야 함)"};
-  if(iRT<0) return positionalCoordParse(rows)||{err:"'불량률(%)' 열을 찾지 못함"};
-  console.info('[업로드 매핑] 헤더 '+(hi+1)+'행:', rows[hi].join(' | '),
+  let hdr=hdrCells.map(norm), M=mapIdx(hdr);
+  if((M.iRX<0||M.iRY<0) && !synth && hi+1<rows.length){   // 헤더가 그룹 행뿐이면 아랫행과 합성해 재시도
+    const c=synthPair(hi), h2=c.map(norm), M2=mapIdx(h2);
+    if(M2.iRX>=0&&M2.iRY>=0&&M2.iRT>=0){ hdrCells=c; hdr=h2; M=M2; dataStart=hi+2; synth=true; }
+  }
+  if(M.iRX<0||M.iRY<0) return positionalCoordParse(rows)||{err:"'기준면 X'/'기준면 Y' 열을 찾지 못함 ('기준'+'X'가 열 이름에 있어야 함)"};
+  if(M.iRT<0) return positionalCoordParse(rows)||{err:"'불량률(%)' 열을 찾지 못함"};
+  const {iP,iMX,iMY,iRX,iRY,iRT}=M;
+  console.info('[업로드 매핑] 헤더 '+(hi+1)+'행'+(synth?'(+아랫행 합성)':'')+':', hdrCells.join(' | '),
     '→ 포인트='+(iP<0?'없음':colName(iP))+' 측정X='+(iMX<0?'(기준으로 대체)':colName(iMX))+' 측정Y='+(iMY<0?'(기준으로 대체)':colName(iMY))
     +' 기준X='+colName(iRX)+' 기준Y='+colName(iRY)+' 불량률='+colName(iRT));   // F12에서 열 매핑 확인
   const pts=[]; let trunc=false, skipped=0;
-  for(let ri=hi+1; ri<rows.length; ri++){
+  for(let ri=dataStart; ri<rows.length; ri++){
     const r=rows[ri];
     if(isJunkRow(r[0])) continue;                                             // 합계/평균 등 잡행 제외
     const rx=numClean(r[iRX]), ry=numClean(r[iRY]);
