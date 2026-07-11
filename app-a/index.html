@@ -46,6 +46,11 @@ body.ribbon-folded #rb-unfold{display:flex;align-items:center;justify-content:ce
 }
 #tb-admin{display:none;background:#F2C811;color:#5c4a00;font-weight:800;font-size:10px;border-radius:999px;padding:3px 9px;margin-left:6px;letter-spacing:.04em}
 body.admin #tb-admin{display:inline-block}
+/* 측정데이터 뷰: 엑셀처럼 표를 긁어 복사 허용(전역 user-select:none 해제) + 전체 복사 버튼 */
+#data-view{position:relative}
+#data-view .dv-table td,#data-view .dv-table th,#data-view table.dv-copy td{user-select:text;-webkit-user-select:text}
+#dv-copyall{position:absolute;top:27px;right:12px;z-index:6;background:#107C41;color:#fff;font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+#dv-copyall:hover{background:#0b5a30}
 /* 관리자 모드: 리본의 더미 기능 전부 숨김 (일반 모드는 그대로 → 비교용) */
 body.admin #ribbon .dummy{display:none!important}
 body.admin #ribbon .rgroup:not(:has(button:not(.dummy),select,input)){display:none}   /* 동작 버튼이 하나도 없는 그룹 통째로 */
@@ -2273,7 +2278,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783737182019;   // 2026-07-11 11:33 KST
+const BUILD_TS = 1783738294261;   // 2026-07-11 11:51 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3521,6 +3526,34 @@ function landingA(){   // A · 히어로 센터
   });
 }
 function renderLanding(){ return landingA(); }
+/* 클립보드 텍스트 복사 (https 아닌 환경 폴백 포함) */
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); return true; }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=t;
+    ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+    let ok=false; try{ ok=document.execCommand('copy'); }catch(_){}
+    ta.remove(); return ok;
+  }
+}
+/* 측정데이터 전체(포인트 헤더+스펙+상한/하한+시리얼+측정값)를 TSV로 복사 — 엑셀에 셀 단위로 붙는다 */
+async function copyQCData(){
+  const src=qcSource || sheets.find(s=>s.name.indexOf('측정데이터')===0);
+  if(!src||!src.data||!src.data['1,0']){ toast('복사할 측정데이터가 없습니다'); return; }
+  const D=src.data, val=(r,c)=>{ const x=D[r+','+c]; let v=x&&x.v!=null?String(x.v):''; return v==='미측정'?'':v; };   // 미측정은 빈 셀로(엑셀 재계산용)
+  let P=0; for(let c=1;c<COLS;c++){ if(val(1,c)!=='') P=c; else break; }
+  if(!P){ toast('복사할 측정데이터가 없습니다'); return; }
+  const STOP=/^(검사 수|평균|최소값|최대값|상한 NG|하한 NG|미측정|판정)$/;
+  const lines=[];
+  for(let r=1;r<ROWS;r++){ const a=val(r,0);
+    if(r>5 && (a===''||STOP.test(a))) break;   // 요약(수식) 행 전에서 멈춤
+    const row=[a]; for(let c=1;c<=P;c++) row.push(val(r,c));
+    lines.push(row.join('\t'));
+  }
+  const ok=await copyText(lines.join('\n'));
+  toast(ok?('📋 전체 데이터 복사됨 · 시료 '+(lines.length-5)+'개 × 포인트 '+P+'개 — 엑셀에 Ctrl+V로 붙여넣으세요')
+          :'복사 실패 — 브라우저가 클립보드 접근을 막았습니다');
+}
 function showDataView(){
   $('grid-scroll').style.display='none';
   $('chart-view').style.display='none';
@@ -3531,6 +3564,7 @@ function showDataView(){
   const qc=extractQC();
   let h='';
   if(qc){
+    h+='<button id="dv-copyall" onclick="copyQCData()" title="측정 데이터 전체(스펙·상한하한 포함)를 복사 — 엑셀에 셀로 붙습니다">📋 전체 데이터 복사</button>';
     h+=renderPointStatsTable(qc);   // 상단 1~4행에 정보 + 좌우 가변 패딩으로 가운데 정렬
   } else {
     h+='<div style="padding:10px 12px;background:#fff3cd;color:#8a6d1b;font-size:12px">⚠ 측정 형식(포인트/규격)이 아닌 데이터입니다. 원본 미리보기만 표시합니다.</div>';
@@ -3622,7 +3656,7 @@ function renderPointStatsTable(qc){
   // 더미 행 — 화면 세로 채우기 (좌우 패딩 포함 전체 회색)
   const bodyRows=rn-1, totalRows=Math.max(bodyRows+3, Math.ceil(vh/ROWH)+1);   // +3행: 표 아래 여백
   for(; rn<=totalRows; rn++) body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+fill(totalCols)+'</tr>';
-  return '<div class="xl-wrap"><table class="xl-grid"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  return '<div class="xl-wrap"><table class="xl-grid dv-copy"><colgroup>'+cg+'</colgroup><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
 }
 function renderSampleTable(D){
   const val=(r,c)=>{ const cell=D[r+','+c]; return cell&&cell.v!=null?String(cell.v):''; };
