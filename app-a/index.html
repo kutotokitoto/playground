@@ -42,7 +42,10 @@ body.ribbon-folded #rb-unfold{display:flex;align-items:center;justify-content:ce
 #rb-unfold:hover{background:#e4e4e4;color:#333}
 #tb-title{
   font-size:15px;font-weight:700;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  user-select:none;   /* 더블클릭(관리자 모드 토글) 시 텍스트 선택 방지 */
 }
+#tb-admin{display:none;background:#F2C811;color:#5c4a00;font-weight:800;font-size:10px;border-radius:999px;padding:3px 9px;margin-left:6px;letter-spacing:.04em}
+body.admin #tb-admin{display:inline-block}
 #tb-search{
   flex:1;max-width:560px;margin:0 auto;height:26px;background:rgba(255,255,255,.9);
   border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 12px;color:#444;
@@ -50,10 +53,6 @@ body.ribbon-folded #rb-unfold{display:flex;align-items:center;justify-content:ce
 }
 #tb-search:hover{background:#fff}
 #tb-right{display:flex;align-items:center;margin-left:auto}
-#tb-user{
-  width:26px;height:26px;border-radius:50%;background:#F2C811;color:#5c4a00;font-weight:600;
-  display:flex;align-items:center;justify-content:center;font-size:11px;margin:0 8px;
-}
 .win-btn{width:42px;height:36px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
 .win-btn:hover{background:rgba(255,255,255,.15)}
 .win-btn.close:hover{background:#E81123}
@@ -591,10 +590,9 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 
 <!-- 타이틀 바 -->
 <div id="titlebar">
-  <span id="tb-title">불량률 분석 도구</span><span id="tb-team">스마트폰기구개발2그룹 AX TF 정웅호</span>
+  <span id="tb-title">불량률 분석 도구</span><span id="tb-team">스마트폰기구개발2그룹 AX TF 정웅호</span><span id="tb-admin" title="관리자 모드 — 타이틀 더블클릭으로 끔">ADMIN</span>
   <div id="tb-search" class="dummy">🔍 <span style="color:#666">검색</span></div>
   <div id="tb-right">
-    <div id="tb-user" title="사용자">DH</div>
     <button class="win-btn dummy" title="최소화">🗕</button>
     <button class="win-btn dummy" title="최대화">🗖</button>
     <button class="win-btn close dummy" title="닫기">✕</button>
@@ -2252,12 +2250,20 @@ function ribbonFold(on){
 }
 $('rb-fold').onclick=()=>ribbonFold(true);
 $('rb-unfold').onclick=()=>ribbonFold(false);
+/* 관리자 모드: 타이틀 더블클릭으로 토글 — 실험 기능은 adminMode/body.admin에 붙인다 */
+let adminMode=false;
+function toggleAdmin(){
+  adminMode=!adminMode;
+  document.body.classList.toggle('admin', adminMode);
+  toast(adminMode?'🔧 관리자 모드 켜짐 — 실험 기능이 여기에 추가됩니다':'관리자 모드를 껐습니다');
+}
+$('tb-title').addEventListener('dblclick', toggleAdmin);
 $('zoom-slider').addEventListener('input', e=>setZoom(+e.target.value));
 $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoom(100); });
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783734482179;   // 2026-07-11 10:48 KST
+const BUILD_TS = 1783736255970;   // 2026-07-11 11:17 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
