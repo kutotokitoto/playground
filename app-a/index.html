@@ -560,6 +560,20 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 .ipv-foot{display:flex;justify-content:flex-end}
 .ipv-cancel{background:none;border:none;color:#888;font-size:12.5px;cursor:pointer;padding:6px 4px}
 .ipv-cancel:hover{color:#c00000}
+/* ───────── 저장 대화상자 (시트 선택) ───────── */
+#save-dlg{position:fixed;inset:0;background:rgba(30,40,34,.42);z-index:2600;display:none;align-items:center;justify-content:center}
+#save-dlg.show{display:flex}
+#save-dlg .ipv-opt input{accent-color:#107C41;width:15px;height:15px}
+#sv-go{background:#107C41;color:#fff;font-weight:600;font-size:12.5px;padding:7px 14px;border-radius:5px}
+#sv-go:hover{background:#0b5a30}
+/* ───────── 인쇄: 앱 크롬 숨기고 현재 뷰만 ───────── */
+@media print{
+  #titlebar,#menubar,#ribbon,#formulabar,#sheetbar,#statusbar,#backstage,#toast,#loading,
+  #imp-preview,#save-dlg,#dv-copyall,#wz-hint,#wizard,#rb-fold,.cv-selbar{display:none!important}
+  html,body{overflow:visible!important;height:auto!important}
+  #grid-scroll,#data-view,#chart-view{overflow:visible!important;height:auto!important;position:static!important}
+  .xl-wrap{zoom:.72}   /* 넓은 표/차트를 용지에 맞게 축소 */
+}
 /* ───────── 튜토리얼 위저드 ───────── */
 #wizard{position:fixed;inset:0;z-index:3000;display:none}
 #wz-spot{
@@ -894,20 +908,29 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
   </div>
 </div>
 
+<!-- 저장 대화상자 (시트 선택) -->
+<div id="save-dlg">
+  <div class="ipv-box" style="width:430px">
+    <div class="ipv-title">💾 저장</div>
+    <div class="ipv-desc">저장할 시트를 선택하세요. 측정데이터는 CSV, 차트는 PNG로 내려받습니다.</div>
+    <div class="ipv-opts" id="sv-list"></div>
+    <div class="ipv-foot" style="gap:8px;align-items:center">
+      <button class="ipv-cancel" id="sv-cancel">취소</button>
+      <button id="sv-go">선택 항목 저장</button>
+    </div>
+  </div>
+</div>
+
 <!-- 백스테이지 (파일 메뉴) -->
 <div id="backstage">
   <div id="bs-nav">
     <button id="bs-back" title="뒤로">⬅</button>
     <button class="bs-item sel">홈</button>
-    <button class="bs-item dummy">새로 만들기</button>
-    <button class="bs-item dummy">열기</button>
-    <button class="bs-item dummy">정보</button>
+    <button class="bs-item" id="bs-new">새로 만들기</button>
+    <button class="bs-item" id="bs-open">열기</button>
     <button class="bs-item" id="bs-save">저장</button>
-    <button class="bs-item dummy">다른 이름으로 저장</button>
-    <button class="bs-item dummy">인쇄</button>
-    <button class="bs-item dummy">공유</button>
-    <button class="bs-item dummy">내보내기</button>
-    <button class="bs-item dummy">닫기</button>
+    <button class="bs-item" id="bs-print">인쇄</button>
+    <button class="bs-item" id="bs-close">닫기</button>
   </div>
   <div id="bs-body">
     <h1>홈</h1>
@@ -917,11 +940,15 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
     </div>
     <div class="bs-doc dummy">
       <div class="di">X</div>
-      <div><div class="dn">가계부_2026.xlsx</div><div class="dp">문서 &gt; 예시 (더미)</div></div>
+      <div><div class="dn">불량률_분석_1분기.xlsx</div><div class="dp">문서 &gt; 품질관리 (예시)</div></div>
     </div>
     <div class="bs-doc dummy">
       <div class="di">X</div>
-      <div><div class="dn">판매실적_상반기.xlsx</div><div class="dp">문서 &gt; 예시 (더미)</div></div>
+      <div><div class="dn">측정데이터_모델A_0710.xlsx</div><div class="dp">문서 &gt; 측정실 (예시)</div></div>
+    </div>
+    <div class="bs-doc dummy">
+      <div class="di">X</div>
+      <div><div class="dn">공정능력_리포트_6월.xlsx</div><div class="dp">문서 &gt; 리포트 (예시)</div></div>
     </div>
   </div>
 </div>
@@ -2279,7 +2306,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783738816759;   // 2026-07-11 12:00 KST
+const BUILD_TS = 1783740587163;   // 2026-07-11 12:29 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2346,7 +2373,39 @@ ctx.addEventListener('click', e=>{
 /* ══════════════ 백스테이지 · 토스트 · 더미 ══════════════ */
 $('file-tab').addEventListener('click', ()=>$('backstage').classList.add('open'));
 $('bs-back').addEventListener('click', ()=>{ $('backstage').classList.remove('open'); focusGrid(); });
-$('bs-save').addEventListener('click', ()=>{ $('backstage').classList.remove('open'); toast('💾 저장됨 (데모 — 실제 파일은 저장되지 않아요)'); focusGrid(); });
+/* 새로 만들기 = 초기화 (자동 저장이 없으므로 새로고침이 곧 초기 상태) */
+$('bs-new').addEventListener('click', ()=>{
+  if(confirm('새로 만들기 — 모든 시트가 초기 상태로 돌아갑니다. 계속할까요?')) location.reload();
+});
+/* 열기 = 데이터 불러오기(업로드)와 동일 */
+$('bs-open').addEventListener('click', ()=>{ $('backstage').classList.remove('open'); triggerUpload('qc'); });
+/* 저장 = 시트 선택 대화상자 → 측정데이터 CSV / 차트 PNG */
+$('bs-save').addEventListener('click', ()=>{
+  const qc=extractQC();
+  if(!qc){ toast('저장할 측정데이터가 없습니다 — 먼저 데이터를 불러오세요'); return; }
+  $('backstage').classList.remove('open');
+  let h='';
+  [['data','📄 측정데이터','원본 측정값 전체 · CSV'],
+   ['normal','📊 정규분포','전체 차트 묶음 · PNG'],
+   ['scatter','⚬ 산점도','전체 차트 묶음 · PNG'],
+   ['box','📦 박스플롯','전체 차트 묶음 · PNG']]
+    .forEach(it=>{ h+='<label class="ipv-opt"><input type="checkbox" value="'+it[0]+'"'+(it[0]==='data'?' checked':'')+'> <span><b>'+it[1]+'</b><div class="sub">'+it[2]+'</div></span></label>'; });
+  $('sv-list').innerHTML=h;
+  $('save-dlg').classList.add('show');
+});
+$('sv-cancel').addEventListener('click', ()=>$('save-dlg').classList.remove('show'));
+$('sv-go').addEventListener('click', async ()=>{
+  const picks=[...document.querySelectorAll('#sv-list input:checked')].map(i=>i.value);
+  $('save-dlg').classList.remove('show');
+  if(!picks.length){ toast('선택된 시트가 없습니다'); return; }
+  const qc=extractQC(); if(!qc){ toast('저장할 측정데이터가 없습니다'); return; }
+  if(picks.indexOf('data')>=0) saveDataCSV();
+  for(const t of ['normal','scatter','box']) if(picks.indexOf(t)>=0) await saveChartPNG(t, qc);
+});
+/* 인쇄 = 현재 시트를 브라우저 인쇄로 (@media print에서 앱 크롬 숨김) */
+$('bs-print').addEventListener('click', ()=>{ $('backstage').classList.remove('open'); setTimeout(()=>window.print(),150); });
+/* 닫기 = 창 닫기 시도, 막히면 포털로 */
+$('bs-close').addEventListener('click', ()=>{ window.close(); setTimeout(()=>{ location.href='../index.html'; },200); });
 document.addEventListener('keydown', e=>{
   if(e.key==='Escape'&&$('backstage').classList.contains('open')){ $('backstage').classList.remove('open'); focusGrid(); }
 });
@@ -3537,23 +3596,49 @@ async function copyText(t){
     ta.remove(); return ok;
   }
 }
-/* 측정데이터 전체(포인트 헤더+스펙+상한/하한+시리얼+측정값)를 TSV로 복사 — 엑셀에 셀 단위로 붙는다 */
-async function copyQCData(){
+/* 측정데이터 블록(포인트 헤더+스펙+상한/하한+시리얼+측정값)을 표 텍스트로 — 복사(TSV)·저장(CSV) 공용 */
+function qcBlockText(sep){
   const src=qcSource || sheets.find(s=>s.name.indexOf('측정데이터')===0);
-  if(!src||!src.data||!src.data['1,0']){ toast('복사할 측정데이터가 없습니다'); return; }
+  if(!src||!src.data||!src.data['1,0']) return null;
   const D=src.data, val=(r,c)=>{ const x=D[r+','+c]; let v=x&&x.v!=null?String(x.v):''; return v==='미측정'?'':v; };   // 미측정은 빈 셀로(엑셀 재계산용)
   let P=0; for(let c=1;c<COLS;c++){ if(val(1,c)!=='') P=c; else break; }
-  if(!P){ toast('복사할 측정데이터가 없습니다'); return; }
+  if(!P) return null;
   const STOP=/^(검사 수|평균|최소값|최대값|상한 NG|하한 NG|미측정|판정)$/;
   const lines=[];
   for(let r=1;r<ROWS;r++){ const a=val(r,0);
     if(r>5 && (a===''||STOP.test(a))) break;   // 요약(수식) 행 전에서 멈춤
     const row=[a]; for(let c=1;c<=P;c++) row.push(val(r,c));
-    lines.push(row.join('\t'));
+    lines.push(row.join(sep));
   }
-  const ok=await copyText(lines.join('\n'));
-  toast(ok?('📋 전체 데이터 복사됨 · 시료 '+(lines.length-5)+'개 × 포인트 '+P+'개 — 엑셀에 Ctrl+V로 붙여넣으세요')
+  return {text:lines.join('\n'), P, N:lines.length-5};
+}
+/* 측정데이터 전체를 TSV로 복사 — 엑셀에 셀 단위로 붙는다 */
+async function copyQCData(){
+  const b=qcBlockText('\t');
+  if(!b){ toast('복사할 측정데이터가 없습니다'); return; }
+  const ok=await copyText(b.text);
+  toast(ok?('📋 전체 데이터 복사됨 · 시료 '+b.N+'개 × 포인트 '+b.P+'개 — 엑셀에 Ctrl+V로 붙여넣으세요')
           :'복사 실패 — 브라우저가 클립보드 접근을 막았습니다');
+}
+/* 측정데이터 → CSV 다운로드 (BOM+CRLF: 엑셀 한글 호환) */
+function saveDataCSV(){
+  const b=qcBlockText(',');
+  if(!b){ toast('저장할 측정데이터가 없습니다'); return; }
+  const blob=new Blob(['﻿'+b.text.replace(/\n/g,'\r\n')],{type:'text/csv;charset=utf-8'});   // BOM: 엑셀 한글 인코딩 인식용
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='측정데이터.csv';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast('📄 측정데이터.csv 저장됨 · 시료 '+b.N+'개 × 포인트 '+b.P+'개');
+}
+/* 차트 시트 → 전체 몽타주 PNG 저장 (차트 뷰의 '전체 저장'과 동일 산출물) */
+async function saveChartPNG(type, qc){
+  showLoading('저장 준비 중…', TYPE_KO[type]+' 차트를 이미지로 만드는 중입니다');
+  await new Promise(r=>setTimeout(r,60));
+  try{
+    const title=TYPE_KO[type]+' 분석 — 전체 ('+qc.points.length+' 포인트)';
+    const cv=await buildMontage(qc.points, type, title);
+    await outputCanvas(cv,'save',TYPE_KO[type]+'_전체.png','전체 '+qc.points.length+'개 차트');
+  }catch(e){ toast('저장 오류: '+e.message); }
+  hideLoading();
 }
 /* ── 측정데이터 표: 엑셀식 드래그 범위 선택 → Ctrl+C 복사(TSV, 엑셀에 셀 단위로 붙음) — app-b와 동일 UX ── */
 let dsel=null, dselAnchor=null, dselDragging=false;
