@@ -2232,7 +2232,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783732635011;   // 2026-07-11 10:17 KST
+const BUILD_TS = 1783732805360;   // 2026-07-11 10:20 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2609,6 +2609,15 @@ async function processUpload(file, mode){
     // 좌표·불량률 템플릿 파싱 (포인트/측정면/기준면/불량률 헤더 탐지)
     const parsed = parseCoordRows(rows);
     let sh, msg, fail=!parsed||parsed.err;
+    if(!fail && needsPreview(parsed)){   // 애매한 해석 → 미리보기 확인 후 반입
+      hideLoading();
+      showImportPreview(rows, parsed, sheetNote, fin=>{
+        const missN=fin.pts.filter(p=>p.miss).length;
+        replaceCoordSheet(buildCoordSheet(fin));
+        toast('📤 가져오기 완료 · 포인트 '+fin.pts.length+'개'+(missN?' · 미측정 '+missN+'건':'')+(fin.skipped?' · 좌표 없는 '+fin.skipped+'행 제외':'')+(fin.transposed?' · 전치':'')+(fin.positional?' · 열 순서 기반':'')+sheetNote, 4000);
+      });
+      return;
+    }
     if(!fail){ sh=buildCoordSheet(parsed);
       console.info('[업로드 결과] 오리진:', parsed.origin, '· 첫 2포인트:', JSON.stringify(parsed.pts.slice(0,2)));
       const missN=parsed.pts.filter(p=>p.miss).length;
@@ -2661,6 +2670,13 @@ function showPasteImport(){
     const rows=lines.map(l=> tab? l.split('\t') : splitCSVLine(l));
     { const rawSh=sheets.find(s=>s.kind==='raw'); if(rawSh){ rawSh.rawRows=rows; rawSh.rawName='(붙여넣기)'; } }
     const parsed=parseCoordRows(rows);
+    if(parsed&&!parsed.err&&needsPreview(parsed)){ d.remove();
+      showImportPreview(rows, parsed, '', fin=>{
+        const missN=fin.pts.filter(p=>p.miss).length;
+        replaceCoordSheet(buildCoordSheet(fin));
+        toast('📝 붙여넣기 가져오기 완료 · 포인트 '+fin.pts.length+'개'+(missN?' · 미측정 '+missN+'건':''), 4000);
+      });
+      return; }
     if(parsed&&!parsed.err){ d.remove(); replaceCoordSheet(buildCoordSheet(parsed));
       const missN=parsed.pts.filter(p=>p.miss).length;
       toast('📝 붙여넣기 가져오기 완료 · 포인트 '+parsed.pts.length+'개'+(missN?' · 미측정 '+missN+'건':'')+(parsed.skipped?' · 좌표 없는 '+parsed.skipped+'행 제외':'')+(parsed.truncated?' · 500개 초과분 잘림':'')); }
@@ -2668,6 +2684,41 @@ function showPasteImport(){
   };
 }
 
+/* ── 가져오기 미리보기 — 해석이 애매할 때(열 순서 기반/전치/모호/포인트 적음)만 확인 후 반입 ── */
+function needsPreview(p){ return !!(p && !p.err && (p.positional || p.transposed || p.ambiguous || p.pts.length<3)); }
+function showImportPreview(rows, parsed, extraNote, onApply){
+  const old=$('preview-modal'); if(old) old.remove();
+  let cur=parsed, flipped=!!parsed.transposed;
+  const d=document.createElement('div'); d.id='preview-modal';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:2600;display:flex;align-items:center;justify-content:center';
+  const render=()=>{
+    const missN=cur.pts.filter(p=>p.miss).length;
+    const how=cur.positional?'열 순서 기반(헤더 미인식)':'키워드 헤더';
+    let tr='';
+    cur.pts.slice(0,5).forEach(p=>{ tr+='<tr><td>'+escH(String(p.pos))+'</td><td>'+f2(p.mx)+'</td><td>'+f2(p.my)+'</td><td>'+f2(p.rx)+'</td><td>'+f2(p.ry)+'</td><td>'+(p.miss?'– (미측정)':p.rate.toFixed(1))+'</td></tr>'; });
+    d.innerHTML='<div style="background:#fff;border-radius:10px;padding:18px 20px;width:min(660px,92vw);box-shadow:0 12px 40px rgba(0,0,0,.25)">'
+      +'<div style="font-size:15px;font-weight:800;color:#0b5a30">🔎 가져오기 미리보기 — 해석 확인</div>'
+      +'<div style="font-size:12.5px;color:#555;margin-top:8px;line-height:1.7">'
+        +'해석: <b>'+how+'</b>'+(flipped?' · <b>가로 배치(전치)</b>':'')+(cur.ambiguous?' · <b style="color:#c07f00">방향 모호 — 아래 값을 확인하세요</b>':'')
+        +'<br>포인트 <b>'+cur.pts.length+'개</b> · 오리진 (X='+cur.origin.x+', Y='+cur.origin.y+')'
+        +(missN?' · 미측정 '+missN+'건':'')+(cur.skipped?' · 좌표 없는 '+cur.skipped+'행 제외':'')+escH(extraNote||'')+'</div>'
+      +'<table class="dv-table" style="margin-top:10px;width:100%"><thead><tr><th>포인트</th><th>측정X</th><th>측정Y</th><th>기준X</th><th>기준Y</th><th>불량률(%)</th></tr></thead><tbody>'+tr+'</tbody></table>'
+      +'<div style="font-size:11.5px;color:#999;margin-top:6px">앞 5행 미리보기 — 값이 이상하면 [방향 뒤집기]로 행↔열 해석을 전환해 보세요.</div>'
+      +'<div style="display:flex;gap:8px;margin-top:12px">'
+      +'<button id="pv-flip" class="cv-actbtn">↻ 방향 뒤집기</button><span style="flex:1"></span>'
+      +'<button id="pv-cancel" class="cv-actbtn">취소</button>'
+      +'<button id="pv-apply" class="cv-actbtn primary">이대로 가져오기</button></div></div>';
+    $('pv-cancel').onclick=()=>d.remove();
+    $('pv-apply').onclick=()=>{ d.remove(); onApply(cur); };
+    $('pv-flip').onclick=()=>{
+      const alt=flipped? parseCoordOnce(rows) : parseCoordOnce(transposeGrid(rows));
+      if(!alt||alt.err){ toast('반대 방향으로는 해석 불가: '+((alt&&alt.err)||''), 4000); return; }
+      flipped=!flipped; if(flipped) alt.transposed=true; cur=alt; render();
+    };
+  };
+  document.body.appendChild(d); render();
+  d.addEventListener('mousedown', e=>{ if(e.target===d) d.remove(); });
+}
 /* ── 텍스트 나누기 (선택 열을 구분자로 분리) ── */
 function textToColumns(){
   if(isChartSheet()){ toast('그리드 시트에서 사용하세요'); return; }
