@@ -2227,7 +2227,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783672098140;   // 2026-07-10 17:28 KST
+const BUILD_TS = 1783732302793;   // 2026-07-11 10:11 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2318,7 +2318,7 @@ function buildQCSheet(name, pts, serials, meta){
   const headerRow=2, specRow=3, upperRow=4, lowerRow=5, dhdrRow=6, dataStart=7;
   const dataEnd=dataStart+N-1;
   const inspRow=dataEnd+1, avgRow=dataEnd+2, minRow=dataEnd+3, maxRow=dataEnd+4,
-        uNGRow=dataEnd+5, lNGRow=dataEnd+6, judgeRow=dataEnd+7;
+        uNGRow=dataEnd+5, lNGRow=dataEnd+6, missRow=dataEnd+7, judgeRow=dataEnd+8;
   const sh=newSheet(name); sh.kind='data'; sh.meta=meta||null;   // 무거운 그리드 대신 요약 뷰로 표시
   sh.colW[0]=104;
   for(let c=1;c<=P;c++) sh.colW[c]=58;
@@ -2341,6 +2341,8 @@ function buildQCSheet(name, pts, serials, meta){
     sumI:{al:'center',fill:'#FFF7F0',b:true},
     ngUcell:{al:'center',b:true,fill:'#FFC7CE',col:'#9C0006'},
     ngLcell:{al:'center',b:true,fill:'#FFEB9C',col:'#9C6500'},
+    miss:{al:'center',fill:'#F3F3F3',col:'#98a0ab'},
+    missCell:{al:'center',b:true,fill:'#E8E8E8',col:'#5f6368'},
     sumOk:{al:'center',b:true,fill:'#F2F7F4'},
     judgeOK:{al:'center',b:true,fill:'#107C41',col:'#FFFFFF'},
     judgeNG:{al:'center',b:true,fill:'#C00000',col:'#FFFFFF'},
@@ -2359,12 +2361,13 @@ function buildQCSheet(name, pts, serials, meta){
   put(maxRow,0,'최대값',ST.sumLbl);
   put(uNGRow,0,'상한 NG',ST.sumLbl);
   put(lNGRow,0,'하한 NG',ST.sumLbl);
+  put(missRow,0,'미측정',ST.sumLbl);
   put(judgeRow,0,'판정',ST.sumLbl);
 
   // 포인트별 스펙/상한/하한
-  const uCount=[],lCount=[];
+  const uCount=[],lCount=[],mCount=[];
   for(let c=1;c<=P;c++){
-    const p=pts[c-1]; uCount[c]=0; lCount[c]=0;
+    const p=pts[c-1]; uCount[c]=0; lCount[c]=0; mCount[c]=0;
     put(headerRow,c,p.no,ST.phdr);
     put(specRow,c,isFinite(p.spec)?p.spec.toFixed(3):'',ST.spec);
     put(upperRow,c,isFinite(p.usl)?p.usl.toFixed(3):'',ST.limU);
@@ -2378,7 +2381,7 @@ function buildQCSheet(name, pts, serials, meta){
     put(row,0,serials[i],ST.serial);
     for(let c=1;c<=P;c++){
       const p=pts[c-1], val=p.values[i];
-      if(val==null||!isFinite(val)) continue;
+      if(val==null||!isFinite(val)){ put(row,c,'미측정',ST.miss); mCount[c]++; continue; }   // 빈칸 = 미측정 → NG 집계 대상
       let st=ST.meas;
       if(isFinite(p.usl)&&val>p.usl){ st=ST.ngU; uCount[c]++; }
       else if(isFinite(p.lsl)&&val<p.lsl){ st=ST.ngL; lCount[c]++; }
@@ -2396,8 +2399,9 @@ function buildQCSheet(name, pts, serials, meta){
     put(maxRow,c,'=MAX('+rng+')',ST.sumV);
     put(uNGRow,c,'=COUNTIF('+rng+',">"&'+L+upperRow+')', uCount[c]>0?ST.ngUcell:ST.sumOk);
     put(lNGRow,c,'=COUNTIF('+rng+',"<"&'+L+lowerRow+')', lCount[c]>0?ST.ngLcell:ST.sumOk);
-    const bad=uCount[c]+lCount[c]>0;
-    put(judgeRow,c,'=IF('+L+uNGRow+'+'+L+lNGRow+'=0,"OK","NG")', bad?ST.judgeNG:ST.judgeOK);
+    put(missRow,c,'=COUNTA('+rng+')-COUNT('+rng+')', mCount[c]>0?ST.missCell:ST.sumOk);   // '미측정' 텍스트 셀 수
+    const bad=uCount[c]+lCount[c]+mCount[c]>0;
+    put(judgeRow,c,'=IF('+L+uNGRow+'+'+L+lNGRow+'+'+L+missRow+'=0,"OK","NG")', bad?ST.judgeNG:ST.judgeOK);
   }
   return sh;
 }
@@ -2465,6 +2469,17 @@ function decodeSmart(buf){
     +(/포인트|스펙|상한|하한|시리얼|측정/.test(t)?1000:0);
   cands.sort((a,b)=>score(b)-score(a));
   return cands[0];
+}
+/* 업로드 행렬 정규화: 완전히 빈 앞/뒤 행과 빈 앞 열을 제거해 좌상단 기준으로 정렬 (오프셋 배치 방어) */
+function normalizeRows(rows){
+  rows=(rows||[]).map(r=>r||[]);
+  const empty=r=>!r.some(c=>String(c==null?'':c).trim()!=='');
+  while(rows.length && empty(rows[0])) rows.shift();
+  while(rows.length && empty(rows[rows.length-1])) rows.pop();
+  let lead=Infinity;
+  for(const r of rows){ for(let c=0;c<r.length;c++){ if(String(r[c]==null?'':r[c]).trim()!==''){ if(c<lead)lead=c; break; } } }
+  if(isFinite(lead)&&lead>0) rows=rows.map(r=>r.slice(lead));
+  return rows;
 }
 /* 헤더 라벨이 어떤 인코딩으로도 안 살아날 때의 최후 파훼: 템플릿 행 순서를 가정하고 위치로 해석.
    "B열부터 전부 숫자인 행 3연속"(스펙·상한·하한)을 찾으면, 그 위 행=포인트, 아래=데이터로 간주 */
@@ -2572,6 +2587,7 @@ function parseTestLogRows(rows){
   return {pts, serials, meta, truncated: itemOrder.length>MAX_POINTS || valid.length>maxN};
 }
 let uploadMode='qc';
+let xlsxSheetCount=1;   // 마지막 xlsx의 시트 수 — 2 이상이면 "첫 시트만 사용" 안내
 function triggerUpload(mode){ uploadMode=mode||'qc'; $('file-input').click(); }
 
 /* ── xlsx 직접 읽기 (라이브러리 없이: ZIP 파싱 + DEFLATE 해제 + XML 파싱) ── */
@@ -2606,6 +2622,7 @@ async function unzipXlsx(buf){
 async function readXlsxRows(file){
   const buf=new Uint8Array(await file.arrayBuffer());
   const ent=await unzipXlsx(buf), dec=new TextDecoder();
+  xlsxSheetCount=Object.keys(ent).filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k)).length||1;
   let shared=[];
   if(ent['xl/sharedStrings.xml']){
     const xml=dec.decode(ent['xl/sharedStrings.xml']);
@@ -2659,13 +2676,19 @@ async function processUpload(file, mode){
     }
     if(token!==chartToken) return;
     if(mode==='csv'){ hideLoading(); importRowsAsSheet(rows); return; }
+    const isXlsx = sig[0]===0x50 && sig[1]===0x4B;
+    rows=normalizeRows(rows);   // 오프셋 배치(빈 앞 행/열) 제거
     // 형식 자동 판별: #INIT 블록이 있으면 세로 로그, 아니면 가로 템플릿
     const isLog = rows.some(r=>String(r&&r[0]!=null?r[0]:'').trim()==='#INIT');
     const parsed = isLog ? parseTestLogRows(rows) : parseMeasurementRows(rows);
     let sh, msg;
     if(parsed){ sh=buildQCSheet('측정데이터', parsed.pts, parsed.serials, parsed.meta);
       const uP=Math.min(parsed.pts.length,MAX_POINTS), uN=Math.min(parsed.serials.length,ROWS-13);
-      msg='📤 업로드 완료 ('+(isLog?'세로 로그':'가로 템플릿')+(parsed.positional?' · 헤더 미인식 → 행 순서 기반 해석':'')+') · 시료 '+uN+'개 · 포인트 '+uP+'개'+(parsed.truncated?' (한도 초과분은 잘림)':''); }
+      const missN=parsed.pts.slice(0,uP).reduce((a,p)=>a+p.values.slice(0,uN).filter(v=>v==null||!isFinite(v)).length,0);
+      msg='📤 업로드 완료 ('+(isLog?'세로 로그':'가로 템플릿')+(parsed.positional?' · 헤더 미인식 → 행 순서 기반 해석':'')+') · 시료 '+uN+'개 · 포인트 '+uP+'개'
+        +(missN?' · 미측정 '+missN+'칸 → NG 처리':'')
+        +(isXlsx&&xlsxSheetCount>1?' · 시트 '+xlsxSheetCount+'개 중 첫 번째만 사용':'')
+        +(parsed.truncated?' (한도 초과분은 잘림)':''); }
     else { sh=genQCData('측정데이터');
       msg='⚠ 파일을 읽지 못해 더미 데이터로 대체 · 원인: '+(parseFail||'형식 미인식'); }
     hideLoading(); replaceQCSheet(sh); toast(msg);   // 새 시트 만들지 않고 측정데이터 교체
@@ -2770,8 +2793,9 @@ function extractQC(){
   for(let c=1;c<COLS;c++){ const h=D['1,'+c]; if(!h||h.v===''||h.v==null) break;
     pts.push({no:String(h.v), spec:num('2,'+c), usl:num('3,'+c), lsl:num('4,'+c), col:c, values:[]}); }
   if(!pts.length || !pts.some(p=>isFinite(p.usl)||isFinite(p.lsl))) return null;   // 규격 없으면 QC 데이터 아님
-  const STOP=/^(검사 수|평균|최소값|최대값|상한 NG|하한 NG|판정)$/;   // 시리얼이 비숫자여도 안전하게 요약행에서 멈춤
-  for(let r=6;r<ROWS;r++){ const c0=D[r+',0']; if(!c0||c0.v===''||c0.v==null) break; if(STOP.test(String(c0.v))) break;
+  const STOP=/^(검사 수|평균|최소값|최대값|상한 NG|하한 NG|미측정|판정)$/;   // 시리얼이 비숫자여도 안전하게 요약행에서 멈춤
+  let T=0;   // 데이터 행 수(시료 수) — 포인트별 미측정 = T - 유효 측정 수
+  for(let r=6;r<ROWS;r++){ const c0=D[r+',0']; if(!c0||c0.v===''||c0.v==null) break; if(STOP.test(String(c0.v))) break; T++;
     for(const p of pts){ const cell=D[r+','+p.col]; if(cell&&cell.v!=='') { const v=Number(cell.v); if(isFinite(v)) p.values.push(v); } } }
   for(const p of pts){
     const v=p.values, n=v.length;
@@ -2781,6 +2805,7 @@ function extractQC(){
     p.n=n; p.mean=mean; p.std=std; p.min=srt[0]||0; p.max=srt[n-1]||0;
     p.q1=quantile(srt,.25); p.med=quantile(srt,.5); p.q3=quantile(srt,.75);
     p.uNG=v.filter(x=>x>p.usl).length; p.lNG=v.filter(x=>x<p.lsl).length;
+    p.miss=Math.max(0,T-n); p.ng=p.uNG+p.lNG+p.miss;   // 미측정은 통계에선 빼고 불량 집계엔 포함
     p.cp=std>0?(p.usl-p.lsl)/(6*std):null;
     p.cpk=std>0?Math.min(p.usl-mean,mean-p.lsl)/(3*std):null;
   }
@@ -2788,10 +2813,11 @@ function extractQC(){
   let uPass=0, uTot=0;
   for(let r=6;r<ROWS;r++){ const c0=D[r+',0']; if(!c0||c0.v===''||c0.v==null) break; if(STOP.test(String(c0.v))) break; uTot++;
     let ok=true;
-    for(const p of pts){ const cell=D[r+','+p.col]; if(cell&&cell.v!==''){ const v=Number(cell.v);
-      if(isFinite(v) && ((isFinite(p.usl)&&v>p.usl)||(isFinite(p.lsl)&&v<p.lsl))){ ok=false; break; } } }
+    for(const p of pts){ const cell=D[r+','+p.col]; const v=cell&&cell.v!==''&&cell.v!=null?Number(cell.v):NaN;
+      if(!isFinite(v)){ ok=false; break; }   // 미측정 포인트가 있는 대는 불합격
+      if((isFinite(p.usl)&&v>p.usl)||(isFinite(p.lsl)&&v<p.lsl)){ ok=false; break; } }
     if(ok) uPass++; }
-  return {points:pts, N:pts[0]?pts[0].n:0, src:src.name, meta:src.meta||null, fpy: uTot?uPass/uTot*100:null};
+  return {points:pts, N:T, src:src.name, meta:src.meta||null, fpy: uTot?uPass/uTot*100:null};
 }
 
 /* SVG 헬퍼 */
@@ -2947,9 +2973,9 @@ function svgBoxOverview(pts, targetW){
   pts.forEach((pt,idx)=>{ const th=(pt.usl-pt.lsl)/2||1, z=x=>(x-pt.spec)/th, cx=OML+step*idx+step/2, bw=Math.min(22,step*.5);
     const iqr=pt.q3-pt.q1, loF=pt.q1-1.5*iqr, hiF=pt.q3+1.5*iqr, inl=pt.values.filter(x=>x>=loF&&x<=hiF);
     const wl=inl.length?Math.min(...inl):pt.min, wh=inl.length?Math.max(...inl):pt.max;
-    const ng=pt.uNG+pt.lNG>0, col=ng?CHT.ng:CHT.barS, fc=ng?'#fde3e3':CHT.boxF;
+    const ng=pt.ng>0, col=ng?CHT.ng:CHT.barS, fc=ng?'#fde3e3':CHT.boxF;
     s+=sLine(cx,yP(z(wh)),cx,yP(z(wl)),col,1.1);
-    s+='<rect x="'+rnd(cx-bw/2)+'" y="'+rnd(yP(z(pt.q3)))+'" width="'+rnd(bw)+'" height="'+rnd(yP(z(pt.q1))-yP(z(pt.q3)))+'" fill="'+fc+'" stroke="'+col+'" stroke-width="1.2" rx="1"><title>P'+pt.no+' · Cpk '+f2(pt.cpk)+' · NG '+(pt.uNG+pt.lNG)+'</title></rect>';
+    s+='<rect x="'+rnd(cx-bw/2)+'" y="'+rnd(yP(z(pt.q3)))+'" width="'+rnd(bw)+'" height="'+rnd(yP(z(pt.q1))-yP(z(pt.q3)))+'" fill="'+fc+'" stroke="'+col+'" stroke-width="1.2" rx="1"><title>P'+pt.no+' · Cpk '+f2(pt.cpk)+' · NG '+pt.ng+'</title></rect>';
     s+=sLine(cx-bw/2,yP(z(pt.med)),cx+bw/2,yP(z(pt.med)),col,1.6);
     if(P<=20||idx%2===0) s+=sTxt(cx,OH-10,pt.no,'middle',CHT.muted,8.5);
   });
@@ -2961,7 +2987,7 @@ function renderCharts(type, cv){
   if(!qc){ cv.innerHTML='<div style="padding:48px;color:#888;font-size:14px">측정데이터 시트를 찾을 수 없습니다. [데이터] 탭 → 측정 더미 불러오기를 먼저 실행하세요.</div>'; return; }
   const pts=qc.points;
   const meta={normal:['정규분포','📊','히스토그램 + 정규분포 곡선'],scatter:['산점도','⚬','시료 순서별 측정값'],box:['박스플롯','📦','사분위·중앙값·이상치']}[type];
-  const ngPts=pts.filter(p=>p.uNG+p.lNG>0).length, totNG=pts.reduce((a,p)=>a+p.uNG+p.lNG,0);
+  const ngPts=pts.filter(p=>p.ng>0).length, totNG=pts.reduce((a,p)=>a+p.ng,0);
   const cpks=pts.map(p=>p.cpk).filter(x=>x!=null); const worst=cpks.length?Math.min(...cpks):null;
   const verdict=ngPts?'NG':'OK';
   lastChartData={type, points:pts}; selectedIdx=new Set();
@@ -3004,19 +3030,19 @@ function renderCharts(type, cv){
 }
 /* 한 장의 차트 카드 HTML (일반 뷰·엑셀틀 뷰 공용 — 카드 내용은 동일) */
 function buildChartCard(p, type, idx){
-  const ng=p.uNG+p.lNG, rate=p.n?ng/p.n*100:0;
+  const ng=p.ng, den=p.n+p.miss, rate=den?ng/den*100:0;
   const cpkCls=p.cpk==null?'':(p.cpk<1.33?'cpk-lo':'cpk-ok');
   const svg = type==='normal'?svgNormal(p):type==='scatter'?svgScatter(p):svgBox(p);
   return '<div class="chart-card" data-idx="'+idx+'">'
     +'<div class="cc-head"><input type="checkbox" class="cc-cb" title="선택(다중 저장)">'
     +'<span class="cc-title">'+escH(ptLabel(p.no))+'</span>'
-    +'<span class="cc-badge '+(ng?'ng':'ok')+'">'+(ng?'NG '+ng+' · '+rate.toFixed(1)+'%':'OK')+'</span></div>'
+    +'<span class="cc-badge '+(ng?'ng':'ok')+'" title="상한 '+p.uNG+' · 하한 '+p.lNG+' · 미측정 '+p.miss+'">'+(ng?'NG '+ng+' · '+rate.toFixed(1)+'%':'OK')+'</span></div>'
     +'<div class="cc-sub">스펙 <b>'+f3(p.spec)+'</b> · 상한 <b>'+f3(p.usl)+'</b> · 하한 <b>'+f3(p.lsl)+'</b></div>'
     +'<div class="cc-statbox">'
       +'<div class="st"><span class="sl">평균</span><span class="sv">'+f3(p.mean)+'</span></div>'
       +'<div class="st"><span class="sl">표준편차 σ</span><span class="sv">'+f3(p.std)+'</span></div>'
       +'<div class="st"><span class="sl">Cpk</span><span class="sv '+cpkCls+'">'+f2(p.cpk)+'</span></div>'
-      +'<div class="st"><span class="sl">불량률</span><span class="sv '+(ng?'rate-hi':'')+'">'+rate.toFixed(1)+'%</span></div>'
+      +'<div class="st"><span class="sl">'+(p.miss?'불량률 <span style="font-weight:400">(미측정 '+p.miss+')</span>':'불량률')+'</span><span class="sv '+(ng?'rate-hi':'')+'">'+rate.toFixed(1)+'%</span></div>'
     +'</div>'
     +svg
     +'<div class="cc-actions"><button data-cardact="copy" title="이 차트 복사">📋 복사</button><button data-cardact="save" title="이 차트 저장">💾 저장</button></div>'
@@ -3036,7 +3062,7 @@ function renderFramedChart(type, cv){
   const qc=extractQC();
   if(!qc){ cv.innerHTML='<div style="padding:48px;color:#888;font-size:14px">측정데이터를 찾을 수 없습니다.</div>'; return; }
   const pts=qc.points, meta=CHART_META[type];
-  const ngPts=pts.filter(p=>p.uNG+p.lNG>0).length, totNG=pts.reduce((a,p)=>a+p.uNG+p.lNG,0);
+  const ngPts=pts.filter(p=>p.ng>0).length, totNG=pts.reduce((a,p)=>a+p.ng,0);
   const cpks=pts.map(p=>p.cpk).filter(x=>x!=null), worst=cpks.length?Math.min(...cpks):null;
   const verdict=ngPts?'NG':'OK';
   lastChartData={type, points:pts}; selectedIdx=new Set();
@@ -3109,12 +3135,12 @@ function innerOf(svg){ return svg.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'
 /* 라벨(제목·스펙·통계)까지 포함한 독립 SVG 생성 */
 function buildExportSVG(pt,type){
   const inner=innerOf(chartSVG(pt,type)), hgt=72, W=CW, H=CH+hgt;
-  const ng=pt.uNG+pt.lNG, rate=pt.n?ng/pt.n*100:0, FF='Pretendard Variable,Pretendard,Segoe UI,Malgun Gothic,sans-serif';
+  const ng=pt.ng, den=pt.n+pt.miss, rate=den?ng/den*100:0, FF='Pretendard Variable,Pretendard,Segoe UI,Malgun Gothic,sans-serif';
   let s='<rect width="'+W+'" height="'+H+'" fill="#ffffff"/>';
   s+='<text x="12" y="23" font-family="'+FF+'" font-size="15" font-weight="700" fill="#222">'+escH(ptLabel(pt.no))+'</text>';
   s+='<text x="'+(W-12)+'" y="22" text-anchor="end" font-family="'+FF+'" font-size="11.5" font-weight="700" fill="'+(ng?CHT.ng:'#0a8a0a')+'">'+(ng?'NG '+ng+' · 불량률 '+rate.toFixed(1)+'%':'OK · 불량 0')+'</text>';
   s+='<text x="12" y="41" font-family="'+FF+'" font-size="10.5" fill="#777">스펙 '+f3(pt.spec)+'  ·  상한 '+f3(pt.usl)+'  ·  하한 '+f3(pt.lsl)+'</text>';
-  s+='<text x="12" y="59" font-family="'+FF+'" font-size="11" fill="#333">평균 '+f3(pt.mean)+'  ·  σ '+f3(pt.std)+'  ·  Cpk '+f2(pt.cpk)+'</text>';
+  s+='<text x="12" y="59" font-family="'+FF+'" font-size="11" fill="#333">평균 '+f3(pt.mean)+'  ·  σ '+f3(pt.std)+'  ·  Cpk '+f2(pt.cpk)+(pt.miss?'  ·  미측정 '+pt.miss:'')+'</text>';
   s+='<line x1="0" y1="'+(hgt-1)+'" x2="'+W+'" y2="'+(hgt-1)+'" stroke="#ededed"/>';
   s+='<g transform="translate(0,'+hgt+')">'+inner+'</g>';
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'">'+s+'</svg>';
@@ -3323,7 +3349,7 @@ function showDataView(){
 /* 포인트별 요약을 "엑셀 리포트처럼" — 상단 1~4행에 정보, 표는 여백 열(A) 다음부터 (오른쪽/아래 더미 격자 포함) */
 function renderPointStatsTable(qc){
   const pct=(x,n)=> n>0 ? (x/n*100).toFixed(2)+'%' : '-';
-  const labels=['포인트','타겟 치수','상한','하한','모수','평균','상한 NG','하한 NG','총 NG','상한 불량률','하한 불량률','총 불량률'];
+  const labels=['포인트','타겟 치수','상한','하한','모수','평균','상한 NG','하한 NG','미측정','총 NG','상한 불량률','하한 불량률','총 불량률'];
   const NC=labels.length, sh=sheet();
   const ng=v=>v?' class="ng"':'';
   const fill=n=>{ let s=''; for(let i=0;i<n;i++) s+='<td class="fill"></td>'; return s; };
@@ -3338,13 +3364,13 @@ function renderPointStatsTable(qc){
   const LP=fill(padPer), RP=fill(padPer);                    // 좌/우 패딩 셀(엷은 회색)
   // 요약 정보 (집계 1회)
   const N=qc.N, P=qc.points.length;
-  let sN=0,sU=0,sL=0,ngPts=0,cpkCnt=0,minCpk=Infinity,minCpkPt='',minCp=Infinity,minCpPt='',lowCpk=0,maxNG=-1,maxNGpt='';
-  for(const p of qc.points){ const t=p.uNG+p.lNG; sN+=p.n; sU+=p.uNG; sL+=p.lNG; if(t>0)ngPts++;
+  let sN=0,sU=0,sL=0,sM=0,ngPts=0,cpkCnt=0,minCpk=Infinity,minCpkPt='',minCp=Infinity,minCpPt='',lowCpk=0,maxNG=-1,maxNGpt='';
+  for(const p of qc.points){ const t=p.ng; sN+=p.n; sU+=p.uNG; sL+=p.lNG; sM+=p.miss; if(t>0)ngPts++;
     if(t>maxNG){ maxNG=t; maxNGpt=ptLabel(p.no); }
     if(p.cpk!=null){ cpkCnt++; if(p.cpk<minCpk){minCpk=p.cpk;minCpkPt=ptLabel(p.no);} if(p.cpk<1.33)lowCpk++; }
     if(p.cp!=null && p.cp<minCp){ minCp=p.cp; minCpPt=ptLabel(p.no); } }
-  const totNG=sU+sL, verdict=ngPts?'NG':'OK';
-  const defRate=sN>0?(totNG/sN*100):0, dpmo=Math.round(defRate*10000);
+  const totNG=sU+sL+sM, sDen=sN+sM, verdict=ngPts?'NG':'OK';
+  const defRate=sDen>0?(totNG/sDen*100):0, dpmo=Math.round(defRate*10000);
   const worstCpk=cpkCnt?minCpk:null, worstCp=(minCp<Infinity)?minCp:null;
   const M=qc.meta||{}, md=k=>M[k]||'-';
   const fpyStr=(qc.fpy==null)?'-':qc.fpy.toFixed(1)+'%';
@@ -3380,25 +3406,25 @@ function renderPointStatsTable(qc){
   body+=hr+RP+'</tr>'; rn++;
   // 불량률 그라디언트(높을수록 진하게): 데이터셋 내 최악 불량률 기준, 최소 5% 스케일
   let maxRate=0;
-  for(const p of qc.points){ const nn=p.n||1; maxRate=Math.max(maxRate, p.uNG/nn*100, p.lNG/nn*100, (p.uNG+p.lNG)/nn*100); }
+  for(const p of qc.points){ const nn=(p.n+p.miss)||1; maxRate=Math.max(maxRate, p.uNG/nn*100, p.lNG/nn*100, p.ng/nn*100); }
   const rScale=Math.max(maxRate,5);
   const heat=(cnt,n)=>{ if(!cnt||!n) return ''; const a=Math.min(1,0.14+(cnt/n*100/rScale)*0.86); return ' style="background:rgba(208,39,45,'+a.toFixed(3)+');color:'+(a>0.5?'#fff':'#9c1c1c')+';font-weight:600"'; };
   // 포인트 데이터
   for(const p of qc.points){
-    const n=p.n,u=p.uNG,l=p.lNG,t=u+l;
+    const u=p.uNG,l=p.lNG,m=p.miss,t=p.ng,den=p.n+m;
     body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP
       +'<td class="ptname">'+escH(ptLabel(p.no))+'</td>'
       +'<td>'+f3(p.spec)+'</td><td class="lim-u">'+f3(p.usl)+'</td><td class="lim-l">'+f3(p.lsl)+'</td>'
-      +'<td>'+n+'</td><td>'+f3(p.mean)+'</td>'
-      +'<td'+heat(u,n)+'>'+u+'</td><td'+heat(l,n)+'>'+l+'</td><td'+heat(t,n)+'>'+t+'</td>'
-      +'<td'+heat(u,n)+'>'+pct(u,n)+'</td><td'+heat(l,n)+'>'+pct(l,n)+'</td><td'+heat(t,n)+'>'+pct(t,n)+'</td>'
+      +'<td>'+den+'</td><td>'+f3(p.mean)+'</td>'
+      +'<td'+heat(u,den)+'>'+u+'</td><td'+heat(l,den)+'>'+l+'</td><td'+heat(m,den)+'>'+m+'</td><td'+heat(t,den)+'>'+t+'</td>'
+      +'<td'+heat(u,den)+'>'+pct(u,den)+'</td><td'+heat(l,den)+'>'+pct(l,den)+'</td><td'+heat(t,den)+'>'+pct(t,den)+'</td>'
       +RP+'</tr>'; rn++;
   }
-  const sT=sU+sL;
+  const sT=sU+sL+sM;
   body+=trTag(rn,sh,'total')+'<th class="rn">'+rn+'</th>'+LP
-    +'<td class="ptname">전체</td><td>-</td><td>-</td><td>-</td><td>'+sN+'</td><td>-</td>'
-    +'<td>'+sU+'</td><td>'+sL+'</td><td>'+sT+'</td>'
-    +'<td>'+pct(sU,sN)+'</td><td>'+pct(sL,sN)+'</td><td>'+pct(sT,sN)+'</td>'
+    +'<td class="ptname">전체</td><td>-</td><td>-</td><td>-</td><td>'+sDen+'</td><td>-</td>'
+    +'<td>'+sU+'</td><td>'+sL+'</td><td>'+sM+'</td><td>'+sT+'</td>'
+    +'<td>'+pct(sU,sDen)+'</td><td>'+pct(sL,sDen)+'</td><td>'+pct(sT,sDen)+'</td>'
     +RP+'</tr>'; rn++;
   // 더미 행 — 화면 세로 채우기 (좌우 패딩 포함 전체 회색)
   const bodyRows=rn-1, totalRows=Math.max(bodyRows+3, Math.ceil(vh/ROWH)+1);   // +3행: 표 아래 여백
@@ -3412,7 +3438,7 @@ function renderSampleTable(D){
     for(let r=0;r<20;r++) for(let c=1;c<COLS;c++){ if(D[r+','+c]&&D[r+','+c].v!=='') P=Math.max(P,c); }
   }
   const showCols=Math.min(P,60), maxRows=30, esc=escH;
-  const STOP=/^(검사 수|평균|최소값|최대값|상한 NG|하한 NG|판정)$/;
+  const STOP=/^(검사 수|평균|최소값|최대값|상한 NG|하한 NG|미측정|판정)$/;
   const isQC = D['1,0'] && /포인트/.test(String(D['1,0'].v));
   let h='<div class="dv-tablewrap"><table class="dv-table">';
   if(isQC){
