@@ -2227,7 +2227,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783732302793;   // 2026-07-11 10:11 KST
+const BUILD_TS = 1783732958703;   // 2026-07-11 10:22 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2489,12 +2489,14 @@ function positionalTemplateParse(rows){
   for(let i=1;i+2<Math.min(rows.length,8);i++){
     if(!(allNum(rows[i])&&allNum(rows[i+1])&&allNum(rows[i+2]))) continue;
     const hdr=rows[i-1], specR=rows[i], uR=rows[i+1], lR=rows[i+2];
+    if(allNum(hdr)) continue;                       // 헤더 후보가 전부 숫자면 = 그냥 숫자 행렬(오인 방지)
     let Praw=0; for(let c=1;c<specR.length;c++){ if(cell(specR,c).trim()!=='') Praw=c; else break; }
     if(Praw<1) continue;
     const P=Math.min(Praw,MAX_POINTS), pts=[];
     for(let c=1;c<=P;c++){ let nm=cell(hdr,c).trim(); if(!nm||/�/.test(nm)) nm=pad2(c);
       pts.push({no:nm, spec:Number(specR[c]), usl:Number(uR[c]), lsl:Number(lR[c]), values:[]}); }
     if(!pts.every(p=>isFinite(p.usl)&&isFinite(p.lsl))) continue;
+    if(!pts.every(p=>p.usl>p.lsl && p.spec>=p.lsl && p.spec<=p.usl)) continue;   // 템플릿 행 순서(스펙·상한·하한)가 맞는지 값으로 검증
     const maxN=ROWS-13, serials=[]; let moreRows=false;
     for(let ri=i+3; ri<rows.length; ri++){ const s0=cell(rows[ri],0).trim(), sn=Number(s0);
       if(s0===''||!isFinite(sn)) continue;
@@ -2542,6 +2544,114 @@ function parseMeasurementRows(rows){
     parseFail='시리얼 데이터 행을 인식하지 못함'+(dataRows>0?' — A열 시리얼 번호가 숫자인 행만 인식됩니다 (현재 '+dataRows+'행 모두 비숫자/빈값)':' — 데이터 행이 없음');
     return null; }
   return {pts, serials, truncated: Praw>MAX_POINTS || moreRows};
+}
+
+/* ── 임의 배치 최후 해석: 구조(숫자 블록·스펙 벡터·헤더·시리얼 열)를 찾아 원본/전치 두 방향을 점수로 경쟁 ── */
+function transposeRows(rows){
+  const W=rows.reduce((a,r)=>Math.max(a,r?r.length:0),0), out=[];
+  for(let c=0;c<W;c++){ const nr=[]; for(let r=0;r<rows.length;r++) nr.push(rows[r]?rows[r][c]:undefined); out.push(nr); }
+  return out;
+}
+/* 템플릿 라벨(포인트/스펙/상한/하한)이 "한 행"에 모여 있으면 전치된 템플릿 파일 */
+function labelsInOneRow(rows){
+  const norm=s=>String(s==null?'':s).replace(/\s|\(|\)/g,'');
+  for(let i=0;i<Math.min(rows.length,6);i++){ const r=rows[i]||[]; let hit=0;
+    for(const kw of ['포인트','스펙','상한','하한']) if(r.some(c=>norm(c).includes(kw))) hit++;
+    if(hit>=3) return true; }
+  return false;
+}
+/* 한 방향(포인트=열)에 대한 구조 분석. 성공 시 {pts, serials, score, ...}, 아니면 null */
+function analyzeGrid(M){
+  const S=v=>String(v==null?'':v).trim();
+  M=(M||[]).filter(r=>r&&r.some(c=>S(c)!==''));
+  if(M.length<4) return null;
+  const W=M.reduce((a,r)=>Math.max(a,r.length),0);
+  if(W<2) return null;
+  // 1) 선행(비데이터) 열 L: 텍스트 위주 / 1..N 연번 / 빈 열 — 최대 3열
+  const colStats=c=>{ let num=0,txt=0,filled=0,seq=true,prev=null;
+    for(const r of M){ const s=S(r[c]); if(s==='') continue; filled++;
+      const x=Number(s);
+      if(isFinite(x)){ num++; if(prev==null){ if(x!==1) seq=false; } else if(x!==prev+1) seq=false; prev=x; }
+      else txt++; }
+    return {num,txt,filled,seq:seq&&num>=3};
+  };
+  let L=0;
+  for(let c=0;c<Math.min(3,W-1);c++){ const st=colStats(c);
+    if(st.filled===0 || st.txt>st.num || st.seq) L++; else break; }
+  const P0=W-L; if(P0<1) return null;
+  // 2) 행 분류 + 하단 요약/잡행 배제 → 마지막 숫자 연속 구간 = 스펙+데이터 블록
+  const JUNK=/^(평균|합계|판정|검사|최소값|최대값|표준편차|불량|미측정|AVG|MEAN|SUM|STDEV|TOTAL|OK|NG)/i;   // '최대'·'최소' 단독은 스펙 라벨일 수 있어 제외
+  const rowInfo=M.map(r=>{ let num=0,txt=0,filled=0;
+    for(let c=L;c<W;c++){ const s=S(r[c]); if(s==='') continue; filled++; if(isFinite(Number(s))) num++; else txt++; }
+    return {num,txt,filled}; });
+  const isJunk=ri=>{ for(let c=0;c<L;c++){ if(JUNK.test(S(M[ri][c]))) return true; } return false; };
+  const numish=ri=>{ const x=rowInfo[ri]; return x.filled>=Math.max(1,P0*0.4) && x.num>=x.filled*0.8; };
+  let dEnd=M.length-1; while(dEnd>=0 && (!numish(dEnd)||isJunk(dEnd))) dEnd--;   // 하단 요약/잡행 건너뜀
+  if(dEnd<0) return null;
+  let dStart=dEnd; while(dStart-1>=0 && numish(dStart-1)) dStart--;   // 위로는 숫자 연속이면 포함(스펙 라벨 행 포함 목적)
+  const n=dEnd-dStart+1; if(n<4) return null;   // 스펙(최대 3) + 데이터 최소 1
+  const val=(ri,c)=>{ const s=S(M[ri][L+c]); return s===''?NaN:Number(s); };
+  // 3) 블록 상단 s행(3→2)을 스펙 후보로: 거의 다 채워짐 + 포인트별 순위 일관 + 폭>0 + 데이터가 규격 부근
+  function trySpec(s){
+    if(n-s<2) return null;
+    const vecs=[]; for(let k=0;k<s;k++){ const v=[]; for(let c=0;c<P0;c++) v.push(val(dStart+k,c)); vecs.push(v); }
+    for(const v of vecs){ let f=0; for(const x of v) if(isFinite(x)) f++; if(f<P0*0.9) return null; }
+    const rankOf=c=>vecs.map((_,i)=>i).sort((a,b)=>vecs[a][c]-vecs[b][c]).join('');
+    const r0=rankOf(0); let same=0; for(let c=0;c<P0;c++) if(rankOf(c)===r0) same++;
+    if(same<P0*0.92) return null;
+    const ord=r0.split('').map(Number);
+    const lslV=vecs[ord[0]], uslV=vecs[ord[s-1]];
+    const specV=s===3?vecs[ord[1]]:lslV.map((x,i)=>(x+uslV[i])/2);
+    for(let c=0;c<P0;c++) if(!(uslV[c]>lslV[c])) return null;
+    let inside=0, tot=0; const sums=new Array(P0).fill(0), cnts=new Array(P0).fill(0);
+    for(let ri=dStart+s;ri<=dEnd;ri++) for(let c=0;c<P0;c++){ const x=val(ri,c); if(!isFinite(x)) continue;
+      tot++; sums[c]+=x; cnts[c]++;
+      const w=uslV[c]-lslV[c]; if(x>=lslV[c]-w && x<=uslV[c]+w) inside++; }
+    if(!tot || inside<tot*0.7) return null;
+    for(let c=0;c<P0;c++){ if(!cnts[c]) continue; const m=sums[c]/cnts[c];   // 포인트 평균이 규격 안 = 진짜 스펙의 결정타
+      if(!(m>=lslV[c] && m<=uslV[c])) return null; }
+    return {s, specV, uslV, lslV, insideFrac:inside/tot};
+  }
+  const sp=trySpec(3)||trySpec(2);
+  if(!sp) return null;
+  // 4) 헤더(포인트 이름): 블록 바로 위의 가장 가까운 텍스트 행
+  let hdrRow=-1;
+  for(let ri=dStart-1;ri>=0;ri--){ const x=rowInfo[ri]; if(x.filled>0){ if(x.txt>=x.num){ hdrRow=ri; } break; } }
+  let named=0; const names=[];
+  for(let c=0;c<P0;c++){ let nm=hdrRow>=0?S(M[hdrRow][L+c]):''; if(nm&&!/�/.test(nm)) named++; else nm=''; names.push(nm); }
+  const hasHeader=named>=P0*0.5;
+  // 5) 데이터 → pts/serials (빈칸은 null=미측정, 시리얼은 마지막 선행 열 또는 1..N)
+  const P=Math.min(P0,MAX_POINTS), maxN=ROWS-13;
+  const pts=[]; for(let c=0;c<P;c++) pts.push({no:(hasHeader&&names[c])?names[c]:pad2(c+1),
+    spec:+Number(sp.specV[c]).toFixed(4), usl:sp.uslV[c], lsl:sp.lslV[c], values:[]});
+  const serials=[]; let moreRows=false;
+  for(let ri=dStart+sp.s;ri<=dEnd;ri++){
+    if(serials.length>=maxN){ moreRows=true; break; }
+    let sv=L>0?S(M[ri][L-1]):''; serials.push(sv!==''?sv:String(serials.length+1));
+    for(let c=0;c<P;c++){ const x=val(ri,c); pts[c].values.push(isFinite(x)?x:null); }
+  }
+  if(!serials.length) return null;
+  // 6) 점수: 포인트축 응집(같은 치수는 값이 뭉침·핵심 신호) + 헤더 + "시료≥포인트" 관행 + 규격 내 비율
+  let coh=0, cn=0;
+  for(const p of pts){ const v=p.values.filter(x=>x!=null&&isFinite(x)); if(v.length<2) continue;
+    const m=v.reduce((a,b)=>a+b,0)/v.length, sd=Math.sqrt(v.reduce((a,b)=>a+(b-m)*(b-m),0)/(v.length-1));
+    coh+=Math.min(1, sd/Math.max(1e-9,p.usl-p.lsl)); cn++; }
+  const cohesion=cn?1-coh/cn:0;
+  const score=cohesion*3 + (hasHeader?1:0) + (serials.length>=pts.length?0.5:0) + sp.insideFrac;
+  return {pts, serials, truncated:P0>MAX_POINTS||moreRows, hasHeader, score};
+}
+function inferLayoutParse(rows){
+  const a=analyzeGrid(rows), b=analyzeGrid(transposeRows(rows));
+  if(b) b.transposed=true;
+  if(!a&&!b){ parseFail='배치를 해석하지 못함 — 스펙·상한·하한 값 3행(또는 3열)이 데이터 위(옆)에 있어야 합니다'; return null; }
+  let best=a&&b ? (b.score>a.score?b:a) : (a||b), alt=(best===a)?b:a;
+  best.inferred=true;
+  if(alt){   // 모호성: 점수 차가 근소하거나, 정사각형에 가까운 무헤더 행렬이면 사용자 확인 필요
+    const margin=(best.score-alt.score)/Math.max(1,Math.abs(best.score));
+    const ratio=Math.min(best.pts.length,best.serials.length)/Math.max(best.pts.length,best.serials.length);
+    if(margin<0.15 || (ratio>0.65 && !best.hasHeader && !alt.hasHeader)){ best.needPreview=true; best.alt=alt; }
+  }
+  return best;
 }
 /* 세로 테스트 로그(#INIT…#TEST…#END 블록이 대당 1개씩 반복) → 항목명으로 피벗 → {pts, serials} */
 function parseTestLogRows(rows){
@@ -2678,14 +2788,22 @@ async function processUpload(file, mode){
     if(mode==='csv'){ hideLoading(); importRowsAsSheet(rows); return; }
     const isXlsx = sig[0]===0x50 && sig[1]===0x4B;
     rows=normalizeRows(rows);   // 오프셋 배치(빈 앞 행/열) 제거
-    // 형식 자동 판별: #INIT 블록이 있으면 세로 로그, 아니면 가로 템플릿
+    // 형식 자동 판별: #INIT 세로 로그 → 라벨 템플릿 → (라벨이 한 행에 모이면) 전치 템플릿 → 구조 추론
     const isLog = rows.some(r=>String(r&&r[0]!=null?r[0]:'').trim()==='#INIT');
-    const parsed = isLog ? parseTestLogRows(rows) : parseMeasurementRows(rows);
+    let parsed, flip=false;
+    if(isLog) parsed=parseTestLogRows(rows);
+    else {
+      parsed=parseMeasurementRows(rows);
+      if(!parsed && labelsInOneRow(rows)){ parsed=parseMeasurementRows(transposeRows(rows)); if(parsed) flip=true; }
+      if(!parsed) parsed=inferLayoutParse(rows);
+    }
     let sh, msg;
     if(parsed){ sh=buildQCSheet('측정데이터', parsed.pts, parsed.serials, parsed.meta);
       const uP=Math.min(parsed.pts.length,MAX_POINTS), uN=Math.min(parsed.serials.length,ROWS-13);
       const missN=parsed.pts.slice(0,uP).reduce((a,p)=>a+p.values.slice(0,uN).filter(v=>v==null||!isFinite(v)).length,0);
-      msg='📤 업로드 완료 ('+(isLog?'세로 로그':'가로 템플릿')+(parsed.positional?' · 헤더 미인식 → 행 순서 기반 해석':'')+') · 시료 '+uN+'개 · 포인트 '+uP+'개'
+      const kind=isLog?'세로 로그' : flip?'전치 템플릿 — 행↔열 뒤집어 해석'
+        : parsed.inferred?('구조 자동 인식'+(parsed.transposed?' · 행↔열 전치':'')) : '가로 템플릿';
+      msg='📤 업로드 완료 ('+kind+(parsed.positional?' · 헤더 미인식 → 행 순서 기반 해석':'')+') · 시료 '+uN+'개 · 포인트 '+uP+'개'
         +(missN?' · 미측정 '+missN+'칸 → NG 처리':'')
         +(isXlsx&&xlsxSheetCount>1?' · 시트 '+xlsxSheetCount+'개 중 첫 번째만 사용':'')
         +(parsed.truncated?' (한도 초과분은 잘림)':''); }

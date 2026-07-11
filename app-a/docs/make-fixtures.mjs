@@ -18,8 +18,8 @@ function makeQC(P, N, seed, opts={}){
   const names = [...Array(P)].map((_,i)=>opts.names ? opts.names[i] : 'P'+String(i+1).padStart(2,'0'));
   const spec=[], usl=[], lsl=[];
   for(let i=0;i<P;i++){
-    const s = opts.sameNominal!=null ? opts.sameNominal : +(5+r()*20).toFixed(3);
-    const tol = opts.sameNominal!=null ? 0.35 : +(0.15+r()*0.4).toFixed(3);
+    const s = opts.sameNominal!=null ? opts.sameNominal : opts.nominals ? opts.nominals[i] : +(5+r()*20).toFixed(3);
+    const tol = (opts.sameNominal!=null||opts.nominals) ? 0.35 : +(0.15+r()*0.4).toFixed(3);
     spec.push(+s.toFixed(3)); usl.push(+(s+tol).toFixed(3)); lsl.push(+(s-tol).toFixed(3));
   }
   const data=[];
@@ -195,9 +195,10 @@ const F = {};
   ]], expect:{ path:'infer', P:7, N:34 } };
 }
 
-/* F07 12×14 정사각형에 가까움 + 무헤더 + 같은 공칭치수 → 모호 → 미리보기 */
+/* F07 12×14 정사각형에 가까움 + 무헤더 → 모호 → 미리보기
+   (1·3번 포인트 공칭치수가 나머지를 감싸도록 배치해 전치 해석도 구조적으로 유효하게 만든 악조건) */
 {
-  const q = makeQC(12, 14, 107, { sameNominal:10.0 });
+  const q = makeQC(12, 14, 107, { nominals:[5,10,15,6,7,8,9,11,12,13,14,10.5] });
   F['F07-ambiguous-square'] = { sheets:[[
     q.spec, q.usl, q.lsl, ...q.data,
   ]], expect:{ path:'preview', P:12, N:14 } };
