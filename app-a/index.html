@@ -379,7 +379,9 @@ table.xl-grid td.lp-a-hero .lp-a-glow{position:absolute;inset:0;z-index:0;pointe
 table.xl-grid td.lp-a-hero>div{position:relative;z-index:1}
 @keyframes lpZoom{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-50%) scale(3.297304)}}
 @media (prefers-reduced-motion:reduce){ table.xl-grid td.lp-a-hero .lp-zoom{animation:none} }
-table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:8px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd}
+table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:8px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd;cursor:pointer;transition:background .12s}
+table.xl-grid td.lp-a-step:hover{background:#ecf6ef}
+table.xl-grid td.lp-a-step:hover b{background:#0b5a30;color:#fff}
 table.xl-grid td.lp-a-step .st-ic{font-size:27px;line-height:1;margin-bottom:6px}
 table.xl-grid td.lp-a-step b{display:inline-block;font-size:13px;font-weight:800;color:#0b5a30;margin-bottom:6px;border:1.5px solid #0b5a30;border-radius:999px;padding:4px 14px}
 table.xl-grid td.lp-a-step span{display:block;font-size:12.5px;color:#5a6b60;line-height:1.55}
@@ -2255,7 +2257,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783733149495;   // 2026-07-11 10:25 KST
+const BUILD_TS = 1783734482179;   // 2026-07-11 10:48 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3491,9 +3493,9 @@ function landingA(){   // A · 히어로 센터
   return landingFrame(({R,blank,contRows})=>{
     blank();
     R('<td class="lp-a-hero" colspan="12">'+lpZoomHTML()+'<div class="lp-a-glow"></div><div class="lp-a-emoji">🎯</div><div class="lp-a-title">불량률 시각화 도구</div><div class="lp-a-sub">측정 데이터를 정규분포·산점도·박스플롯으로 한눈에 시각화합니다</div><div class="lp-a-cta">📥 [데이터] 탭 → ‘측정 더미 불러오기’ 로 시작</div></td>');
-    R('<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📥</div><b>1단계 · 데이터 불러오기</b><span>[데이터] 탭 → ‘측정 더미 불러오기’ 또는 xlsx·CSV 업로드</span></td>'
-     +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📊</div><b>2단계 · 분포 확인</b><span>정규분포·산점도·박스플롯 탭으로 전환해 그래프를 확인</span></td>'
-     +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">💾</div><b>3단계 · 저장·공유</b><span>포인트 카드에서 복사·저장, 상단에서 전체 저장</span></td>');
+    R('<td class="lp-a-step" colspan="4" rowspan="3" onclick="triggerUpload(\'qc\')" title="클릭하면 파일 선택 창이 열립니다"><div class="st-ic">📥</div><b>1단계 · 데이터 불러오기</b><span>클릭해서 xlsx·CSV 업로드 (또는 [데이터] 탭 → ‘측정 더미 불러오기’)</span></td>'
+     +'<td class="lp-a-step" colspan="4" rowspan="3" onclick="gotoSheet(\'정규분포\')" title="정규분포 시트로 이동"><div class="st-ic">📊</div><b>2단계 · 분포 확인</b><span>정규분포·산점도·박스플롯 탭으로 전환해 그래프를 확인</span></td>'
+     +'<td class="lp-a-step" colspan="4" rowspan="3" onclick="gotoSheet(\'정규분포\')" title="차트 시트로 이동 — 카드별·전체 저장 버튼이 있습니다"><div class="st-ic">💾</div><b>3단계 · 저장·공유</b><span>포인트 카드에서 복사·저장, 상단에서 전체 저장</span></td>');
     contRows(2);
     R('<td class="lp-a-nav" colspan="3" onclick="gotoSheet(\'측정데이터\')"><div class="nv-ic">📋</div><b>측정데이터</b></td>'
      +'<td class="lp-a-nav" colspan="3" onclick="gotoSheet(\'정규분포\')"><div class="nv-ic">📊</div><b>정규분포</b></td>'
