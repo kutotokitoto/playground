@@ -566,6 +566,11 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 #save-dlg .ipv-opt input{accent-color:#107C41;width:15px;height:15px}
 #sv-go{background:#107C41;color:#fff;font-weight:600;font-size:12.5px;padding:7px 14px;border-radius:5px}
 #sv-go:hover{background:#0b5a30}
+.pr-density{display:flex;align-items:center;gap:6px;font-size:12px;color:#666;margin:2px 0 10px}
+.pr-density button{border:1.5px solid #d5dbd5;border-radius:6px;padding:5px 10px;font-size:12px;background:#fff;cursor:pointer}
+.pr-density button span{color:#999;font-size:11px}
+.pr-density button.on{border-color:#107C41;background:#eef7f1;color:#0b5a30;font-weight:700}
+.pr-density button.on span{color:#4d8a67}
 /* ───────── 인쇄: 앱 크롬 숨기고 현재 뷰만, "리포트처럼" 최적화 ───────── */
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}   /* 의미 있는 배경(히트맵·판정)은 강제 인쇄 */
@@ -586,8 +591,12 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
   /* 차트 인쇄 전용 레이아웃: 3열 × 5행 ≈ 한 장에 15카드 (세로 A4) */
   body.print-charts #grid-scroll,body.print-charts #data-view,body.print-charts #chart-view{display:none!important}
   body.print-charts #print-out{display:block!important;zoom:.55}
+  body.print-charts #print-out.den-big{zoom:.78}
+  body.print-charts #print-out.den-small{zoom:.42}
   .po-title{font-size:20px;font-weight:700;margin:0 0 12px;color:#107C41}
   .po-grid{display:grid;grid-template-columns:repeat(3,356px);gap:14px;justify-content:start}
+  #print-out.den-big .po-grid{grid-template-columns:repeat(2,356px)}
+  #print-out.den-small .po-grid{grid-template-columns:repeat(4,356px)}
   #print-out .chart-card{break-inside:avoid!important;page-break-inside:avoid!important;border:1px solid #e4e4e0;border-radius:6px;padding:8px;background:#fff}
   #print-out .cc-actions,#print-out .cc-cb{display:none!important}
 }
@@ -944,8 +953,13 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 <div id="print-dlg">
   <div class="ipv-box" style="width:400px">
     <div class="ipv-title">🖨️ 인쇄</div>
-    <div class="ipv-desc">인쇄할 시트를 선택하세요. 선택한 시트로 전환해 인쇄하고, 끝나면 원래 화면으로 돌아옵니다.</div>
+    <div class="ipv-desc">인쇄할 시트를 선택하세요. 차트는 아래 밀도로 A4 세로에 배치됩니다.</div>
     <div class="ipv-opts" id="pr-list"></div>
+    <div class="pr-density">차트 밀도:
+      <button data-den="big">크게 <span>~6/장</span></button>
+      <button data-den="mid" class="on">보통 <span>~15/장</span></button>
+      <button data-den="small">작게 <span>~24/장</span></button>
+    </div>
     <div class="ipv-foot"><button class="ipv-cancel" id="pr-cancel">취소</button></div>
   </div>
 </div>
@@ -2335,7 +2349,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783743383433;   // 2026-07-11 13:16 KST
+const BUILD_TS = 1783743613851;   // 2026-07-11 13:20 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2456,10 +2470,18 @@ $('print-dlg').addEventListener('click', e=>{
   window.addEventListener('afterprint', ()=>{ if(prev!==idx) switchSheet(prev); }, {once:true});
   setTimeout(()=>window.print(), 350);   // 시트 렌더가 자리 잡은 뒤 인쇄
 });
-/* 차트 인쇄: 카드들을 인쇄 전용 컨테이너에 3열로 다시 그려 A4 세로 한 장당 ~15개 */
+/* 차트 인쇄 밀도: 크게(2열 ~6/장) / 보통(3열 ~15/장) / 작게(4열 ~24/장) */
+let printDen='mid';
+document.querySelector('.pr-density').addEventListener('click', e=>{
+  const b=e.target.closest('[data-den]'); if(!b) return;
+  printDen=b.dataset.den;
+  document.querySelectorAll('.pr-density button').forEach(x=>x.classList.toggle('on', x===b));
+});
+/* 차트 인쇄: 카드들을 인쇄 전용 컨테이너에 다시 그려 A4 세로에 밀도별 배치 */
 function printCharts(type, qc){
   let po=$('print-out'); if(po) po.remove();
   po=document.createElement('div'); po.id='print-out';
+  po.className='den-'+printDen;
   let h='<div class="po-title">'+escH(TYPE_KO[type]+' 분석 — 전체 '+qc.points.length+'개 포인트 · '+new Date().toLocaleDateString('ko-KR'))+'</div><div class="po-grid">';
   qc.points.forEach((p,i)=>{ h+=buildChartCard(p,type,i); });
   po.innerHTML=h+'</div>';
