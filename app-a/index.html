@@ -49,6 +49,7 @@ body.admin #tb-admin{display:inline-block}
 /* 측정데이터 뷰: 엑셀처럼 표를 긁어 복사 허용(전역 user-select:none 해제) + 전체 복사 버튼 */
 #data-view{position:relative}
 #data-view .dv-table td,#data-view .dv-table th,#data-view table.dv-copy td{user-select:text;-webkit-user-select:text}
+#data-view td.csel{background:#d2e7da!important;box-shadow:inset 0 0 0 1px #58a679;color:#1c3a28}   /* 엑셀식 범위 선택 하이라이트 */
 #dv-copyall{position:absolute;top:27px;right:12px;z-index:6;background:#107C41;color:#fff;font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 #dv-copyall:hover{background:#0b5a30}
 /* 관리자 모드: 리본의 더미 기능 전부 숨김 (일반 모드는 그대로 → 비교용) */
@@ -2278,7 +2279,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783738294261;   // 2026-07-11 11:51 KST
+const BUILD_TS = 1783738816759;   // 2026-07-11 12:00 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3554,10 +3555,60 @@ async function copyQCData(){
   toast(ok?('📋 전체 데이터 복사됨 · 시료 '+(lines.length-5)+'개 × 포인트 '+P+'개 — 엑셀에 Ctrl+V로 붙여넣으세요')
           :'복사 실패 — 브라우저가 클립보드 접근을 막았습니다');
 }
+/* ── 측정데이터 표: 엑셀식 드래그 범위 선택 → Ctrl+C 복사(TSV, 엑셀에 셀 단위로 붙음) — app-b와 동일 UX ── */
+let dsel=null, dselAnchor=null, dselDragging=false;
+function dselApply(){
+  const s=dsel;
+  $('data-view').querySelectorAll('td[data-sr]').forEach(td=>{
+    const r=+td.dataset.sr, c=+td.dataset.sc;
+    td.classList.toggle('csel', !!s && r>=s.r1&&r<=s.r2&&c>=s.c1&&c<=s.c2);
+  });
+}
+function dselTSV(){
+  if(!dsel) return null;
+  const map={};
+  $('data-view').querySelectorAll('td[data-sr]').forEach(td=>{ map[td.dataset.sr+','+td.dataset.sc]=td.textContent; });
+  const lines=[];
+  for(let r=dsel.r1;r<=dsel.r2;r++){ const row=[];
+    for(let c=dsel.c1;c<=dsel.c2;c++) row.push(map[r+','+c]!=null?map[r+','+c]:'');
+    lines.push(row.join('\t')); }
+  return lines.join('\n');
+}
+$('data-view').addEventListener('mousedown', e=>{
+  const td=e.target.closest('td[data-sr]');
+  if(!td){ if(dsel){ dsel=null; dselApply(); } return; }
+  e.preventDefault();   // 브라우저 텍스트 선택 대신 셀 범위 선택
+  dselAnchor={r:+td.dataset.sr, c:+td.dataset.sc};
+  dsel={r1:dselAnchor.r,r2:dselAnchor.r,c1:dselAnchor.c,c2:dselAnchor.c};
+  dselDragging=true; dselApply();
+});
+$('data-view').addEventListener('mousemove', e=>{
+  if(!dselDragging) return;
+  const td=e.target.closest('td[data-sr]'); if(!td) return;
+  const r=+td.dataset.sr, c=+td.dataset.sc;
+  dsel={r1:Math.min(dselAnchor.r,r), r2:Math.max(dselAnchor.r,r), c1:Math.min(dselAnchor.c,c), c2:Math.max(dselAnchor.c,c)};
+  dselApply();
+});
+document.addEventListener('mouseup', ()=>{
+  if(!dselDragging) return; dselDragging=false;
+  if(dsel&&(dsel.r1!==dsel.r2||dsel.c1!==dsel.c2)) toast('선택 '+(dsel.r2-dsel.r1+1)+'행 × '+(dsel.c2-dsel.c1+1)+'열 — Ctrl+C로 복사');
+});
+document.addEventListener('keydown', async e=>{
+  if(!((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='c')) return;
+  if(!dsel || $('data-view').style.display==='none') return;
+  const ae=document.activeElement;
+  if(ae&&(/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)||ae.isContentEditable)) return;   // 입력 중엔 방해 금지
+  const tsv=dselTSV(); if(!tsv) return;
+  e.preventDefault();
+  const ok=await copyText(tsv);
+  toast(ok?('📋 '+(dsel.r2-dsel.r1+1)+'행 × '+(dsel.c2-dsel.c1+1)+'열 복사됨 — 엑셀에 붙여넣기 하세요')
+          :'복사 실패 — 브라우저 클립보드 권한을 확인하세요');
+});
 function showDataView(){
   $('grid-scroll').style.display='none';
   $('chart-view').style.display='none';
   const dv=$('data-view'); dv.style.display='block'; dv.scrollTop=0;
+  dsel=null;   // 재렌더 시 범위 선택 초기화
   nameBox.value=sheet().name; fInput.value=''; $('sb-mode').textContent='준비'; $('sb-stats').innerHTML='';
   if(sheet().landing){ dv.innerHTML=renderLanding(sheet().landing); syncHBar(); return; }
   const D=sheet().data;
@@ -3628,8 +3679,9 @@ function renderPointStatsTable(qc){
   infoRow([['최저 Cpk',worstCpk==null?'-':(minCpkPt+' '+worstCpk.toFixed(2)),(worstCpk!=null&&worstCpk<1.33)?'ng':''],['최저 Cp',worstCp==null?'-':(minCpPt+' '+worstCp.toFixed(2))],['Cpk<1.33',lowCpk+'개'],['NG 포인트',ngPts+'개'],['상하한 이탈',sU+' / '+sL],['최다 불량',maxNGpt?(maxNGpt+' ('+maxNG+')'):'-']]);
   blankRow();   // 공백(구분)
   // 표 헤더
+  const tdS=(sr,sc,attrs,content)=>'<td'+attrs+' data-sr="'+sr+'" data-sc="'+sc+'">'+content+'</td>';   // 범위 선택용 좌표 태깅
   let hr=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP;
-  for(const lb of labels) hr+='<td class="hdr">'+escH(lb)+'</td>';
+  labels.forEach((lb,i)=>{ hr+=tdS(0,i,' class="hdr"',escH(lb)); });
   body+=hr+RP+'</tr>'; rn++;
   // 불량률 그라디언트(높을수록 진하게): 데이터셋 내 최악 불량률 기준, 최소 5% 스케일
   let maxRate=0;
@@ -3637,21 +3689,22 @@ function renderPointStatsTable(qc){
   const rScale=Math.max(maxRate,5);
   const heat=(cnt,n)=>{ if(!cnt||!n) return ''; const a=Math.min(1,0.14+(cnt/n*100/rScale)*0.86); return ' style="background:rgba(208,39,45,'+a.toFixed(3)+');color:'+(a>0.5?'#fff':'#9c1c1c')+';font-weight:600"'; };
   // 포인트 데이터
+  let pi=1;
   for(const p of qc.points){
     const u=p.uNG,l=p.lNG,m=p.miss,t=p.ng,den=p.n+m;
     body+=trTag(rn,sh)+'<th class="rn">'+rn+'</th>'+LP
-      +'<td class="ptname">'+escH(ptLabel(p.no))+'</td>'
-      +'<td>'+f3(p.spec)+'</td><td class="lim-u">'+f3(p.usl)+'</td><td class="lim-l">'+f3(p.lsl)+'</td>'
-      +'<td>'+den+'</td><td>'+f3(p.mean)+'</td>'
-      +'<td'+heat(u,den)+'>'+u+'</td><td'+heat(l,den)+'>'+l+'</td><td'+heat(m,den)+'>'+m+'</td><td'+heat(t,den)+'>'+t+'</td>'
-      +'<td'+heat(u,den)+'>'+pct(u,den)+'</td><td'+heat(l,den)+'>'+pct(l,den)+'</td><td'+heat(t,den)+'>'+pct(t,den)+'</td>'
-      +RP+'</tr>'; rn++;
+      +tdS(pi,0,' class="ptname"',escH(ptLabel(p.no)))
+      +tdS(pi,1,'',f3(p.spec))+tdS(pi,2,' class="lim-u"',f3(p.usl))+tdS(pi,3,' class="lim-l"',f3(p.lsl))
+      +tdS(pi,4,'',den)+tdS(pi,5,'',f3(p.mean))
+      +tdS(pi,6,heat(u,den),u)+tdS(pi,7,heat(l,den),l)+tdS(pi,8,heat(m,den),m)+tdS(pi,9,heat(t,den),t)
+      +tdS(pi,10,heat(u,den),pct(u,den))+tdS(pi,11,heat(l,den),pct(l,den))+tdS(pi,12,heat(t,den),pct(t,den))
+      +RP+'</tr>'; rn++; pi++;
   }
   const sT=sU+sL+sM;
   body+=trTag(rn,sh,'total')+'<th class="rn">'+rn+'</th>'+LP
-    +'<td class="ptname">전체</td><td>-</td><td>-</td><td>-</td><td>'+sDen+'</td><td>-</td>'
-    +'<td>'+sU+'</td><td>'+sL+'</td><td>'+sM+'</td><td>'+sT+'</td>'
-    +'<td>'+pct(sU,sDen)+'</td><td>'+pct(sL,sDen)+'</td><td>'+pct(sT,sDen)+'</td>'
+    +tdS(pi,0,' class="ptname"','전체')+tdS(pi,1,'','-')+tdS(pi,2,'','-')+tdS(pi,3,'','-')+tdS(pi,4,'',sDen)+tdS(pi,5,'','-')
+    +tdS(pi,6,'',sU)+tdS(pi,7,'',sL)+tdS(pi,8,'',sM)+tdS(pi,9,'',sT)
+    +tdS(pi,10,'',pct(sU,sDen))+tdS(pi,11,'',pct(sL,sDen))+tdS(pi,12,'',pct(sT,sDen))
     +RP+'</tr>'; rn++;
   // 더미 행 — 화면 세로 채우기 (좌우 패딩 포함 전체 회색)
   const bodyRows=rn-1, totalRows=Math.max(bodyRows+3, Math.ceil(vh/ROWH)+1);   // +3행: 표 아래 여백
