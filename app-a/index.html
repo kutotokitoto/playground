@@ -2349,7 +2349,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783743613851;   // 2026-07-11 13:20 KST
+const BUILD_TS = 1783747577126;   // 2026-07-11 14:26 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2428,11 +2428,12 @@ $('bs-save').addEventListener('click', ()=>{
   if(!qc){ toast('저장할 측정데이터가 없습니다 — 먼저 데이터를 불러오세요'); return; }
   $('backstage').classList.remove('open');
   let h='';
-  [['data','📄 측정데이터','원본 측정값 전체 · CSV'],
+  [['book','📘 통합 문서','모든 시트를 엑셀 파일 하나로 · xlsx (측정데이터 수식 포함, 차트는 이미지)'],
+   ['data','📄 측정데이터','원본 측정값 전체 · CSV'],
    ['normal','📊 정규분포','전체 차트 묶음 · PNG'],
    ['scatter','⚬ 산점도','전체 차트 묶음 · PNG'],
    ['box','📦 박스플롯','전체 차트 묶음 · PNG']]
-    .forEach(it=>{ h+='<label class="ipv-opt"><input type="checkbox" value="'+it[0]+'"'+(it[0]==='data'?' checked':'')+'> <span><b>'+it[1]+'</b><div class="sub">'+it[2]+'</div></span></label>'; });
+    .forEach(it=>{ h+='<label class="ipv-opt"><input type="checkbox" value="'+it[0]+'"'+(it[0]==='book'?' checked':'')+'> <span><b>'+it[1]+'</b><div class="sub">'+it[2]+'</div></span></label>'; });
   $('sv-list').innerHTML=h;
   $('save-dlg').classList.add('show');
 });
@@ -2442,6 +2443,7 @@ $('sv-go').addEventListener('click', async ()=>{
   $('save-dlg').classList.remove('show');
   if(!picks.length){ toast('선택된 시트가 없습니다'); return; }
   const qc=extractQC(); if(!qc){ toast('저장할 측정데이터가 없습니다'); return; }
+  if(picks.indexOf('book')>=0) await exportWorkbookXlsx();
   if(picks.indexOf('data')>=0) saveDataCSV();
   for(const t of ['normal','scatter','box']) if(picks.indexOf(t)>=0) await saveChartPNG(t, qc);
 });
@@ -3714,6 +3716,191 @@ function saveDataCSV(){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='측정데이터.csv';
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
   toast('📄 측정데이터.csv 저장됨 · 시료 '+b.N+'개 × 포인트 '+b.P+'개');
+}
+/* ══════════════ 통합 문서(xlsx) 내보내기 — 라이브러리 없이 ZIP(무압축)+OOXML 직접 조립 ══════════════ */
+const CRC_T=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c; } return t; })();
+function crc32(u8){ let c=~0; for(let i=0;i<u8.length;i++) c=CRC_T[(c^u8[i])&0xFF]^(c>>>8); return (~c)>>>0; }
+/* 무압축(store) ZIP — 엑셀은 무압축 xlsx를 완전하게 지원 */
+function zipStore(entries){
+  const enc=new TextEncoder(), parts=[], cd=[]; let off=0;
+  for(const e of entries){
+    const name=enc.encode(e.name), data=e.data, crc=crc32(data);
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true);
+    lh.setUint32(14,crc,true); lh.setUint32(18,data.length,true); lh.setUint32(22,data.length,true);
+    lh.setUint16(26,name.length,true);
+    parts.push(new Uint8Array(lh.buffer),name,data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true);
+    ch.setUint32(16,crc,true); ch.setUint32(20,data.length,true); ch.setUint32(24,data.length,true);
+    ch.setUint16(28,name.length,true); ch.setUint32(42,off,true);
+    cd.push(new Uint8Array(ch.buffer),name);
+    off+=30+name.length+data.length;
+  }
+  let cdLen=0; for(const x of cd) cdLen+=x.length;
+  const eo=new DataView(new ArrayBuffer(22));
+  eo.setUint32(0,0x06054b50,true); eo.setUint16(8,entries.length,true); eo.setUint16(10,entries.length,true);
+  eo.setUint32(12,cdLen,true); eo.setUint32(16,off,true);
+  parts.push(...cd,new Uint8Array(eo.buffer));
+  return new Blob(parts,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+const xEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+/* 셀 서식 사전: 앱의 스타일 객체({b,fs,col,fill,al,dec,wrap,bd})를 중복 제거해 styles.xml로 */
+function XStyles(){
+  const numFmts=[], fonts=[], fills=[], xfs=[], fM={}, flM={}, nM={}, xM={};
+  const hex=c=>'FF'+String(c||'').replace('#','').toUpperCase();
+  const font=(b,sz,col)=>{ const k=b+'|'+sz+'|'+col; if(fM[k]!=null) return fM[k];
+    fonts.push('<font>'+(b?'<b/>':'')+'<sz val="'+sz+'"/><color rgb="'+col+'"/><name val="맑은 고딕"/><family val="2"/></font>'); return fM[k]=fonts.length-1; };
+  const fill=c=>{ if(!c) return 0; if(flM[c]!=null) return flM[c];
+    fills.push('<fill><patternFill patternType="solid"><fgColor rgb="'+c+'"/></patternFill></fill>'); return flM[c]=fills.length+1; };   // 0=none,1=gray125 예약
+  const num=dec=>{ if(!dec) return 0; if(nM[dec]!=null) return nM[dec];
+    const id=164+numFmts.length; numFmts.push('<numFmt numFmtId="'+id+'" formatCode="0.'+('0'.repeat(dec))+'"/>'); return nM[dec]=id; };
+  const sid=s=>{ s=s||{};
+    const fid=font(!!s.b, s.fs||11, s.col?hex(s.col):'FF222222');
+    const flid=fill(s.fill?hex(s.fill):null);
+    const nid=num(s.dec||0), al=s.al||'', wrap=s.wrap?1:0, bd=s.bd?1:0;
+    const k=[fid,flid,nid,al,wrap,bd].join('|'); if(xM[k]!=null) return xM[k];
+    let xf='<xf numFmtId="'+nid+'" fontId="'+fid+'" fillId="'+flid+'" borderId="'+bd+'" xfId="0" applyFont="1"'
+      +(nid?' applyNumberFormat="1"':'')+(flid?' applyFill="1"':'')+(bd?' applyBorder="1"':'');
+    if(al||wrap) xf+=' applyAlignment="1"><alignment '+(al?'horizontal="'+al+'" ':'')+'vertical="center"'+(wrap?' wrapText="1"':'')+'/></xf>';
+    else xf+='/>';
+    xfs.push(xf); return xM[k]=xfs.length-1;
+  };
+  sid({});   // 인덱스 0 = 기본 서식
+  const xml=()=>'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    +(numFmts.length?'<numFmts count="'+numFmts.length+'">'+numFmts.join('')+'</numFmts>':'')
+    +'<fonts count="'+fonts.length+'">'+fonts.join('')+'</fonts>'
+    +'<fills count="'+(fills.length+2)+'"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'+fills.join('')+'</fills>'
+    +'<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'
+    +'<border><left style="thin"><color rgb="FFD9D9D9"/></left><right style="thin"><color rgb="FFD9D9D9"/></right>'
+    +'<top style="thin"><color rgb="FFD9D9D9"/></top><bottom style="thin"><color rgb="FFD9D9D9"/></bottom><diagonal/></border></borders>'
+    +'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+    +'<cellXfs count="'+xfs.length+'">'+xfs.join('')+'</cellXfs></styleSheet>';
+  return {sid, xml};
+}
+function xCell(r,c,v,sid){
+  const ref=colName(c)+(r+1), s=' s="'+sid+'"';
+  if(v==='') return '<c r="'+ref+'"'+s+'/>';
+  if(v.charAt(0)==='=') return '<c r="'+ref+'"'+s+'><f>'+xEsc(v.slice(1))+'</f></c>';
+  if(v.trim()!=='' && isFinite(Number(v))) return '<c r="'+ref+'"'+s+'><v>'+Number(v)+'</v></c>';
+  return '<c r="'+ref+'"'+s+' t="inlineStr"><is><t xml:space="preserve">'+xEsc(v)+'</t></is></c>';
+}
+const SHEET_HDR='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+/* 측정데이터: 값·수식·서식을 셀 그대로 (좌표가 엑셀과 1:1이라 수식이 실제로 재계산됨) */
+function xlsxQCSheetXml(src, reg){
+  const D=src.data, rowsMap={}; let maxR=0,maxC=0;
+  for(const k in D){ const i=k.indexOf(','), r=+k.slice(0,i), c=+k.slice(i+1);
+    (rowsMap[r]=rowsMap[r]||{})[c]=D[k]; if(r>maxR)maxR=r; if(c>maxC)maxC=c; }
+  let cols='<cols>';
+  for(let c=0;c<=maxC;c++){ const px=(src.colW&&src.colW[c]!=null)?src.colW[c]:DEFW;
+    cols+='<col min="'+(c+1)+'" max="'+(c+1)+'" width="'+(((px-5)/7).toFixed(2))+'" customWidth="1"/>'; }
+  cols+='</cols>';
+  let body='';
+  for(let r=0;r<=maxR;r++){ const row=rowsMap[r]; if(!row) continue;
+    let cx='';
+    for(const c of Object.keys(row).map(Number).sort((a,b)=>a-b)){
+      const cell=row[c];
+      cx+=xCell(r,c,cell.v==null?'':String(cell.v), reg.sid(Object.assign({bd:1},cell.s)));
+    }
+    body+='<row r="'+(r+1)+'">'+cx+'</row>';
+  }
+  return SHEET_HDR+'<sheetViews><sheetView workbookViewId="0"/></sheetViews>'+cols+'<sheetData>'+body+'</sheetData></worksheet>';
+}
+/* 메인페이지: 애니메이션 없이 정적 셀(병합+채움)로 재현 */
+function xlsxLandingSheetXml(reg){
+  const cells=[], merges=[], hts={2:26,3:26,4:26,5:20,7:22,8:22,9:22,11:22,12:22};
+  const put=(r,c,v,s)=>cells.push({r,c,v,s});
+  const M=(r1,c1,r2,c2)=>merges.push(colName(c1)+(r1+1)+':'+colName(c2)+(r2+1));
+  put(1,1,'🎯 불량률 시각화 도구',{b:1,fs:24,col:'#FFFFFF',fill:'#107C41',al:'center'}); M(1,1,3,12);
+  put(4,1,'측정 데이터를 정규분포 · 산점도 · 박스플롯으로 시각화합니다',{fs:12,col:'#0B5A30',fill:'#E7F3EC',al:'center'}); M(4,1,4,12);
+  [['📥  1단계 · 데이터 불러오기','xlsx·CSV 업로드 또는 측정 더미 불러오기'],
+   ['📊  2단계 · 분포 확인','정규분포·산점도·박스플롯 탭에서 그래프 확인'],
+   ['💾  3단계 · 저장·공유','포인트 카드 복사·저장, 상단에서 전체 저장']]
+    .forEach((st,i)=>{ const c1=1+i*4, c2=c1+3;
+      put(6,c1,st[0],{b:1,fs:12,col:'#0B5A30',fill:'#F2F8F4',al:'center'}); M(6,c1,6,c2);
+      put(7,c1,st[1],{fs:11,col:'#5A6B60',fill:'#F2F8F4',al:'center',wrap:1}); M(7,c1,8,c2); });
+  ['📋 측정데이터','📊 정규분포','⚬ 산점도','📦 박스플롯'].forEach((nv,i)=>{ const c1=1+i*3;
+    put(10,c1,nv,{b:1,fs:12,col:'#0B5A30',fill:'#EAF5EE',al:'center'}); M(10,c1,11,c1+2); });
+  const rowsMap={}; cells.forEach(x=>{ (rowsMap[x.r]=rowsMap[x.r]||[]).push(x); });
+  let cols='<cols><col min="1" max="14" width="10" customWidth="1"/></cols>', body='';
+  Object.keys(rowsMap).map(Number).sort((a,b)=>a-b).forEach(r=>{
+    let cx=''; rowsMap[r].sort((a,b)=>a.c-b.c).forEach(x=>{ cx+=xCell(x.r,x.c,x.v,reg.sid(x.s)); });
+    body+='<row r="'+(r+1)+'"'+(hts[r+1]?' ht="'+hts[r+1]+'" customHeight="1"':'')+'>'+cx+'</row>';
+  });
+  return SHEET_HDR+'<sheetViews><sheetView workbookViewId="0"/></sheetViews>'+cols+'<sheetData>'+body+'</sheetData>'
+    +'<mergeCells count="'+merges.length+'">'+merges.map(m=>'<mergeCell ref="'+m+'"/>').join('')+'</mergeCells></worksheet>';
+}
+/* 차트 시트: 몽타주 PNG 한 장을 A1에 앉힘 */
+function xlsxImgSheetXml(){ return SHEET_HDR+'<sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetData/><drawing r:id="rId1"/></worksheet>'; }
+function xlsxDrawingXml(wPx,hPx){
+  const cx=Math.round(wPx*9525), cy=Math.round(hPx*9525);   // EMU
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+    +'<xdr:oneCellAnchor><xdr:from><xdr:col>0</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>0</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>'
+    +'<xdr:ext cx="'+cx+'" cy="'+cy+'"/>'
+    +'<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="1" name="차트"/><xdr:cNvPicPr/></xdr:nvPicPr>'
+    +'<xdr:blipFill><a:blip r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>'
+    +'<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'+cx+'" cy="'+cy+'"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr>'
+    +'</xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>';
+}
+/* 파트 조립(순수부 — Node 검증 가능): imgs=[{bytes,w,h}×3] */
+function buildWorkbookEntries(qcSrc, imgs){
+  const enc=new TextEncoder(), reg=XStyles(), entries=[];
+  const put=(name,xml)=>entries.push({name,data:enc.encode(xml)});
+  const RELS='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  // 시트 XML 먼저 생성(스타일 등록) — 파일명 sheet1=측정데이터로 두어 이 앱에 재업로드해도 바로 파싱되게 함
+  const sx1=xlsxQCSheetXml(qcSrc, reg), sx2=xlsxLandingSheetXml(reg);
+  put('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+    +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/>'
+    +'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+    +[1,2,3,4,5].map(i=>'<Override PartName="/xl/worksheets/sheet'+i+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')
+    +[1,2,3].map(i=>'<Override PartName="/xl/drawings/drawing'+i+'.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>').join('')
+    +'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
+  put('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    +'<Relationship Id="rId1" Type="'+RELS+'/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+  put('xl/workbook.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="'+RELS+'"><sheets>'
+    +'<sheet name="메인페이지" sheetId="1" r:id="rId2"/><sheet name="측정데이터" sheetId="2" r:id="rId1"/>'
+    +'<sheet name="정규분포" sheetId="3" r:id="rId3"/><sheet name="산점도" sheetId="4" r:id="rId4"/><sheet name="박스플롯" sheetId="5" r:id="rId5"/>'
+    +'</sheets><calcPr fullCalcOnLoad="1"/></workbook>');
+  put('xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    +[1,2,3,4,5].map(i=>'<Relationship Id="rId'+i+'" Type="'+RELS+'/worksheet" Target="worksheets/sheet'+i+'.xml"/>').join('')
+    +'<Relationship Id="rId6" Type="'+RELS+'/styles" Target="styles.xml"/></Relationships>');
+  put('xl/worksheets/sheet1.xml', sx1);
+  put('xl/worksheets/sheet2.xml', sx2);
+  imgs.forEach((im,i)=>{
+    const sn=3+i, dn=1+i;
+    put('xl/worksheets/sheet'+sn+'.xml', xlsxImgSheetXml());
+    put('xl/worksheets/_rels/sheet'+sn+'.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      +'<Relationship Id="rId1" Type="'+RELS+'/drawing" Target="../drawings/drawing'+dn+'.xml"/></Relationships>');
+    put('xl/drawings/drawing'+dn+'.xml', xlsxDrawingXml(im.w, im.h));
+    put('xl/drawings/_rels/drawing'+dn+'.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      +'<Relationship Id="rId1" Type="'+RELS+'/image" Target="../media/image'+dn+'.png"/></Relationships>');
+    entries.push({name:'xl/media/image'+dn+'.png', data:im.bytes});
+  });
+  put('xl/styles.xml', reg.xml());   // 시트들이 스타일을 전부 등록한 뒤에
+  return entries;
+}
+/* 오케스트레이터: 차트 몽타주를 그려 넣고 zip → 다운로드 */
+async function exportWorkbookXlsx(){
+  const qc=extractQC();
+  const src=qcSource || sheets.find(s=>s.name.indexOf('측정데이터')===0);
+  if(!qc||!src){ toast('내보낼 측정데이터가 없습니다 — 먼저 데이터를 불러오세요'); return; }
+  showLoading('통합 문서 만드는 중…','시트와 차트 이미지를 조립하고 있습니다');
+  await new Promise(r=>setTimeout(r,60));
+  try{
+    const imgs=[];
+    for(const t of ['normal','scatter','box']){
+      const cv=await buildMontage(qc.points, t, TYPE_KO[t]+' 분석 — 전체 ('+qc.points.length+' 포인트)');
+      const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+      imgs.push({bytes:new Uint8Array(await blob.arrayBuffer()), w:Math.round(cv.width/2), h:Math.round(cv.height/2)});   // scale=2 → 표시 크기 절반
+    }
+    const blob=zipStore(buildWorkbookEntries(src, imgs));
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='불량률_분석_도구.xlsx';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    toast('📘 불량률_분석_도구.xlsx 저장됨 · 시트 5개 (측정데이터 수식 포함, 차트는 이미지)');
+  }catch(e){ toast('통합 문서 저장 오류: '+(e&&e.message||e)); }
+  hideLoading();
 }
 /* 차트 시트 → 전체 몽타주 PNG 저장 (차트 뷰의 '전체 저장'과 동일 산출물) */
 async function saveChartPNG(type, qc){
