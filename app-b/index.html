@@ -2240,7 +2240,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783740457268;   // 2026-07-11 12:27 KST
+const BUILD_TS = 1783741074569;   // 2026-07-11 12:37 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2292,7 +2292,32 @@ $('bs-doc-cur').addEventListener('click', bsClose);   // 현재 문서 클릭 = 
 $('bs-new').addEventListener('click', ()=>{ if(!confirm('현재 데이터를 버리고 새 문서(더미 데이터)로 초기화할까요?')) return; bsClose(); loadCoordSample(); });
 $('bs-open').addEventListener('click', ()=>{ bsClose(); triggerUpload('qc'); });   // 열기 = 데이터 불러오기
 $('bs-save').addEventListener('click', ()=>{ bsClose(); showSaveDialog(); });
-$('bs-print').addEventListener('click', ()=>{ bsClose(); setTimeout(()=>window.print(), 150); });   // 현재 시트 인쇄 (@media print)
+$('bs-print').addEventListener('click', ()=>{ bsClose(); showPrintDialog(); });   // 인쇄할 시트 선택 후 인쇄
+/* 인쇄 대화상자: 인쇄할 시트 하나를 골라 전환 후 window.print() (@media print가 앱 크롬 숨김) */
+function showPrintDialog(){
+  const old=$('print-modal'); if(old) old.remove();
+  const names=['측정데이터','측정도','불량률 히트맵','연속 히트맵','불량률 요약','이미지 정합'].filter(n=>sheets.some(s=>s.name===n));
+  if(!names.length){ toast('인쇄할 시트가 없습니다'); return; }
+  const def=names.includes(sheet().name)?sheet().name:names[0];
+  const d=document.createElement('div'); d.id='print-modal';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:2600;display:flex;align-items:center;justify-content:center';
+  d.innerHTML='<div style="background:#fff;border-radius:10px;padding:18px 20px;width:min(400px,92vw);box-shadow:0 12px 40px rgba(0,0,0,.25)">'
+    +'<div style="font-size:15px;font-weight:800;color:#0b5a30">🖨️ 인쇄 — 어느 시트를 인쇄할까요?</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">'
+    +names.map(n=>'<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="radio" name="prsheet" value="'+escH(n)+'"'+(n===def?' checked':'')+'> '+escH(n)+'</label>').join('')
+    +'</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">'
+    +'<button id="pr-cancel" class="cv-actbtn">취소</button>'
+    +'<button id="pr-go" class="cv-actbtn primary">인쇄</button></div></div>';
+  document.body.appendChild(d);
+  d.addEventListener('mousedown', e=>{ if(e.target===d) d.remove(); });
+  $('pr-cancel').onclick=()=>d.remove();
+  $('pr-go').onclick=()=>{
+    const v=d.querySelector('input[name=prsheet]:checked'); d.remove(); if(!v) return;
+    gotoSheet(v.value);
+    toast('🖨️ 인쇄 준비 중…');
+    setTimeout(()=>window.print(), 800);   // 차트 시트 렌더(320ms 로딩) 완료 대기
+  };
+}
 /* 저장 대화상자: 저장할 시트를 체크박스로 선택 → CSV/PNG 다운로드 */
 function downloadCoordCSV(){
   const co=extractCoord(); if(!co){ toast('데이터가 없습니다'); return; }
