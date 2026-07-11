@@ -564,6 +564,12 @@ table.xl-grid td.xl-empty{background:#fbfbfa;color:#999;font-size:14px;line-heig
 }
 #wz-hint.show{display:flex;animation:hintpop .3s ease}
 @keyframes hintpop{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+/* 인쇄: 앱 크롬은 숨기고 현재 시트만 (파일 ▸ 인쇄) */
+@media print{
+  #titlebar,#menubar,#ribbon,#formulabar,#sheetbar,#statusbar,#backstage,#toast,#loading,#wizard,#wz-hint,#ctxmenu,#grid-scroll{display:none !important}
+  html,body{height:auto;overflow:visible}
+  #data-view,#chart-view{overflow:visible !important;height:auto}
+}
 ::-webkit-scrollbar{width:14px;height:14px}
 ::-webkit-scrollbar-track{background:#fafafa}
 ::-webkit-scrollbar-thumb{background:#cdcdcd;border:3px solid #fafafa;border-radius:8px}
@@ -862,29 +868,29 @@ table.xl-grid td.xl-empty{background:#fbfbfa;color:#999;font-size:14px;line-heig
   <div id="bs-nav">
     <button id="bs-back" title="뒤로">⬅</button>
     <button class="bs-item sel">홈</button>
-    <button class="bs-item dummy">새로 만들기</button>
-    <button class="bs-item dummy">열기</button>
-    <button class="bs-item dummy">정보</button>
+    <button class="bs-item" id="bs-new">새로 만들기</button>
+    <button class="bs-item" id="bs-open">열기</button>
     <button class="bs-item" id="bs-save">저장</button>
-    <button class="bs-item dummy">다른 이름으로 저장</button>
-    <button class="bs-item dummy">인쇄</button>
-    <button class="bs-item dummy">공유</button>
-    <button class="bs-item dummy">내보내기</button>
-    <button class="bs-item dummy">닫기</button>
+    <button class="bs-item" id="bs-print">인쇄</button>
+    <button class="bs-item" id="bs-close">닫기</button>
   </div>
   <div id="bs-body">
     <h1>홈</h1>
-    <div class="bs-doc dummy">
-      <div class="di">X</div>
+    <div class="bs-doc" id="bs-doc-cur">
+      <div class="di">B</div>
       <div><div class="dn">도면좌표 불량률 시각화</div><div class="dp">이 웹앱 &gt; 현재 세션</div></div>
     </div>
     <div class="bs-doc dummy">
       <div class="di">X</div>
-      <div><div class="dn">가계부_2026.xlsx</div><div class="dp">문서 &gt; 예시 (더미)</div></div>
+      <div><div class="dn">2월_보드A_불량률.xlsx</div><div class="dp">문서 &gt; 지난 검사 (더미)</div></div>
     </div>
     <div class="bs-doc dummy">
       <div class="di">X</div>
-      <div><div class="dn">판매실적_상반기.xlsx</div><div class="dp">문서 &gt; 예시 (더미)</div></div>
+      <div><div class="dn">1월_커넥터B_좌표측정.xlsx</div><div class="dp">문서 &gt; 지난 검사 (더미)</div></div>
+    </div>
+    <div class="bs-doc dummy">
+      <div class="di">X</div>
+      <div><div class="dn">시제품_3차_히트맵.xlsx</div><div class="dp">문서 &gt; 지난 검사 (더미)</div></div>
     </div>
   </div>
 </div>
@@ -2234,7 +2240,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783737895696;   // 2026-07-11 11:44 KST
+const BUILD_TS = 1783740457268;   // 2026-07-11 12:27 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2279,8 +2285,48 @@ ctx.addEventListener('click', e=>{
 
 /* ══════════════ 백스테이지 · 토스트 · 더미 ══════════════ */
 $('file-tab').addEventListener('click', ()=>$('backstage').classList.add('open'));
-$('bs-back').addEventListener('click', ()=>{ $('backstage').classList.remove('open'); focusGrid(); });
-$('bs-save').addEventListener('click', ()=>{ $('backstage').classList.remove('open'); toast('💾 저장됨 (데모 — 실제 파일은 저장되지 않아요)'); focusGrid(); });
+const bsClose=()=>{ $('backstage').classList.remove('open'); focusGrid(); };
+$('bs-back').addEventListener('click', bsClose);
+$('bs-close').addEventListener('click', bsClose);
+$('bs-doc-cur').addEventListener('click', bsClose);   // 현재 문서 클릭 = 문서로 복귀
+$('bs-new').addEventListener('click', ()=>{ if(!confirm('현재 데이터를 버리고 새 문서(더미 데이터)로 초기화할까요?')) return; bsClose(); loadCoordSample(); });
+$('bs-open').addEventListener('click', ()=>{ bsClose(); triggerUpload('qc'); });   // 열기 = 데이터 불러오기
+$('bs-save').addEventListener('click', ()=>{ bsClose(); showSaveDialog(); });
+$('bs-print').addEventListener('click', ()=>{ bsClose(); setTimeout(()=>window.print(), 150); });   // 현재 시트 인쇄 (@media print)
+/* 저장 대화상자: 저장할 시트를 체크박스로 선택 → CSV/PNG 다운로드 */
+function downloadCoordCSV(){
+  const co=extractCoord(); if(!co){ toast('데이터가 없습니다'); return; }
+  const q=x=>{ const s=String(x); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+  const rows=[['오리진',co.origin.x,co.origin.y],[],['포인트','측정면 X','측정면 Y','기준면 X','기준면 Y','불량률(%)']];
+  co.pts.forEach(p=>rows.push([p.pos,p.mx,p.my,p.rx,p.ry,p.miss?'':p.rate]));
+  const csv=rows.map(r=>r.map(q).join(',')).join('\r\n');
+  const blob=new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='측정데이터.csv';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function showSaveDialog(){
+  const old=$('save-modal'); if(old) old.remove();
+  const items=[['csv','📋 측정데이터 (CSV)'],['map','🗺️ 측정도 (PNG)'],['bubble','🌡️ 불량률 히트맵 (PNG)'],['cont','🌡️ 연속 히트맵 (PNG)'],['summary','📊 불량률 요약 (PNG)']];
+  const d=document.createElement('div'); d.id='save-modal';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:2600;display:flex;align-items:center;justify-content:center';
+  d.innerHTML='<div style="background:#fff;border-radius:10px;padding:18px 20px;width:min(420px,92vw);box-shadow:0 12px 40px rgba(0,0,0,.25)">'
+    +'<div style="font-size:15px;font-weight:800;color:#0b5a30">💾 저장 — 저장할 항목 선택</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">'
+    +items.map(it=>'<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" data-save="'+it[0]+'" checked> '+it[1]+'</label>').join('')
+    +'</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">'
+    +'<button id="sv-cancel" class="cv-actbtn">취소</button>'
+    +'<button id="sv-go" class="cv-actbtn primary">저장</button></div></div>';
+  document.body.appendChild(d);
+  d.addEventListener('mousedown', e=>{ if(e.target===d) d.remove(); });
+  $('sv-cancel').onclick=()=>d.remove();
+  $('sv-go').onclick=async()=>{
+    const sel=[...d.querySelectorAll('input[data-save]:checked')].map(i=>i.dataset.save);
+    d.remove();
+    if(!sel.length){ toast('선택된 항목이 없습니다'); return; }
+    for(const k of sel){ if(k==='csv') downloadCoordCSV(); else await exportVizKind(k,'save'); }
+    toast('💾 '+sel.length+'개 항목 저장 완료');
+  };
+}
 document.addEventListener('keydown', e=>{
   if(e.key==='Escape'&&$('backstage').classList.contains('open')){ $('backstage').classList.remove('open'); focusGrid(); }
 });
@@ -3896,9 +3942,9 @@ function svgRateRank(co, W){
       +sTxt(ml+w+8,y+17,p.rate.toFixed(1)+'%','start',hi?'#c0272d':'#333',12); });
   return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">'+s+'</svg>';
 }
-async function exportViz(act){
+async function exportViz(act){ return exportVizKind(sheet().viz||'bubble', act); }
+async function exportVizKind(viz, act){
   const co=extractCoord(); if(!co){ toast('데이터가 없습니다'); return; }
-  const viz=sheet().viz||'bubble';
   const name={map:'측정도',bubble:'불량률_히트맵',cont:'연속_히트맵',summary:'불량률_요약'}[viz]||'시각화';
   try{
     let s= viz==='map'?svgMeasMap(co,1200,true) : viz==='cont'?svgRateCont(co,1200,true) : viz==='summary'?svgRateRank(co,1200) : svgRateBubble(co,1200,true);
