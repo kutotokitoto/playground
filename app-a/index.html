@@ -46,6 +46,11 @@ body.ribbon-folded #rb-unfold{display:flex;align-items:center;justify-content:ce
 }
 #tb-admin{display:none;background:#F2C811;color:#5c4a00;font-weight:800;font-size:10px;border-radius:999px;padding:3px 9px;margin-left:6px;letter-spacing:.04em}
 body.admin #tb-admin{display:inline-block}
+/* 관리자 모드: 리본의 더미 기능 전부 숨김 (일반 모드는 그대로 → 비교용) */
+body.admin #ribbon .dummy{display:none!important}
+body.admin #ribbon .rgroup:not(:has(button:not(.dummy),select,input)){display:none}   /* 동작 버튼이 하나도 없는 그룹 통째로 */
+body.admin #menubar .rtab[data-tab="insert"],body.admin #menubar .rtab[data-tab="layout"],
+body.admin #menubar .rtab[data-tab="review"],body.admin #menubar .rtab[data-tab="help"]{display:none}   /* 전부 더미인 탭 */
 #tb-search{
   flex:1;max-width:560px;margin:0 auto;height:26px;background:rgba(255,255,255,.9);
   border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 12px;color:#444;
@@ -2255,7 +2260,12 @@ let adminMode=false;
 function toggleAdmin(){
   adminMode=!adminMode;
   document.body.classList.toggle('admin', adminMode);
-  toast(adminMode?'🔧 관리자 모드 켜짐 — 실험 기능이 여기에 추가됩니다':'관리자 모드를 껐습니다');
+  if(adminMode){   // 숨겨지는 탭(전부 더미)에 있었다면 홈으로
+    const t=document.querySelector('.rtab.active');
+    if(t && ['insert','layout','review','help'].indexOf(t.dataset.tab)>=0)
+      document.querySelector('.rtab[data-tab="home"]').click();
+  }
+  toast(adminMode?'🔧 관리자 모드 켜짐 — 리본에서 더미 기능을 숨겼습니다':'관리자 모드 꺼짐 — 전체 UI 표시');
 }
 $('tb-title').addEventListener('dblclick', toggleAdmin);
 $('zoom-slider').addEventListener('input', e=>setZoom(+e.target.value));
@@ -2263,7 +2273,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783736255970;   // 2026-07-11 11:17 KST
+const BUILD_TS = 1783737182019;   // 2026-07-11 11:33 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
