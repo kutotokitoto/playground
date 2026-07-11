@@ -531,6 +531,23 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 .ld-bar{width:240px;height:5px;background:#e2e2e0;border-radius:3px;overflow:hidden}
 .ld-bar>i{display:block;height:100%;width:40%;background:var(--green);border-radius:3px;animation:ldslide 1.1s ease-in-out infinite}
 @keyframes ldslide{0%{margin-left:-40%}100%{margin-left:100%}}
+/* ───────── 가져오기 미리보기 (행·열 배치가 애매할 때 확인) ───────── */
+#imp-preview{position:fixed;inset:0;background:rgba(30,40,34,.42);z-index:2600;display:none;align-items:center;justify-content:center}
+#imp-preview.show{display:flex}
+.ipv-box{width:560px;max-width:92vw;background:#fff;border-radius:10px;box-shadow:0 14px 44px rgba(0,0,0,.3);padding:20px 22px 12px;font-size:13px}
+.ipv-title{font-size:16px;font-weight:700;color:#217346;margin-bottom:4px}
+.ipv-desc{color:#555;line-height:1.55;margin-bottom:12px}
+.ipv-tbl{border-collapse:collapse;width:100%;margin-bottom:12px;table-layout:fixed}
+.ipv-tbl td{border:1px solid #d8d8d4;padding:3px 7px;font-size:11.5px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#fff}
+.ipv-tbl tr:first-child td{background:#f2f6f2}
+.ipv-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.ipv-opt{display:flex;align-items:center;gap:10px;border:1.5px solid #d5dbd5;border-radius:8px;padding:10px 12px;cursor:pointer;background:#fff;text-align:left;font-size:13px;font-family:inherit}
+.ipv-opt:hover{border-color:var(--green);background:#f4faf6}
+.ipv-opt b{color:#217346}
+.ipv-opt .sub{color:#777;font-size:12px;margin-top:2px}
+.ipv-foot{display:flex;justify-content:flex-end}
+.ipv-cancel{background:none;border:none;color:#888;font-size:12.5px;cursor:pointer;padding:6px 4px}
+.ipv-cancel:hover{color:#c00000}
 /* ───────── 튜토리얼 위저드 ───────── */
 #wizard{position:fixed;inset:0;z-index:3000;display:none}
 #wz-spot{
@@ -854,6 +871,17 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 </div>
 
 <div id="toast"></div>
+
+<!-- 가져오기 미리보기 (행·열 배치가 애매할 때) -->
+<div id="imp-preview">
+  <div class="ipv-box">
+    <div class="ipv-title">🧭 가져오기 확인</div>
+    <div class="ipv-desc" id="ipv-desc"></div>
+    <table class="ipv-tbl" id="ipv-tbl"></table>
+    <div class="ipv-opts" id="ipv-opts"></div>
+    <div class="ipv-foot"><button class="ipv-cancel" id="ipv-cancel">취소 — 가져오지 않음</button></div>
+  </div>
+</div>
 
 <!-- 백스테이지 (파일 메뉴) -->
 <div id="backstage">
@@ -2227,7 +2255,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783732958703;   // 2026-07-11 10:22 KST
+const BUILD_TS = 1783733149495;   // 2026-07-11 10:25 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2760,6 +2788,28 @@ async function readXlsxRows(file){
   return rows;
 }
 
+/* 행·열 배치가 애매할 때: 파일 앞부분과 두 해석을 보여주고 고르게 한다 → Promise<parsed|null> */
+function showImportPreview(best, alt, rows){
+  return new Promise(res=>{
+    const ov=$('imp-preview');
+    $('ipv-desc').textContent='행·열 배치가 애매합니다. 파일 앞부분(아래 표)을 보고 어느 해석이 맞는지 선택해 주세요.';
+    let t=''; const RN=Math.min(6,rows.length);
+    for(let r=0;r<RN;r++){ t+='<tr>';
+      for(let c=0;c<7;c++){ const v=rows[r]&&rows[r][c]!=null?String(rows[r][c]):''; t+='<td>'+(v===''?'&nbsp;':escH(v))+'</td>'; }
+      t+='</tr>'; }
+    $('ipv-tbl').innerHTML=t;
+    const optHTML=(cand,tag)=>'<button class="ipv-opt" data-pick="'+tag+'"><span>'
+      +(cand.transposed?'🔃 <b>행↔열 뒤집어 해석</b>':'⬇ <b>표 그대로 해석</b>')
+      +' — 포인트 '+cand.pts.length+'개 × 시료 '+cand.serials.length+'개'
+      +'<div class="sub">포인트: '+escH(cand.pts.slice(0,4).map(p=>p.no).join(', '))+(cand.pts.length>4?' …':'')
+      +' · 시리얼: '+escH(cand.serials.slice(0,3).join(', '))+(cand.serials.length>3?' …':'')+'</div></span></button>';
+    $('ipv-opts').innerHTML=optHTML(best,'best')+optHTML(alt,'alt');
+    const done=v=>{ ov.classList.remove('show'); res(v); };
+    $('ipv-opts').querySelectorAll('.ipv-opt').forEach(b=>{ b.onclick=()=>done(b.dataset.pick==='best'?best:alt); });
+    $('ipv-cancel').onclick=()=>done(null);
+    ov.classList.add('show');
+  });
+}
 /* ── 통합 업로드: xlsx(바이너리) 또는 CSV/TSV(텍스트) 자동 판별 ── */
 async function processUpload(file, mode){
   if(!file) return;
@@ -2796,6 +2846,13 @@ async function processUpload(file, mode){
       parsed=parseMeasurementRows(rows);
       if(!parsed && labelsInOneRow(rows)){ parsed=parseMeasurementRows(transposeRows(rows)); if(parsed) flip=true; }
       if(!parsed) parsed=inferLayoutParse(rows);
+      if(parsed && parsed.needPreview && parsed.alt){   // 두 해석이 팽팽 → 사용자 확인
+        hideLoading();
+        const pick=await showImportPreview(parsed, parsed.alt, rows);
+        if(token!==chartToken) return;
+        if(!pick){ toast('가져오기를 취소했습니다'); return; }
+        pick.inferred=true; parsed=pick;
+      }
     }
     let sh, msg;
     if(parsed){ sh=buildQCSheet('측정데이터', parsed.pts, parsed.serials, parsed.meta);
