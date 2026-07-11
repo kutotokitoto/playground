@@ -566,18 +566,24 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 #save-dlg .ipv-opt input{accent-color:#107C41;width:15px;height:15px}
 #sv-go{background:#107C41;color:#fff;font-weight:600;font-size:12.5px;padding:7px 14px;border-radius:5px}
 #sv-go:hover{background:#0b5a30}
-/* ───────── 인쇄: 앱 크롬 숨기고 현재 뷰만 ───────── */
+/* ───────── 인쇄: 앱 크롬 숨기고 현재 뷰만, "리포트처럼" 최적화 ───────── */
 @media print{
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}   /* 배경색 강제 — 히트맵·판정 셀의 흰 글자가 사라지지 않게 */
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}   /* 의미 있는 배경(히트맵·판정)은 강제 인쇄 */
   #titlebar,#menubar,#ribbon,#formulabar,#sheetbar,#statusbar,#backstage,#toast,#loading,
   #imp-preview,#save-dlg,#print-dlg,#dv-copyall,#wz-hint,#wizard,#rb-fold,.cv-selbar{display:none!important}
   html,body{overflow:visible!important;height:auto!important}
   #grid-scroll,#data-view,#chart-view{overflow:visible!important;height:auto!important;position:static!important}
   .xl-grid th{position:static!important}                       /* sticky 헤더는 인쇄에서 어긋남 */
-  .xl-wrap{zoom:.72!important}                                 /* 넓은 표/차트를 용지에 맞게 축소 */
-  #data-view .xl-grid col{width:auto!important}                /* 화면용 고정 폭·패딩 열 해제 → 우측 NG/불량률 열 잘림 방지 */
+  /* 엑셀 분장 제거: 열 문자 행 숨김, 행 번호·빈 채움 셀은 흰 여백으로 (colgroup 매핑 유지 위해 display는 유지) */
+  .xl-grid thead{display:none!important}
+  .xl-grid th.rn{background:#fff!important;color:transparent!important;box-shadow:none!important;border-color:transparent!important}
+  .xl-grid td.fill{background:#fff!important;box-shadow:none!important;border-color:transparent!important}
+  .xl-wrap{zoom:.72!important}                                 /* 기본 축소(그리드 뷰 등) */
+  #data-view .xl-grid col{width:auto!important}                /* 고정 폭·패딩 열 해제 → 우측 NG/불량률 열 잘림 방지 */
   #data-view table.xl-grid{width:auto!important}
   #data-view .xl-wrap{zoom:.9!important}
+  #chart-view .xl-wrap{zoom:var(--przoom,.72)!important}       /* 인쇄 직전 JS가 용지 폭에 맞춰 계산 */
+  .chart-card,td.fx-card{break-inside:avoid!important;page-break-inside:avoid!important}   /* 카드가 페이지 경계에서 잘리지 않게 */
 }
 /* ───────── 튜토리얼 위저드 ───────── */
 #wizard{position:fixed;inset:0;z-index:3000;display:none}
@@ -2321,7 +2327,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783742062137;   // 2026-07-11 12:54 KST
+const BUILD_TS = 1783742737130;   // 2026-07-11 13:05 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2430,12 +2436,21 @@ $('pr-cancel').addEventListener('click', ()=>$('print-dlg').classList.remove('sh
 $('print-dlg').addEventListener('click', e=>{
   const b=e.target.closest('[data-print]'); if(!b) return;
   $('print-dlg').classList.remove('show');
-  const idx=sheets.findIndex(s=>s.name===b.dataset.print);
-  if(idx<0){ toast('시트를 찾을 수 없습니다: '+b.dataset.print); return; }
-  const prev=cur;
+  const name=b.dataset.print, idx=sheets.findIndex(s=>s.name===name);
+  if(idx<0){ toast('시트를 찾을 수 없습니다: '+name); return; }
+  const prev=cur, isChart=name!=='측정데이터';
   if(idx!==cur) switchSheet(idx);
+  // 용지 방향 자동: 차트=가로, 표=세로 (@page를 동적으로 주입)
+  let ps=$('print-page'); if(!ps){ ps=document.createElement('style'); ps.id='print-page'; document.head.appendChild(ps); }
+  ps.textContent='@page{size:A4 '+(isChart?'landscape':'portrait')+';margin:10mm}';
   window.addEventListener('afterprint', ()=>{ if(prev!==idx) switchSheet(prev); }, {once:true});
-  setTimeout(()=>window.print(), 350);   // 시트 렌더가 자리 잡은 뒤 인쇄
+  setTimeout(()=>{   // 시트 렌더가 자리 잡은 뒤: 차트는 용지 폭에 맞춰 배율 계산
+    if(isChart){
+      const t=document.querySelector('#chart-view .xl-wrap>table');
+      if(t&&t.offsetWidth) document.documentElement.style.setProperty('--przoom', Math.min(1, 1040/t.offsetWidth).toFixed(3));
+    }
+    window.print();
+  }, 350);
 });
 /* 닫기 = 창 닫기 시도, 막히면 포털로 */
 $('bs-close').addEventListener('click', ()=>{ window.close(); setTimeout(()=>{ location.href='../index.html'; },200); });
