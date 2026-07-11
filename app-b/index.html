@@ -564,11 +564,17 @@ table.xl-grid td.xl-empty{background:#fbfbfa;color:#999;font-size:14px;line-heig
 }
 #wz-hint.show{display:flex;animation:hintpop .3s ease}
 @keyframes hintpop{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
-/* 인쇄: 앱 크롬은 숨기고 현재 시트만 (파일 ▸ 인쇄) */
+/* 인쇄: 앱 크롬은 숨기고 현재 시트만. (파일 ▸ 인쇄/Ctrl+P는 전용 문서로 가고, 이 블록은 브라우저 메뉴 인쇄 폴백용) */
 @media print{
   #titlebar,#menubar,#ribbon,#formulabar,#sheetbar,#statusbar,#backstage,#toast,#loading,#wizard,#wz-hint,#ctxmenu,#grid-scroll{display:none !important}
   html,body{height:auto;overflow:visible}
   #data-view,#chart-view{overflow:visible !important;height:auto}
+  /* 열문자·행번호·격자선·회색 셀·셀형 버튼 제거 → 콘텐츠만 */
+  table.xl-grid thead{display:none !important}
+  table.xl-grid th.rn{visibility:hidden;background:#fff !important;border-color:transparent !important;box-shadow:none !important}
+  table.xl-grid td{border-color:transparent !important}
+  table.xl-grid td.fill{background:#fff !important}
+  table.xl-grid td.xl-btn,table.xl-grid td.xl-ctl{visibility:hidden !important}
 }
 ::-webkit-scrollbar{width:14px;height:14px}
 ::-webkit-scrollbar-track{background:#fafafa}
@@ -2240,7 +2246,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783742649743;   // 2026-07-11 13:04 KST
+const BUILD_TS = 1783743406420;   // 2026-07-11 13:16 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
