@@ -390,7 +390,8 @@ table.xl-grid td.lp-a-hero{position:relative;overflow:hidden;background-color:#1
 table.xl-grid td.lp-a-hero>div{position:relative;z-index:1}
 @keyframes heroSweep{from{background-position:0 center}to{background-position:624px center}}   /* 모자이크가 우측으로 진행(1주기=624px) */
 @media (prefers-reduced-motion:reduce){ table.xl-grid td.lp-a-hero{animation:none} }
-table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:10px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd}
+table.xl-grid td.lp-a-step{background:#f6faf7;text-align:center;padding:10px 18px;vertical-align:middle;white-space:normal;border-color:#d7e8dd;cursor:pointer}
+table.xl-grid td.lp-a-step:hover,table.xl-grid tbody tr:hover td.lp-a-step:hover{background:#e6f2ea}
 /* 기능 바로가기 버튼 4개 (3칸 × 4 = 12칸) */
 table.xl-grid td.lp-a-fn{cursor:pointer;background:#eef7f0;border-color:#c9dccf;text-align:center;vertical-align:middle;white-space:normal;padding:8px 6px}
 table.xl-grid td.lp-a-fn:hover,table.xl-grid tbody tr:hover td.lp-a-fn:hover{background:#dff0e4}
@@ -2232,7 +2233,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783732805360;   // 2026-07-11 10:20 KST
+const BUILD_TS = 1783735120421;   // 2026-07-11 10:58 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3184,6 +3185,8 @@ function clearSelection(){
 $('chart-view').addEventListener('click', e=>{
   const gp=e.target.closest('[data-goto]');
   if(gp){ gotoSheet(gp.dataset.goto); return; }
+  const ma=e.target.closest('[data-mainact]');
+  if(ma){ if(ma.dataset.mainact==='upload') triggerUpload('qc'); return; }   // 메인 1단계 → 업로드 창
   const va=e.target.closest('[data-vizact]');
   if(va){ exportViz(va.dataset.vizact); return; }
   const ca=e.target.closest('[data-cardact]');
@@ -4110,9 +4113,9 @@ function landingMain(cv){   // 히어로 센터 + 3단계
   return landingFrame(cv, ({R,blank,contRows})=>{
     blank();
     R('<td class="lp-a-hero" colspan="12" style="background-image:url('+mosaicBg()+')"><div class="lp-a-emoji">🎯</div><div class="lp-a-title">도면 좌표 불량률 시각화</div><div class="lp-a-sub">각 포인트의 X·Y 좌표를 도면에 매핑하고, 포인트별 불량률을 히트맵으로 봅니다</div><div class="lp-a-cta">📥 [데이터] 탭 → ‘측정 더미 불러오기’ 로 시작</div></td>');
-    R('<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">📥</div><b>1단계 · 데이터 불러오기</b><span>[데이터] 탭 → ‘측정 더미 불러오기’ 로 좌표·불량률 더미 생성<br>(또는 업로드)</span></td>'
-     +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">🎯</div><b>2단계 · 이미지 정합</b><span>‘이미지 정합’ 시트에서 캡처를 불러와<br>기준 3점을 클릭해 좌표를 맞춤</span></td>'
-     +'<td class="lp-a-step" colspan="4" rowspan="3"><div class="st-ic">🌡️</div><b>3단계 · 히트맵 확인</b><span>측정도·불량률 히트맵·연속 히트맵에서<br>캡처 위 오버레이 확인</span></td>');
+    R('<td class="lp-a-step" colspan="4" rowspan="3" data-mainact="upload"><div class="st-ic">📥</div><b>1단계 · 데이터 불러오기</b><span>클릭하면 파일 업로드 창이 열립니다<br>(xlsx·CSV — 템플릿은 데이터 탭)</span></td>'
+     +'<td class="lp-a-step" colspan="4" rowspan="3" data-goto="이미지 정합"><div class="st-ic">🎯</div><b>2단계 · 이미지 정합</b><span>‘이미지 정합’ 시트에서 캡처를 불러와<br>기준 3점을 클릭해 좌표를 맞춤</span></td>'
+     +'<td class="lp-a-step" colspan="4" rowspan="3" data-goto="불량률 히트맵"><div class="st-ic">🌡️</div><b>3단계 · 히트맵 확인</b><span>측정도·불량률 히트맵·연속 히트맵에서<br>캡처 위 오버레이 확인</span></td>');
     contRows(2);
     // 기능 바로가기 4개 (3칸 × 4)
     const fn=(goto,ic,name)=>'<td class="lp-a-fn" colspan="3" rowspan="2" data-goto="'+goto+'"><div class="fn-ic">'+ic+'</div><b>'+name+'</b></td>';
