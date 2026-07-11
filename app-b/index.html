@@ -2232,7 +2232,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783731809818;   // 2026-07-11 10:03 KST
+const BUILD_TS = 1783732294548;   // 2026-07-11 10:11 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -3529,6 +3529,16 @@ function numClean(v){
 }
 /* 합계/평균 같은 잡행 판별 (첫 셀 라벨 기준) */
 function isJunkRow(v){ return /^(합계|소계|평균|total|subtotal|sum|avg|average)/i.test(String(v==null?'':v).trim()); }
+/* 블록 탐지: 빈 행 제거 + 공통 선행 빈 열만큼 전체 왼쪽 시프트 (A1이 아닌 곳에서 시작하는 파일 방어) */
+function normalizeGrid(rows){
+  rows=(rows||[]).filter(r=>r&&r.some(c=>String(c==null?'':c).trim()!==''));
+  if(!rows.length) return rows;
+  let lead=Infinity;
+  for(const r of rows){ let i=0; while(i<r.length&&String(r[i]==null?'':r[i]).trim()==='') i++;
+    if(i<r.length) lead=Math.min(lead,i); if(lead===0) break; }
+  if(lead>0&&isFinite(lead)) rows=rows.map(r=>r.slice(lead));
+  return rows;
+}
 /* 위치 기반 해석(파훼용): 헤더가 깨져도 템플릿 열 순서(포인트·측X·측Y·기X·기Y·불량률)를 가정하고 숫자 블록을 읽음 */
 function positionalCoordParse(rows){
   const num=v=>isFinite(numClean(v));
@@ -3552,7 +3562,7 @@ function positionalCoordParse(rows){
 }
 /* 업로드 파서: 템플릿(오리진 + 포인트·측정면 X/Y·기준면 X/Y·불량률%) → coord 데이터 */
 function parseCoordRows(rows){
-  rows=(rows||[]).filter(r=>r&&r.some(c=>String(c==null?'':c).trim()!==''));
+  rows=normalizeGrid(rows);   // 빈 행 제거 + 선행 빈 열 시프트 (오프셋 파일 방어)
   const norm=s=>String(s==null?'':s).replace(/\s|\(|\)|%/g,'').toLowerCase();
   const isPt=h=>/포인트|위치|번호|point/.test(h)||h==='no';                     // 포인트 열 표기 변형
   const isRt=h=>/불량[률율]|ng[률율]|불량%|rate|defect/.test(h);                 // 불량률/불량율/NG율/rate…
