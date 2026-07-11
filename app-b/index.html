@@ -57,6 +57,7 @@ input,select{font-family:inherit}
 #tb-right{display:flex;align-items:center;margin-left:auto}
 #admin-badge{margin-left:10px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;vertical-align:middle}
 body:not(.admin) .admin-only{display:none !important}   /* 관리자 모드에서만 노출되는 실험 기능 게이트 */
+body.admin #ribbon .dummy{display:none !important}      /* 관리자 모드: 리본의 더미 기능 전부 숨김 (일반 모드 = 전체 노출, 비교용) */
 .win-btn{width:42px;height:36px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
 .win-btn:hover{background:rgba(255,255,255,.15)}
 .win-btn.close:hover{background:#E81123}
@@ -2230,7 +2231,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783736144113;   // 2026-07-11 11:15 KST
+const BUILD_TS = 1783737149357;   // 2026-07-11 11:32 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
