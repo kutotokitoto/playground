@@ -2240,7 +2240,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783741074569;   // 2026-07-11 12:37 KST
+const BUILD_TS = 1783742070946;   // 2026-07-11 12:54 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2313,10 +2313,47 @@ function showPrintDialog(){
   $('pr-cancel').onclick=()=>d.remove();
   $('pr-go').onclick=()=>{
     const v=d.querySelector('input[name=prsheet]:checked'); d.remove(); if(!v) return;
-    gotoSheet(v.value);
-    toast('🖨️ 인쇄 준비 중…');
-    setTimeout(()=>window.print(), 800);   // 차트 시트 렌더(320ms 로딩) 완료 대기
+    printSheet(v.value);
   };
+}
+/* 인쇄 전용 문서 생성: 라이브 화면 대신 깨끗한 HTML을 조립 (배경색 강제 출력, 고정폭 차트) */
+function buildPrintHTML(name){
+  const co=extractCoord(); if(!co) return null;
+  const st=rateStats(co);
+  let body='';
+  if(name==='측정데이터'){
+    body='<table class="t"><thead><tr>'+['포인트','측정면 X','측정면 Y','기준면 X','기준면 Y','편차','불량률(%)'].map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'
+      +co.pts.map(p=>{ const dev=Math.round(Math.hypot(p.mx-p.rx,p.my-p.ry)*100)/100, bad=!p.miss&&p.rate>=RATE_BAD;
+        return '<tr><td>'+escH(String(p.pos))+'</td><td>'+p.mx+'</td><td>'+p.my+'</td><td>'+p.rx+'</td><td>'+p.ry+'</td><td>'+dev+'</td><td'+(bad?' class="ng"':(p.miss?' class="ms"':''))+'>'+(p.miss?'– (미측정)':p.rate.toFixed(1))+'</td></tr>'; }).join('')
+      +'</tbody></table>';
+  } else if(name==='이미지 정합'){
+    if(calib.img&&calib.af) body=imageOverlayHTML(co,'bubble');
+    else body='<p>정합된 캡처가 없습니다 — 이미지 정합 시트에서 기준 3점을 먼저 맞추세요.</p>';
+  } else {
+    const viz={'측정도':'map','불량률 히트맵':'bubble','연속 히트맵':'cont','불량률 요약':'summary'}[name];
+    body = viz==='summary'? svgRateRank(co,1000)
+         : viz==='map'? svgMeasMap(co,1000,true)
+         : viz==='cont'? svgRateCont(co,1000,true)
+         : svgRateBubble(co,1000,true);
+  }
+  const meta='포인트 '+st.N+'개 · 평균 '+st.avg.toFixed(1)+'% · 최대 '+st.max.toFixed(1)+'% (P'+st.maxPos+') · 불량(≥'+RATE_BAD+'%) '+st.bad+'개'+(st.missN?' · 미측정 '+st.missN+'건':'')+' · 오리진 (X='+co.origin.x+', Y='+co.origin.y+')';
+  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>'+escH(name)+'</title><style>'
+    +'*{-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    +'body{font-family:"Pretendard","Malgun Gothic","Segoe UI",sans-serif;margin:24px;color:#111}'
+    +'h1{font-size:20px;margin:0 0 4px}.meta{font-size:11px;color:#555;margin-bottom:14px}'
+    +'table.t{border-collapse:collapse;font-size:10.5px;width:100%}table.t th,table.t td{border:1px solid #bbb;padding:3px 6px;text-align:center}'
+    +'table.t th{background:#eaf3ec}td.ng{background:#fde3e3;color:#a00;font-weight:700}td.ms{color:#999}'
+    +'svg{display:block;max-width:100%}img{max-width:100%}'
+    +'</style></head><body><h1>'+escH(name)+'</h1><div class="meta">'+escH(meta)+'</div>'+body+'</body></html>';
+}
+function printSheet(name){
+  const html=buildPrintHTML(name);
+  if(!html){ toast('인쇄할 데이터가 없습니다'); return; }
+  const f=document.createElement('iframe');
+  f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+  document.body.appendChild(f);
+  f.contentDocument.open(); f.contentDocument.write(html); f.contentDocument.close();
+  setTimeout(()=>{ try{ f.contentWindow.focus(); f.contentWindow.print(); }finally{ setTimeout(()=>f.remove(), 3000); } }, 300);
 }
 /* 저장 대화상자: 저장할 시트를 체크박스로 선택 → CSV/PNG 다운로드 */
 function downloadCoordCSV(){
