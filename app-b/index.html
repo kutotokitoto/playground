@@ -2232,7 +2232,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783732294548;   // 2026-07-11 10:11 KST
+const BUILD_TS = 1783732509606;   // 2026-07-11 10:15 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2616,6 +2616,7 @@ async function processUpload(file, mode){
         +(missN?' · 미측정 '+missN+'건(0%·회색 표시)':'')
         +(parsed.skipped?' · 좌표 없는 '+parsed.skipped+'행 제외':'')
         +(parsed.truncated?' · 500개 초과분 잘림':'')
+        +(parsed.transposed?' · 가로 배치 감지(전치)':'')
         +(parsed.positional?' · 헤더 미인식 → 열 순서 기반 해석':'')
         +sheetNote; }
     else { sh=genCoordData('측정데이터');
@@ -3560,8 +3561,23 @@ function positionalCoordParse(rows){
   console.info('[업로드 매핑] 헤더 미인식 → 위치 기반 해석: [포인트,측X,측Y,기X,기Y,불량률] 열 순서 가정 · 데이터 '+pts.length+'행');
   return {origin, pts, pitch:Math.max(1e-6,Math.sqrt(area/Math.max(1,pts.length))), truncated:trunc, positional:true, skipped:0};
 }
-/* 업로드 파서: 템플릿(오리진 + 포인트·측정면 X/Y·기준면 X/Y·불량률%) → coord 데이터 */
+/* 전치: 행↔열 뒤집기 (가로 배치 파일 방어) */
+function transposeGrid(rows){
+  rows=rows||[]; let W=0; for(const r of rows) if(r&&r.length>W) W=r.length;
+  const out=[]; for(let c=0;c<W;c++){ const nr=[]; for(let r=0;r<rows.length;r++) nr.push(rows[r]?rows[r][c]:undefined); out.push(nr); }
+  return out;
+}
+/* 업로드 파서(진입점): 원본과 전치본을 경쟁시켜 좋은 쪽 채택 — 키워드 헤더 확정이면 즉시 승리 */
 function parseCoordRows(rows){
+  const score=p=>(!p||p.err)?-1:(p.pts.length+(p.positional?0:1000));   // 키워드 헤더 = +1000 (사실상 확정)
+  const a=parseCoordOnce(rows), sa=score(a);
+  if(sa>=1002) return a;                                                // 키워드 헤더 + 2pt 이상 → 전치 시도 불필요
+  const b=parseCoordOnce(transposeGrid(rows)), sb=score(b);
+  if(sb>sa){ b.transposed=true; console.info('[업로드 매핑] 가로 배치 감지 → 전치하여 해석'); return b; }
+  if(sa>=0&&sb>=0&&Math.abs(sb-sa)<=2) a.ambiguous=true;                // 양방향 점수 근접 → 모호(미리보기 대상)
+  return a;
+}
+function parseCoordOnce(rows){
   rows=normalizeGrid(rows);   // 빈 행 제거 + 선행 빈 열 시프트 (오프셋 파일 방어)
   const norm=s=>String(s==null?'':s).replace(/\s|\(|\)|%/g,'').toLowerCase();
   const isPt=h=>/포인트|위치|번호|point/.test(h)||h==='no';                     // 포인트 열 표기 변형
