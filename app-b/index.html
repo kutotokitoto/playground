@@ -2240,7 +2240,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783742070946;   // 2026-07-11 12:54 KST
+const BUILD_TS = 1783742649743;   // 2026-07-11 13:04 KST
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2338,6 +2338,7 @@ function buildPrintHTML(name){
   }
   const meta='포인트 '+st.N+'개 · 평균 '+st.avg.toFixed(1)+'% · 최대 '+st.max.toFixed(1)+'% (P'+st.maxPos+') · 불량(≥'+RATE_BAD+'%) '+st.bad+'개'+(st.missN?' · 미측정 '+st.missN+'건':'')+' · 오리진 (X='+co.origin.x+', Y='+co.origin.y+')';
   return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>'+escH(name)+'</title><style>'
+    +'@page{size:A4;margin:12mm}'
     +'*{-webkit-print-color-adjust:exact;print-color-adjust:exact}'
     +'body{font-family:"Pretendard","Malgun Gothic","Segoe UI",sans-serif;margin:24px;color:#111}'
     +'h1{font-size:20px;margin:0 0 4px}.meta{font-size:11px;color:#555;margin-bottom:14px}'
@@ -2346,6 +2347,9 @@ function buildPrintHTML(name){
     +'svg{display:block;max-width:100%}img{max-width:100%}'
     +'</style></head><body><h1>'+escH(name)+'</h1><div class="meta">'+escH(meta)+'</div>'+body+'</body></html>';
 }
+document.addEventListener('keydown', e=>{   // Ctrl+P도 전용 인쇄 대화상자로 (화면 그대로 인쇄 방지)
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='p'){ e.preventDefault(); showPrintDialog(); }
+});
 function printSheet(name){
   const html=buildPrintHTML(name);
   if(!html){ toast('인쇄할 데이터가 없습니다'); return; }
