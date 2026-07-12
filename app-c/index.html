@@ -260,7 +260,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783836376979;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783836634333;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -805,9 +805,10 @@ function tourMeasure(c,o){
     y+=th+5*SC+6*SC;
   }
   if(P.buttons||((P.step&&type==='tour-step')&&!S.header)){
-    const bh=Math.round(fsBtn*2.1);
-    el('footer',{y:y+13*SC,h:bh});   // 스펙: 푸터 margin-top 13px
-    y+=13*SC+bh;
+    const onlyLinks=P.buttons&&P.buttons.every(b=>/→\s*$/.test(b.label))&&!(P.step&&type==='tour-step');
+    const bh=Math.round(fsBtn*(onlyLinks?1.25:2.1));   // 텍스트 링크뿐이면 푸터를 낮게
+    el('footer',{y:y+(onlyLinks?9:13)*SC,h:bh});       // 스펙: 푸터 margin-top 13px
+    y+=(onlyLinks?9:13)*SC+bh;
   }
   o._h=Math.max(46*SC, y+padB);
   o._tb={P,T,S,SC,els,ff,surf:'card',fsT,fsB,fsTip,fsPg,fsBtn,padX,innerW};
