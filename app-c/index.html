@@ -230,7 +230,10 @@
           <div id="pal-row"></div></div>
         <div class="fld" id="fld-spot">
           <label class="ck" style="margin-bottom:5px"><input type="checkbox" id="in-spot"> 💡 강조원 — 꼬리 끝만 밝게, 나머지 음영</label>
+          <label style="display:block;font-size:11px;color:#a5acb6;margin:2px 0">크기</label>
           <input type="range" id="in-spotr" min="40" max="240" step="5" title="강조원 크기">
+          <label style="display:block;font-size:11px;color:#a5acb6;margin:2px 0">경계 부드러움 <span style="color:#c3c8d0">← 딱 떨어짐 · 은은하게 →</span></label>
+          <input type="range" id="in-spotf" min="0" max="100" step="5" title="경계가 풀어지는 정도">
         </div>
         <div class="fld"><label>글꼴</label><select id="in-font" style="width:100%;height:30px;border:1px solid var(--line);border-radius:7px;background:#fff"></select></div>
         <div class="fld"><label>글자 크기 <span id="fs-val"></span></label><input type="range" id="in-fs" min="13" max="42" step="1"></div>
@@ -260,7 +263,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783838633628;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783839196562;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1063,7 +1066,8 @@ function drawDim(c){
   dc.globalCompositeOperation='destination-out';
   for(const q of objs){ if(!q.spot) continue;
     const r=q.spotR||80;
-    const g=dc.createRadialGradient(q.tx,q.ty,r*0.55,q.tx,q.ty,r);
+    const f=q.spotF!=null?q.spotF:0.45;   // 경계 부드러움: 0=칼같이, 1=완전히 풀어짐
+    const g=dc.createRadialGradient(q.tx,q.ty,r*(1-Math.max(0.02,f)),q.tx,q.ty,r);
     g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(1,'rgba(0,0,0,0)');
     dc.fillStyle=g; dc.beginPath(); dc.arc(q.tx,q.ty,r,0,7); dc.fill();
   }
@@ -1653,6 +1657,7 @@ function syncInspector(){
   $('fld-spot').style.display=t.noTail?'none':'block';
   $('in-spot').checked=!!o.spot;
   $('in-spotr').value=o.spotR||80; $('in-spotr').disabled=!o.spot;
+  $('in-spotf').value=Math.round((o.spotF!=null?o.spotF:0.45)*100); $('in-spotf').disabled=!o.spot;
   if(isTour){
     const m=String(o.body||'').match(/^preset\s*:\s*(\S+)/m), cur=m?m[1]:'light';
     document.querySelectorAll('#pal-row .pswatch').forEach(s=>s.classList.toggle('on', s.dataset.k===cur));
@@ -1728,10 +1733,14 @@ $('in-body').addEventListener('input', onEdit);
 $('in-font').addEventListener('change', onEdit);
 $('in-fs').addEventListener('input', onEdit);
 $('in-spot').addEventListener('change', e=>{ if(sel<0) return;
-  objs[sel].spot=e.target.checked; $('in-spotr').disabled=!e.target.checked;
+  objs[sel].spot=e.target.checked;
+  $('in-spotr').disabled=!e.target.checked; $('in-spotf').disabled=!e.target.checked;
   render(); pushUndo(); });
 $('in-spotr').addEventListener('input', e=>{ if(sel<0) return;
   objs[sel].spotR=+e.target.value; render();
+  clearTimeout(editT); editT=setTimeout(pushUndo, 600); });
+$('in-spotf').addEventListener('input', e=>{ if(sel<0) return;
+  objs[sel].spotF=+e.target.value/100; render();
   clearTimeout(editT); editT=setTimeout(pushUndo, 600); });
 /* 이모지 팔레트 — 마지막으로 포커스한 필드(또는 캔버스 인라인 편집창)의 커서 위치에 삽입 */
 let lastField=null;
