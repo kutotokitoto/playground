@@ -263,7 +263,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783839196562;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783839454393;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1084,6 +1084,22 @@ function drawObj(c,o){
   o.tx=cx+dx*cs-dy*sn; o.ty=cy+dx*sn+dy*cs;
   try{ t.draw.call(t,c,o); } finally { o.tx=otx; o.ty=oty; c.restore(); }
 }
+/* 꼬리 상대 위치 보존: 카드 크기가 변해도 가장자리 대비 돌출량·비율 유지 */
+function tailRel(o){
+  const h=o._h||60;
+  return { fx:(o.tx-o.x)/Math.max(1,o.w),
+    top:o.ty<o.y ? o.y-o.ty : null,
+    bot:o.ty>o.y+h ? o.ty-(o.y+h) : null,
+    fy:(o.ty-o.y)/Math.max(1,h) };
+}
+function tailApply(o,R){
+  if(!R) return;
+  const h=o._h||60;
+  o.tx=o.x+R.fx*o.w;
+  if(R.bot!=null) o.ty=o.y+h+R.bot;
+  else if(R.top!=null) o.ty=o.y-R.top;
+  else o.ty=o.y+R.fy*h;
+}
 /* 포인터 좌표 → 개체 로컬(역회전) 좌표 */
 function localPt(o,m){
   if(!o.rot) return m;
@@ -1300,7 +1316,8 @@ cv.addEventListener('pointerdown', e=>{
     const lm=localPt(o,m), hr=Math.max(26,28/scale);
     if(Math.hypot(lm.x-(o.x+o.w/2), lm.y-(o.y-hr))<Math.max(10,12/scale)){ drag={mode:'rot',o}; return; }   // 회전 핸들
     const h=hitHandle(o,lm);
-    if(h){ drag={mode:'size',dir:h,o,slx:lm.x,sly:lm.y,sw:o.w,sh:o.hh||o._h,sfs:o.fs}; return; }
+    if(h){ drag={mode:'size',dir:h,o,slx:lm.x,sly:lm.y,sw:o.w,sh:o.hh||o._h,sfs:o.fs,
+      tailR:TPL[o.tpl].noTail?null:tailRel(o)}; return; }
   }
   for(let i=objs.length-1;i>=0;i--){ const o=objs[i];
     const lm=localPt(o,m);
@@ -1380,6 +1397,7 @@ cv.addEventListener('pointermove', e=>{
       o.w=nw;
       if(drag.dir==='se') o.fs=Math.max(11, Math.min(80, Math.round(drag.sfs*nw/Math.max(1,drag.sw))));
     }
+    if(drag.tailR){ measure(ctx,o); tailApply(o,drag.tailR); }   // 리사이즈 중에도 꼬리 돌출 유지
   }
   render();
 });
@@ -1618,7 +1636,11 @@ function startInline(o){
     +'font-family:'+fontOf(o).replace(/"/g,"'")+';font-size:'+Math.max(12,o.fs*scale)+'px;line-height:1.5;padding:8px;'
     +'background:rgba(255,255,255,.97);color:#1c2128;border:2px solid var(--acc);border-radius:9px;resize:none;outline:none;box-shadow:0 6px 20px rgba(0,0,0,.18)';
   document.body.appendChild(ta); ta.focus(); ta.select();
-  ta.addEventListener('input', ()=>{ o[field]=ta.value; syncInspector(); render(); });
+  ta.addEventListener('input', ()=>{
+    const R=TPL[o.tpl].noTail?null:tailRel(o);
+    o[field]=ta.value;
+    if(R){ measure(ctx,o); tailApply(o,R); }
+    syncInspector(); render(); });
   ta.addEventListener('blur', endInline);
   ta.addEventListener('keydown', ev=>{ ev.stopPropagation(); if(ev.key==='Escape') ta.blur(); });
   inlineTa=ta;
@@ -1721,10 +1743,12 @@ let editT=null;
 function onEdit(){
   if(sel<0) return;
   const o=objs[sel];
+  const R=TPL[o.tpl].noTail?null:tailRel(o);   // 크기 변화 전 꼬리 상대 위치
   o.title=$('in-title').value; o.body=$('in-body').value;
   o.font=$('in-font').value;
   o.fs=+$('in-fs').value; $('fs-val').textContent=o.fs+'px';
   if(document.activeElement!==$('md-paste')) $('md-paste').value=objToMd(o);   // 제목/내용 → 마크다운 동기화
+  if(R){ measure(ctx,o); tailApply(o,R); }   // 카드가 자라도 꼬리 돌출 유지
   render();
   clearTimeout(editT); editT=setTimeout(pushUndo, 600);
 }
@@ -1759,6 +1783,7 @@ $('md-paste').addEventListener('input', ()=>{
   if(sel<0) return;
   const o=objs[sel], t=TPL[o.tpl], v=$('md-paste').value;
   if(!v.trim()) return;
+  const R=t.noTail?null:tailRel(o);
   if(t.md||t.tour){ o.body=v; }
   else{   // 일반 말풍선: 제목/내용 분리 + 문자 마커로 위계 표현 (■ 소제목 / ▷ 세부 / · 불릿)
     let title=null; const body=[];
@@ -1777,6 +1802,7 @@ $('md-paste').addEventListener('input', ()=>{
     if(t.noBody && title!==null) o.title=title;
   }
   $('in-title').value=o.title||''; $('in-body').value=o.body||'';
+  if(R){ measure(ctx,o); tailApply(o,R); }
   render();
   clearTimeout(editT); editT=setTimeout(pushUndo, 600);
 });
