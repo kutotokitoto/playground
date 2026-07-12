@@ -276,7 +276,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783845514601;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783846148790;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -751,7 +751,7 @@ function tourStyleOf(st,T){
     mut:hexA(T.softfg,.85), tipBg:T.srf, tipFg:T.softfg, tipLbBg:T.softfg, tipLbFg:T.srf,
     ghost:hexA(T.softfg,.7), dotOff:hexA(T.softfg,.25), kbd:{bg:T.srf,bd:T.bd,fg:T.softfg}}); }
   else if(st==='vivid'){ Object.assign(S,{surf:T.acc, bd:null, lw:0, r:18, shadow:'ghost', txt:'#FFFFFF',
-    mut:hexA('#FFFFFF',.82), bwMul:4, dotOn:'#FFFFFF',
+    mut:hexA('#FFFFFF',.82), bwMul:2, dotOn:'#FFFFFF',
     tipBg:T.srf, tipFg:T.txt, tipLbBg:T.acc, tipLbFg:'#FFFFFF',
     ghost:hexA('#FFFFFF',.85), dotOff:hexA('#FFFFFF',.35), primary:{bg:T.srf,fg:T.acc},
     kbd:{bg:hexA('#FFFFFF',.16),bd:hexA('#FFFFFF',.28),fg:'#FFFFFF'}}); }   // 솔리드 강조 + 큰 각진 화살표 + 유령 카드
@@ -941,10 +941,10 @@ function tourDraw(c,o){
       c.fillText(P.media==='placeholder'?'MEDIA':P.media, o.x+e.w/2, o.y+e.h/2); c.textAlign='left'; c.textBaseline='top';
       c.strokeStyle=T.bd; c.lineWidth=1; c.beginPath(); c.moveTo(o.x,o.y+e.h); c.lineTo(o.x+e.w,o.y+e.h); c.stroke();
     }
-    else if(e.kind==='chrome'){   // 브라우저 창 헤더 (상단 라운드는 clip이 처리)
-      c.fillStyle='#3B3E47'; c.fillRect(o.x,o.y,o.w,e.h);
+    else if(e.kind==='chrome'){   // 브라우저 창 헤더 (상단 라운드는 clip이 처리) — 바 = 팔레트 메인색
+      c.fillStyle=T.acc; c.fillRect(o.x,o.y,o.w,e.h);
       let dxp=o.x+o.w-15*SC; for(let i=0;i<3;i++){ c.beginPath(); c.arc(dxp,o.y+e.h/2,3.1*SC,0,7);
-        c.fillStyle=hexA('#FFFFFF',.5); c.fill(); dxp-=11*SC; }
+        c.fillStyle=hexA('#FFFFFF',.62); c.fill(); dxp-=11*SC; }
     }
     else if(e.kind==='divider'){   // 본문↔팁 점선 구분선
       c.save(); c.strokeStyle=hexA(S.txt,.20); c.lineWidth=1.4; c.setLineDash([2.4*SC,3.6*SC]); c.lineCap='round';
