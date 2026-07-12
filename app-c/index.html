@@ -110,6 +110,9 @@
   .lrow .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .lrow .lz{width:20px;height:20px;border:1px solid var(--line);border-radius:5px;font-size:9px;color:var(--muted);flex-shrink:0}
   .lrow .lz:hover{background:#fff;color:var(--acc)}
+  #emoji-row{display:flex;flex-wrap:wrap;gap:3px}
+  .emj{width:26px;height:26px;font-size:15px;line-height:1;border:1px solid var(--line);border-radius:6px;background:#fff;padding:0}
+  .emj:hover{background:#fdf4ee;border-color:var(--acc)}
 </style>
 </head>
 <body>
@@ -166,6 +169,8 @@
         <div class="fld" id="fld-body"><label>내용</label><textarea id="in-body"></textarea></div>
         <div class="fld"><label>마크다운 붙여넣기 <span style="font-weight:400;color:#a5acb6">— 위계대로 자동 배치</span></label>
           <textarea id="md-paste" style="min-height:76px" placeholder="#첫 제목 줄 → 제목으로 (공백 없어도 됨)&#10;##소제목 · -불릿 · 일반 문장&#10;   → 내용으로 순서대로 들어갑니다&#10;(텍스트 블록을 선택하면 3층위로 조판)"></textarea></div>
+        <div class="fld"><label>이모지 넣기 <span style="font-weight:400;color:#a5acb6">— 커서 위치에 삽입</span></label>
+          <div id="emoji-row"></div></div>
         <div class="fld"><label>글꼴</label><select id="in-font" style="width:100%;height:30px;border:1px solid var(--line);border-radius:7px;background:#fff"></select></div>
         <div class="fld"><label>글자 크기 <span id="fs-val"></span></label><input type="range" id="in-fs" min="13" max="42" step="1"></div>
       </div>
@@ -188,7 +193,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783820469407;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783820743639;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -477,12 +482,13 @@ function mdParse(t){
   }
   return out;
 }
+/* 층위 사다리: h1=큰 제목+구분선, h2=주황 바+들여쓰기, h3=회색 ▸ 마커, 불릿=주황 점 */
 function mdStyle(o,lv){ const fs=o.fs;
-  return lv===1?{fs:Math.round(fs*1.6),w:800,col:'#111827',gap:10,ind:0}
-    :lv===2?{fs:Math.round(fs*1.25),w:700,col:'#1f2937',gap:9,ind:0}
-    :lv===3?{fs:Math.round(fs*1.08),w:700,col:'#374151',gap:7,ind:0}
-    :lv===9?{fs,w:400,col:'#374151',gap:2,ind:18,bullet:1}
-    :{fs,w:400,col:'#4b5563',gap:2,ind:0};
+  return lv===1?{fs:Math.round(fs*1.6),w:800,col:'#111827',gap:12,ind:0,rule:1}
+    :lv===2?{fs:Math.round(fs*1.3),w:700,col:'#1f2937',gap:12,ind:14,bar:1}
+    :lv===3?{fs:Math.round(fs*1.02),w:700,col:'#6b7280',gap:8,ind:18,marker:1}
+    :lv===9?{fs,w:400,col:'#374151',gap:3,ind:22,bullet:1}
+    :{fs,w:400,col:'#4b5563',gap:3,ind:0};
 }
 function mdMeasure(c,o){
   const t=TPL.md, pad=t.pad, ff=fontOf(o), innerW=o.w-pad.l-pad.r;
@@ -491,11 +497,12 @@ function mdMeasure(c,o){
     const s=mdStyle(o,it.lv);
     if(it.txt===''){ h+=o.fs*0.8; continue; }   // 빈 줄 = 문단 간격
     c.font=s.w+' '+s.fs+'px '+ff;
-    let first=true;
-    for(const ln of wrapText(c,it.txt,innerW-s.ind)){
+    let first=true; const lines=wrapText(c,it.txt,innerW-s.ind);
+    for(const ln of lines){
       if(first){ h+=s.gap; first=false; }
       segs.push({txt:ln,y:h,s}); h+=s.fs*1.5;
     }
+    if(s.rule && lines.length){ segs.push({rule:1,y:h+2}); h+=13; }   // h1 아래 구분선
   }
   o._segs=segs; o._titleLines=[]; o._lines=[]; o._gap=0;
   o._h=Math.max(60, h+pad.b);
@@ -510,9 +517,13 @@ TPL.md={ name:'📝 텍스트 블록 (마크다운)', pad:{l:26,r:26,t:18,b:18},
     const ff=fontOf(o), pad=this.pad;
     c.textAlign='left'; c.textBaseline='top';
     for(const g of o._segs){
+      if(g.rule){ c.strokeStyle='#e5e7eb'; c.lineWidth=1;
+        c.beginPath(); c.moveTo(o.x+pad.l,o.y+g.y); c.lineTo(o.x+o.w-pad.r,o.y+g.y); c.stroke(); continue; }
       c.font=g.s.w+' '+g.s.fs+'px '+ff;
       const x=o.x+pad.l+g.s.ind;
-      if(g.s.bullet){ c.fillStyle='#eb6834'; c.fillText('•', x-15, o.y+g.y); }
+      if(g.s.bullet){ c.fillStyle='#eb6834'; c.fillText('•', x-16, o.y+g.y); }
+      if(g.s.bar){ c.fillStyle='#eb6834'; c.fillRect(x-13, o.y+g.y+2, 4, g.s.fs*1.15); }
+      if(g.s.marker){ c.fillStyle='#9ca3af'; c.fillText('▸', x-16, o.y+g.y); }
       c.fillStyle=g.s.col; c.fillText(g.txt, x, o.y+g.y);
     }
   }};
@@ -807,18 +818,33 @@ $('in-title').addEventListener('input', onEdit);
 $('in-body').addEventListener('input', onEdit);
 $('in-font').addEventListener('change', onEdit);
 $('in-fs').addEventListener('input', onEdit);
+/* 이모지 팔레트 — 마지막으로 포커스한 필드(또는 캔버스 인라인 편집창)의 커서 위치에 삽입 */
+let lastField=null;
+['in-title','in-body','md-paste'].forEach(id=>$(id).addEventListener('focus', e=>{ lastField=e.target; }));
+function insertEmoji(ch){
+  const el=inlineTa||lastField||$('in-body');
+  const s=el.selectionStart!=null?el.selectionStart:el.value.length;
+  const e2=el.selectionEnd!=null?el.selectionEnd:s;
+  el.value=el.value.slice(0,s)+ch+el.value.slice(e2);
+  el.selectionStart=el.selectionEnd=s+ch.length;
+  el.focus();
+  el.dispatchEvent(new Event('input'));   // 기존 입력 핸들러로 반영
+}
 /* 마크다운 붙여넣기 → 위계대로 제목/내용 자동 배치 (텍스트 블록엔 원문 그대로) */
 $('md-paste').addEventListener('input', ()=>{
   if(sel<0) return;
   const o=objs[sel], t=TPL[o.tpl], v=$('md-paste').value;
   if(!v.trim()) return;
   if(t.md){ o.body=v; }
-  else{
+  else{   // 일반 말풍선: 제목/내용 분리 + 문자 마커로 위계 표현 (■ 소제목 / ▷ 세부 / · 불릿)
     let title=null; const body=[];
     for(const it of mdParse(v)){
       if(it.txt==='') { body.push(''); continue; }
       if(title===null && (it.lv===1||it.lv===2)){ title=it.txt; continue; }
-      body.push(it.lv===9?('· '+it.txt):it.txt);
+      if(it.lv===1||it.lv===2){ if(body.length&&body[body.length-1]!=='') body.push(''); body.push('■ '+it.txt); }
+      else if(it.lv===3) body.push('▷ '+it.txt);
+      else if(it.lv===9) body.push('· '+it.txt);
+      else body.push(it.txt);
     }
     if(title!==null){ if(t.noTitle) body.unshift(title); else o.title=title; }
     o.body=body.join('\n').replace(/\n{3,}/g,'\n\n').trim();
@@ -968,6 +994,10 @@ document.addEventListener('keydown', e=>{
     const p=PRESETS[+selEl.value]; setCanvas(p[1],p[2]); pushUndo(); toast('캔버스 '+p[1]+'×'+p[2]);
   });
   for(const k in FONTS){ const op=document.createElement('option'); op.value=k; op.textContent=FONTS[k].label; $('in-font').appendChild(op); }
+  ['👉','✅','❌','⚠️','💡','📌','⭐','🎯','🔍','🔒','🖱️','⌨️','📷','✂️','🔧','📊','1️⃣','2️⃣','3️⃣','❗','❓','🚫']
+    .forEach(ch=>{ const b=document.createElement('button'); b.className='emj'; b.textContent=ch; b.title=ch+' 삽입';
+      b.addEventListener('pointerdown', ev=>{ ev.preventDefault(); insertEmoji(ch); });   // 포커스 안 뺏고 삽입
+      $('emoji-row').appendChild(b); });
   setCanvas(1600,1000);
   buildGallery();
   renderPageTabs();
