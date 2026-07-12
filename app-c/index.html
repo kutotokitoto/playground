@@ -276,7 +276,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783844162716;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783844428094;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -906,9 +906,9 @@ function tourDraw(c,o){
   if(S.shadow==='pop'){ const p2=bubblePath(o.x+4*SC,o.y+4*SC,o.w,o._h,RR,{tx:o.tx+4*SC,ty:o.ty+4*SC,bw:8.4*SC});
     c.fillStyle=T.txt; c.fill(p2); c.fillStyle=S.surf; c.fill(p); }
   else if(S.shadow==='none'){
-    if(S.grad){   // 미스트: 강조색 좌상단 엷게 → 우하단 투명 (꼬리 포함 경로 전체)
+    if(S.grad){   // 미스트: 강조색 좌상단 엷게 → 우하단 더 옅게 (완전 투명 아님, 평형에 가깝게)
       const g=c.createLinearGradient(o.x,o.y,o.x+o.w,o.y+o._h);
-      g.addColorStop(0,hexA(T.acc,.30)); g.addColorStop(.55,hexA(T.acc,.11)); g.addColorStop(1,hexA(T.acc,0));
+      g.addColorStop(0,hexA(T.acc,.17)); g.addColorStop(.55,hexA(T.acc,.11)); g.addColorStop(1,hexA(T.acc,.07));
       c.fillStyle=g;
     } else c.fillStyle=S.surf;
     c.fill(p); }
@@ -1031,7 +1031,7 @@ function tourDraw(c,o){
  ['soft','소프트 틴트',
   'style: soft-tint\n\n# 🍃 부드러운 안내\n## 은은한 배경이라 **참고 설명**에 잘 어울려요. 📎\n### 메모: 부가 설명은 이렇게 손글씨로 붙어요 ✍️\n\n[다음 →](next)'],
  ['mist','미스트',
-  'style: mist\n\n# 🌫️ 미스트\n## 강조색이 **좌상단에서 엷게** 물들었다가, 우하단으로 갈수록 투명하게 사라져요. 🫧\n### 팁: 배경이 은은하게 비치는 스타일이에요 ✨\n\n[다음 →](next)'],
+  'style: mist\n\n# 🌫️ 미스트\n## 강조색이 **좌상단에서 엷게** 물들었다가, 우하단으로 갈수록 은은하게 옅어져요. 🫧\n### 팁: 배경이 살짝 비치는 스타일이에요 ✨\n\n[다음 →](next)'],
  ['outline','아웃라인',
   'step: 2/4\nstyle: outline\n\n# ✏️ 아웃라인\n## 선 위주의 **담백한** 스타일이에요. 📐\n### 팁: 점선 인셋이 특징 ✂️\n\n[다음](next)'],
  ['pop','팝',
@@ -1557,7 +1557,7 @@ $('rail-md').addEventListener('click', ()=>{
 '|---|---|---|',
 '| `step` | `2/5` · `auto` · `none` | 진행도 라벨+도트. `auto`면 현재 페이지/전체 쪽수와 자동 연동 |',
 '| `step-label` | `STEP 2/5` | 진행도 표기 커스텀 |',
-'| `style` | `classic` `dark` `accent-header` `soft-tint` `mist` `outline` `pop` | 카드 스타일 7종. `mist`는 강조색이 좌상단에서 엷게 → 우하단 투명 그라데이션 |',
+'| `style` | `classic` `dark` `accent-header` `soft-tint` `mist` `outline` `pop` | 카드 스타일 7종. `mist`는 강조색이 좌상단에서 우하단으로 은은하게 옅어지는 그라데이션 |',
 '| `preset` | `light` `blue` `sky` `cyan` `teal` `emerald` `lime` `yellow` `amber` `rose` `fuchsia` `violet` `slate` `mono` `dark` | 색 팔레트 (구성 불변, 색만) — 속성 패널 스와치와 동일 |',
 '| `type` | `tour-step`(기본) `tooltip` `confirm` `toast` `banner` `chip` `hotspot` `complete` | 카드 형태 변형 |',
 '| `close` | `true` | 우상단 × 표시 (기본은 숨김 — 정지 이미지라 불필요) |',
