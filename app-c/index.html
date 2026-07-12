@@ -263,7 +263,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783839454393;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783839608265;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -943,8 +943,8 @@ function tourDraw(c,o){
       const lp=new Path2D(); lp.roundRect(o.x+e.x+10*SC,lbY,e.lbW,lbH,999);
       c.fillStyle=S.tipLbBg; c.fill(lp);
       c.fillStyle=S.tipLbFg; c.textBaseline='middle'; c.fillText(e.label, o.x+e.x+10*SC+7*SC, lbY+lbH/2+0.5); c.textBaseline='top';
-      const contentH=e.lines.length*e.fs*1.55;
-      drawRuns(c,e.lines,o.x+e.x+e.lbW+20*SC, o.y+e.y+(e.h-contentH)/2+e.fs*0.08, e.fs,ff,e.fs*1.55,S.tipFg,S.tipFg,S.kbd);
+      const contentH=(e.lines.length-1)*e.fs*1.55 + e.fs*1.15;   // 마지막 줄은 글자 높이만 (줄간 여백 제외)
+      drawRuns(c,e.lines,o.x+e.x+e.lbW+20*SC, o.y+e.y+(e.h-contentH)/2, e.fs,ff,e.fs*1.55,S.tipFg,S.tipFg,S.kbd);
     }
     else if(e.kind==='check'){
       c.beginPath(); c.arc(o.x+e.x+e.size/2,o.y+e.y+e.size/2,e.size/2,0,7); c.fillStyle=T.okbg; c.fill();
