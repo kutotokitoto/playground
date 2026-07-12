@@ -44,9 +44,14 @@
   .tpl canvas{width:100%;display:block;border-radius:6px}
   .tpl .nm{font-size:11.5px;font-weight:600;color:#4a515b;margin-top:5px;padding-left:2px}
 
-  /* 중앙: 스테이지 */
-  #stage{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;position:relative}
-  #stage-inner{padding:28px}
+  /* 중앙: 스테이지 — margin:auto로 가운데 정렬 + 확대 시 전방향 스크롤 가능 */
+  #stage{flex:1;overflow:auto;display:flex;position:relative}
+  #stage-inner{margin:auto;padding:28px}
+  body.spacepan #stage{cursor:grab}
+  body.spacepan #stage:active{cursor:grabbing}
+  #view-ctl{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.94);border:1px solid var(--line);
+    border-radius:10px;padding:7px 12px;display:flex;align-items:center;gap:13px;z-index:5;box-shadow:0 3px 12px rgba(20,30,50,.10)}
+  #zoom-lab{min-width:40px;text-align:right;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
   #cv{background:#fff;box-shadow:0 6px 30px rgba(20,30,50,.14);border-radius:2px;display:block;cursor:default}
   #paste-hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(28,33,40,.82);color:#fff;font-size:11.5px;padding:6px 14px;border-radius:999px;pointer-events:none;white-space:nowrap}
 
@@ -127,14 +132,16 @@
   <div class="side-strip" id="strip-l" title="갤러리 펼치기">▸</div>
   <div id="stage"><div id="stage-inner"><canvas id="cv"></canvas></div>
     <div id="paste-hint">💡 스크린샷을 Ctrl+V로 붙여넣으면 배경이 됩니다</div>
+    <div id="view-ctl">
+      <label class="ck"><input type="checkbox" id="ck-guide"> ✛ 중심선</label>
+      <label class="ck"><input type="checkbox" id="ck-grid"> ▦ 그리드</label>
+      <span id="zoom-lab">100%</span>
+      <button class="fold-btn" id="zoom-fit" style="width:auto;padding:0 9px" title="캔버스를 화면에 맞춤">맞춤</button>
+    </div>
   </div>
   <div class="side-strip" id="strip-r" title="속성 패널 펼치기">◂</div>
   <div id="inspector">
     <div class="insp-head"><h2>속성</h2><button class="fold-btn" id="fold-r" title="패널 접기">▸</button></div>
-    <div id="view-sec">
-      <label class="ck"><input type="checkbox" id="ck-guide"> ✛ 중심선</label>
-      <label class="ck"><input type="checkbox" id="ck-grid"> ▦ 그리드</label>
-    </div>
     <div id="insp-empty">
       <div class="empty-note">왼쪽 갤러리에서 말풍선을 골라 추가하세요.<br><br>
       · 드래그로 이동, <b>더블클릭</b>으로 글 바로 수정<br>· <b>주황 점</b>을 끌면 꼬리가 움직입니다<br>· 오른쪽 아래 □로 폭 조절<br>· Delete 삭제 · Ctrl+D 복제 · Ctrl+Z 되돌리기<br>· Alt+드래그 = 스냅 끄기</div>
@@ -168,7 +175,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783819527815;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783819902888;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -262,7 +269,9 @@ function edgePoint(o,tx,ty){   // 본체 테두리에서 꼬리 방향으로 나
    높이는 글 양에 맞춰 자동(_h). */
 const TPL={};
 function measure(c,o){   // 줄바꿈 계산 + 자동 높이 → o._h/_lines/_titleLines
-  const t=TPL[o.tpl], pad=t.pad, innerW=o.w-pad.l-pad.r, ff=fontOf(o);
+  const t=TPL[o.tpl];
+  if(t.md){ mdMeasure(c,o); return; }
+  const pad=t.pad, innerW=o.w-pad.l-pad.r, ff=fontOf(o);
   c.font='700 '+(o.fs+2)+'px '+ff;
   o._titleLines=(t.noTitle||t.skipTitleDraw||!o.title)?[]:wrapText(c,o.title,innerW);
   c.font='400 '+o.fs+'px '+ff;
@@ -442,7 +451,60 @@ TPL.bracket={ name:'블루 툴팁', pad:{l:20,r:40,t:16,b:12}, footH:44, gap:5,
     pillBtn(c,o.x+o.w-15,o.y+o._h-13,'다음',13,'#3b4046','#fff');
   }};
 
-const TPL_ORDER=['classic','tip','step','warn','dark','neon','thought','comic','pill','bracket'];
+/* 11. 마크다운 텍스트 블록 — #/##/### 제목, - 불릿을 위계별로 자동 조판 */
+function mdParse(t){
+  const out=[];
+  for(const raw of String(t).split('\n')){
+    const ln=raw.replace(/\s+$/,'');
+    if(/^###\s/.test(ln)) out.push({lv:3,txt:ln.replace(/^###\s+/,'')});
+    else if(/^##\s/.test(ln)) out.push({lv:2,txt:ln.replace(/^##\s+/,'')});
+    else if(/^#\s/.test(ln)) out.push({lv:1,txt:ln.replace(/^#\s+/,'')});
+    else if(/^[-*]\s/.test(ln)) out.push({lv:9,txt:ln.replace(/^[-*]\s+/,'')});
+    else out.push({lv:0,txt:ln});
+  }
+  return out;
+}
+function mdStyle(o,lv){ const fs=o.fs;
+  return lv===1?{fs:Math.round(fs*1.6),w:800,col:'#111827',gap:10,ind:0}
+    :lv===2?{fs:Math.round(fs*1.25),w:700,col:'#1f2937',gap:9,ind:0}
+    :lv===3?{fs:Math.round(fs*1.08),w:700,col:'#374151',gap:7,ind:0}
+    :lv===9?{fs,w:400,col:'#374151',gap:2,ind:18,bullet:1}
+    :{fs,w:400,col:'#4b5563',gap:2,ind:0};
+}
+function mdMeasure(c,o){
+  const t=TPL.md, pad=t.pad, ff=fontOf(o), innerW=o.w-pad.l-pad.r;
+  const segs=[]; let h=pad.t;
+  for(const it of mdParse(o.body||'')){
+    const s=mdStyle(o,it.lv);
+    if(it.txt===''){ h+=o.fs*0.8; continue; }   // 빈 줄 = 문단 간격
+    c.font=s.w+' '+s.fs+'px '+ff;
+    let first=true;
+    for(const ln of wrapText(c,it.txt,innerW-s.ind)){
+      if(first){ h+=s.gap; first=false; }
+      segs.push({txt:ln,y:h,s}); h+=s.fs*1.5;
+    }
+  }
+  o._segs=segs; o._titleLines=[]; o._lines=[]; o._gap=0;
+  o._h=Math.max(60, h+pad.b);
+}
+TPL.md={ name:'📝 텍스트 블록 (마크다운)', pad:{l:26,r:26,t:18,b:18}, md:1, noTitle:1, noTail:1,
+  def:{w:420,fs:18,title:'',body:'# 사용 방법\n## 1. 데이터 올리기\n- 파일을 캔버스에 끌어다 놓기\n- CSV·xlsx 지원\n## 2. 결과 확인\n그래프 탭에서 확인하세요'},
+  draw(c,o){
+    const p=new Path2D(); p.roundRect(o.x,o.y,o.w,o._h,14);
+    c.save(); c.shadowColor='rgba(20,30,50,.16)'; c.shadowBlur=18; c.shadowOffsetY=6;
+    c.fillStyle='rgba(255,255,255,.96)'; c.fill(p); c.restore();
+    c.lineWidth=1; c.strokeStyle='#e5e7eb'; c.stroke(p);
+    const ff=fontOf(o), pad=this.pad;
+    c.textAlign='left'; c.textBaseline='top';
+    for(const g of o._segs){
+      c.font=g.s.w+' '+g.s.fs+'px '+ff;
+      const x=o.x+pad.l+g.s.ind;
+      if(g.s.bullet){ c.fillStyle='#eb6834'; c.fillText('•', x-15, o.y+g.y); }
+      c.fillStyle=g.s.col; c.fillText(g.txt, x, o.y+g.y);
+    }
+  }};
+
+const TPL_ORDER=['classic','tip','step','warn','dark','neon','thought','comic','pill','bracket','md'];
 
 /* ══════════════ 렌더 ══════════════ */
 function drawScene(c,forExport){
@@ -483,21 +545,54 @@ function drawScene(c,forExport){
     c.strokeRect(o.x-7,o.y-7,o.w+14,o._h+14); c.setLineDash([]);
     c.fillStyle='#fff'; c.strokeStyle='#eb6834'; c.lineWidth=2;
     c.fillRect(o.x+o.w+1,o.y+o._h+1,12,12); c.strokeRect(o.x+o.w+1,o.y+o._h+1,12,12);   // 폭 조절 핸들
-    c.beginPath(); c.arc(o.tx,o.ty,8,0,7); c.fillStyle='#eb6834'; c.fill();
-    c.lineWidth=2.5; c.strokeStyle='#fff'; c.stroke();   // 꼬리 핸들
+    if(!TPL[o.tpl].noTail){
+      c.beginPath(); c.arc(o.tx,o.ty,8,0,7); c.fillStyle='#eb6834'; c.fill();
+      c.lineWidth=2.5; c.strokeStyle='#fff'; c.stroke();   // 꼬리 핸들
+    }
     c.restore();
   }
 }
 function render(){ drawScene(ctx,false); }
 
-/* ══════════════ 배치/확대 ══════════════ */
+/* ══════════════ 배치/확대·축소·패닝 ══════════════ */
+let zoom=1, fitMode=true, pan=null, spaceHeld=false;
+function applyScale(){
+  scale=zoom;
+  cv.style.width=(W*scale)+'px'; cv.style.height=(H*scale)+'px';
+  $('zoom-lab').textContent=Math.round(zoom*100)+'%';
+}
 function fitStage(){
   const st=$('stage'), pad=64;
-  scale=Math.min((st.clientWidth-pad)/W, (st.clientHeight-pad)/H, 1);
-  cv.style.width=(W*scale)+'px'; cv.style.height=(H*scale)+'px';
+  if(fitMode) zoom=Math.min((st.clientWidth-pad)/W, (st.clientHeight-pad)/H, 1);
+  applyScale();
 }
-function setCanvas(w,h){ W=w; H=h; cv.width=W; cv.height=H; fitStage(); render(); }
+function setCanvas(w,h){ W=w; H=h; cv.width=W; cv.height=H; fitMode=true; fitStage(); render(); }
 window.addEventListener('resize', fitStage);
+/* 휠 = 확대/축소 (커서 기준점 유지) */
+$('stage').addEventListener('wheel', e=>{
+  e.preventDefault();
+  const st=$('stage'), r=cv.getBoundingClientRect();
+  const px=(e.clientX-r.left)/scale, py=(e.clientY-r.top)/scale;
+  const old=zoom;
+  zoom=Math.min(4, Math.max(0.15, zoom*(e.deltaY<0?1.12:1/1.12)));
+  fitMode=false; applyScale();
+  st.scrollLeft+=px*(zoom-old); st.scrollTop+=py*(zoom-old);
+},{passive:false});
+$('zoom-fit').addEventListener('click', ()=>{ fitMode=true; fitStage(); });
+/* 휠 버튼 드래그 또는 Space+드래그 = 패닝 */
+$('stage').addEventListener('pointerdown', e=>{
+  if(e.button===1 || (e.button===0&&spaceHeld)){
+    pan={x:e.clientX,y:e.clientY,sl:$('stage').scrollLeft,st:$('stage').scrollTop};
+    $('stage').setPointerCapture(e.pointerId); e.preventDefault();
+  }
+}, true);
+$('stage').addEventListener('pointermove', e=>{
+  if(!pan) return;
+  $('stage').scrollLeft=pan.sl-(e.clientX-pan.x);
+  $('stage').scrollTop=pan.st-(e.clientY-pan.y);
+});
+$('stage').addEventListener('pointerup', ()=>{ pan=null; });
+document.addEventListener('keyup', e=>{ if(e.key===' '){ spaceHeld=false; document.body.classList.remove('spacepan'); } });
 
 /* ══════════════ 갤러리 ══════════════ */
 function buildGallery(){
@@ -513,15 +608,41 @@ function buildGallery(){
     const o={tpl:id, x:20, y:16, w:t.def.w, fs:t.def.fs, font:t.def.font, title:t.def.title, body:t.def.body, tx:120, ty:212};
     if(id==='pill'){ o.x=70; o.y=80; o.tx=300; o.ty=180; }
     if(id==='comic'){ o.y=40; o.x=40; }
+    if(id==='md'){ o.w=336; o.fs=13; }
     measure(c,o); TPL[id].draw.call(TPL[id],c,o);
-    btn.addEventListener('click', ()=>addObj(id));
+    // 드래그 → 캔버스에 놓으면 그 자리에 생성, 짧은 클릭 → 중앙에 생성
+    btn.addEventListener('pointerdown', ev=>{
+      if(ev.button!==0) return;
+      const sx=ev.clientX, sy=ev.clientY; let ghost=null;
+      btn.setPointerCapture(ev.pointerId);
+      const mv=e2=>{
+        if(!ghost && Math.hypot(e2.clientX-sx,e2.clientY-sy)>7){
+          ghost=document.createElement('img'); ghost.src=pc.toDataURL();
+          ghost.style.cssText='position:fixed;z-index:99;width:150px;opacity:.85;pointer-events:none;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25)';
+          document.body.appendChild(ghost);
+        }
+        if(ghost){ ghost.style.left=(e2.clientX-75)+'px'; ghost.style.top=(e2.clientY-44)+'px'; }
+      };
+      const up=e2=>{
+        btn.removeEventListener('pointermove',mv); btn.removeEventListener('pointerup',up);
+        if(ghost){ ghost.remove();
+          const r=cv.getBoundingClientRect();
+          if(e2.clientX>=r.left&&e2.clientX<=r.right&&e2.clientY>=r.top&&e2.clientY<=r.bottom)
+            addObjAt(id,(e2.clientX-r.left)/scale,(e2.clientY-r.top)/scale);
+          else toast('캔버스 위에 놓아야 추가됩니다');
+        } else addObj(id);
+      };
+      btn.addEventListener('pointermove',mv);
+      btn.addEventListener('pointerup',up);
+    });
     g.appendChild(btn);
   }
 }
-function addObj(id){
+function addObj(id){ addObjAt(id, W/2, H/2-20); }
+function addObjAt(id,x,y){
   const t=TPL[id], w=t.def.w||200;
-  const o={tpl:id, x:W/2-w/2, y:H/2-90, w, fs:t.def.fs, font:t.def.font||'pretendard',
-    title:t.def.title, body:t.def.body, tx:W/2-w/2+80, ty:H/2+150};
+  const o={tpl:id, x:x-w/2, y:y-60, w, fs:t.def.fs, font:t.def.font||'pretendard',
+    title:t.def.title, body:t.def.body, tx:x-w/2+80, ty:y+180};
   objs.push(o); sel=objs.length-1;
   pushUndo(); syncInspector(); render();
 }
@@ -539,10 +660,11 @@ function snapAxis(pos,len,targets,tol){
 }
 function pt(e){ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/scale, y:(e.clientY-r.top)/scale}; }
 cv.addEventListener('pointerdown', e=>{
+  if(pan||spaceHeld||e.button!==0) return;   // 패닝 중엔 개체 조작 안 함
   const m=pt(e); cv.setPointerCapture(e.pointerId);
   if(sel>=0 && objs[sel]){
     const o=objs[sel];
-    if(Math.hypot(m.x-o.tx,m.y-o.ty)<16){ drag={mode:'tail',o}; return; }
+    if(!TPL[o.tpl].noTail && Math.hypot(m.x-o.tx,m.y-o.ty)<16){ drag={mode:'tail',o}; return; }
     if(m.x>=o.x+o.w-6&&m.x<=o.x+o.w+20&&m.y>=o.y+o._h-6&&m.y<=o.y+o._h+20){ drag={mode:'size',o,sx:m.x,sw:o.w}; return; }
   }
   for(let i=objs.length-1;i>=0;i--){ const o=objs[i];
@@ -750,6 +872,7 @@ function undo(){
 document.addEventListener('keydown', e=>{
   const ae=document.activeElement;
   if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
+  if(e.key===' '){ spaceHeld=true; document.body.classList.add('spacepan'); e.preventDefault(); return; }
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){ e.preventDefault(); undo(); return; }
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='d'){ e.preventDefault(); $('b-dup').click(); return; }
   if(sel<0) return;
