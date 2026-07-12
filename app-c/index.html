@@ -276,7 +276,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783842194471;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783842325779;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1161,8 +1161,14 @@ function drawScene(c,forExport){
       c.beginPath(); c.moveTo(0,H/2); c.lineTo(W,H/2); c.stroke();
       c.restore(); }
   }
-  if(objs.some(q=>q.spot)) drawDim(c);   // 강조원 음영은 배경 위·말풍선 아래
-  for(const o of objs){ measure(c,o); drawObj(c,o); }
+  if(objs.some(q=>q.spot)){
+    // 강조원: 이미지 개체(=어두워질 화면)를 먼저 그리고 음영, 그 위에 말풍선·도형
+    for(const o of objs){ measure(c,o); if(TPL[o.tpl].img) drawObj(c,o); }
+    drawDim(c);
+    for(const o of objs){ if(!TPL[o.tpl].img) drawObj(c,o); }
+  } else {
+    for(const o of objs){ measure(c,o); drawObj(c,o); }
+  }
   if(!forExport && guides.length){   // 스냅 스마트 가이드
     c.save(); c.strokeStyle='#ff4f9e'; c.lineWidth=1.2; c.setLineDash([6,4]);
     for(const g of guides){ c.beginPath();
