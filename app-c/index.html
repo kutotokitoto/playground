@@ -3,35 +3,590 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>웹앱 C — 준비 중</title>
+<title>마법사 마법사 — 설명서 꾸미기</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23eb6834'/%3E%3Ctext x='16' y='23' font-size='17' font-family='Arial' text-anchor='middle'%3E%F0%9F%AA%84%3C/text%3E%3C/svg%3E">
 <style>
-  :root{ --acc:#eb6834; --bg:#f6f7f9; --card:#fff; --text:#1a1a1a; --muted:#6b7280; --line:#e5e7eb; }
-  @media (prefers-color-scheme: dark){
-    :root{ --bg:#0f1115; --card:#171a21; --text:#e8eaed; --muted:#9aa1ab; --line:#2a2f3a; }
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--text);
-    font-family:"Pretendard","Segoe UI","Malgun Gothic",system-ui,sans-serif;padding:24px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:44px 40px;
-    max-width:440px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.06)}
-  .badge{width:76px;height:76px;border-radius:20px;background:var(--acc);color:#fff;font-weight:800;
-    font-size:38px;display:grid;place-items:center;margin:0 auto 22px;box-shadow:0 8px 24px color-mix(in srgb,var(--acc) 40%,transparent)}
-  h1{font-size:24px;margin-bottom:8px}
-  .status{display:inline-block;font-size:13px;color:var(--muted);border:1px solid var(--line);
-    border-radius:999px;padding:4px 14px;margin:6px 0 20px}
-  p{color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:26px}
-  a.back{display:inline-block;text-decoration:none;color:var(--acc);font-weight:600;font-size:14px;
-    border:1px solid var(--acc);border-radius:10px;padding:10px 18px;transition:.15s}
-  a.back:hover{background:var(--acc);color:#fff}
+  :root{ --acc:#eb6834; --acc-d:#c9531f; --bg:#eef0f3; --panel:#ffffff; --line:#e3e5e9; --text:#1c2128; --muted:#7a828d; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif;font-size:13px;color:var(--text);background:var(--bg);display:flex;flex-direction:column}
+  button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit}
+  input,select,textarea{font-family:inherit;font-size:12.5px}
+
+  /* ── 상단 바 ── */
+  #topbar{height:52px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 16px;flex-shrink:0}
+  #logo{font-size:16px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+  #logo .sub{font-size:11.5px;font-weight:500;color:var(--muted)}
+  .tb-group{display:flex;align-items:center;gap:6px}
+  .tb-label{font-size:11.5px;color:var(--muted)}
+  #canvas-preset{height:30px;border:1px solid var(--line);border-radius:7px;padding:0 8px;background:#fff}
+  .tb-btn{height:32px;padding:0 13px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px}
+  .tb-btn:hover{background:#f6f7f9}
+  .tb-btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+  .tb-btn.primary:hover{background:var(--acc-d)}
+  #tb-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+  #build-ts{font-size:11px;color:var(--muted)}
+
+  /* ── 본문 3단 ── */
+  #main{flex:1;display:flex;min-height:0}
+  /* 왼쪽: 말풍선 갤러리 */
+  #gallery{width:212px;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:12px 12px 24px;flex-shrink:0}
+  #gallery h2{font-size:12px;font-weight:700;color:var(--muted);margin:4px 2px 10px;letter-spacing:.02em}
+  .tpl{width:100%;border:1.5px solid var(--line);border-radius:10px;background:#fafbfc;margin-bottom:10px;padding:8px 8px 6px;text-align:left;transition:border-color .12s, transform .12s}
+  .tpl:hover{border-color:var(--acc);transform:translateY(-1px)}
+  .tpl canvas{width:100%;display:block;border-radius:6px}
+  .tpl .nm{font-size:11.5px;font-weight:600;color:#4a515b;margin-top:5px;padding-left:2px}
+
+  /* 중앙: 스테이지 */
+  #stage{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;position:relative}
+  #stage-inner{padding:28px}
+  #cv{background:#fff;box-shadow:0 6px 30px rgba(20,30,50,.14);border-radius:2px;display:block;cursor:default}
+  #paste-hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(28,33,40,.82);color:#fff;font-size:11.5px;padding:6px 14px;border-radius:999px;pointer-events:none;white-space:nowrap}
+
+  /* 오른쪽: 속성 패널 */
+  #inspector{width:248px;background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:14px;flex-shrink:0}
+  #inspector h2{font-size:12px;font-weight:700;color:var(--muted);margin:2px 2px 10px}
+  .insp-sec{margin-bottom:18px}
+  .fld{margin-bottom:10px}
+  .fld label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px}
+  .fld input[type=text],.fld textarea{width:100%;border:1px solid var(--line);border-radius:7px;padding:7px 9px;resize:vertical}
+  .fld textarea{min-height:64px;line-height:1.5}
+  .fld input[type=range]{width:100%}
+  .btnrow{display:flex;gap:6px;flex-wrap:wrap}
+  .sm-btn{flex:1;min-width:64px;height:30px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:12px;font-weight:600}
+  .sm-btn:hover{background:#f6f7f9}
+  .sm-btn.danger{color:#c92a2a;border-color:#f1c0c0}
+  .sm-btn.danger:hover{background:#fdf1f1}
+  .hint{font-size:11px;color:var(--muted);line-height:1.55;background:#f6f7f9;border-radius:8px;padding:8px 10px}
+  .empty-note{font-size:12px;color:var(--muted);line-height:1.7;padding:6px 2px}
+
+  #toast{position:fixed;left:50%;bottom:56px;transform:translateX(-50%) translateY(20px);background:#23272e;color:#fff;font-size:12.5px;padding:9px 18px;border-radius:9px;opacity:0;transition:all .22s;pointer-events:none;z-index:99;white-space:nowrap}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
-  <main class="card">
-    <div class="badge">C</div>
-    <h1>웹앱 C</h1>
-    <div class="status">🚧 준비 중</div>
-    <p>이 자리에 웹앱 C가 들어올 예정이에요.<br>아직 만들어지지 않았습니다.</p>
-    <a class="back" href="../index.html">← 포털로 돌아가기</a>
-  </main>
+
+<div id="topbar">
+  <div id="logo">🪄 마법사 마법사 <span class="sub">웹앱 설명서 꾸미기 — 말풍선으로 캡처를 완성</span></div>
+  <div class="tb-group">
+    <span class="tb-label">캔버스</span>
+    <select id="canvas-preset"></select>
+  </div>
+  <div class="tb-group">
+    <button class="tb-btn" id="btn-bg">🖼️ 배경 이미지</button>
+    <input type="file" id="bg-file" accept="image/*" style="display:none">
+    <button class="tb-btn" id="btn-bg-clear" title="배경 이미지 제거">✕</button>
+    <span class="tb-label">배경색</span>
+    <input type="color" id="bg-color" value="#f4f6f8" style="width:34px;height:28px;border:1px solid var(--line);border-radius:6px;padding:1px;background:#fff">
+  </div>
+  <div id="tb-right">
+    <span id="build-ts"></span>
+    <button class="tb-btn" id="btn-copy">📋 복사</button>
+    <button class="tb-btn primary" id="btn-save">💾 PNG 저장</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="gallery"><h2>말풍선 갤러리 — 클릭해서 추가</h2></div>
+  <div id="stage"><div id="stage-inner"><canvas id="cv"></canvas></div>
+    <div id="paste-hint">💡 스크린샷을 Ctrl+V로 붙여넣으면 배경이 됩니다</div>
+  </div>
+  <div id="inspector">
+    <div id="insp-empty">
+      <h2>속성</h2>
+      <div class="empty-note">왼쪽 갤러리에서 말풍선을 골라 추가하세요.<br><br>
+      · 드래그로 이동<br>· <b>주황 점</b>을 끌면 꼬리가 움직입니다<br>· 오른쪽 아래 □로 폭 조절<br>· Delete 삭제 · Ctrl+D 복제 · Ctrl+Z 되돌리기</div>
+    </div>
+    <div id="insp-obj" style="display:none">
+      <h2 id="insp-title">말풍선</h2>
+      <div class="insp-sec">
+        <div class="fld" id="fld-title"><label id="lbl-title">제목</label><input type="text" id="in-title"></div>
+        <div class="fld" id="fld-body"><label>내용</label><textarea id="in-body"></textarea></div>
+        <div class="fld"><label>글자 크기 <span id="fs-val"></span></label><input type="range" id="in-fs" min="13" max="42" step="1"></div>
+      </div>
+      <div class="insp-sec btnrow">
+        <button class="sm-btn" id="b-front">⬆ 맨 앞</button>
+        <button class="sm-btn" id="b-back">⬇ 맨 뒤</button>
+        <button class="sm-btn" id="b-dup">⧉ 복제</button>
+        <button class="sm-btn danger" id="b-del">🗑 삭제</button>
+      </div>
+      <div class="hint">주황 점 = 꼬리 끝. 가리킬 곳으로 끌어다 놓으세요. 말풍선 높이는 글 양에 맞춰 자동입니다.</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+const BUILD_TS = 1783815044119;   // 마지막 수정 시각 — 커밋 전 갱신
+const $=id=>document.getElementById(id);
+const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
+let toastT=null;
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2600); }
+
+/* ══════════════ 상태 ══════════════ */
+const PRESETS=[
+  ['1600 × 1000 · 기본',1600,1000],
+  ['1920 × 1080 · FHD',1920,1080],
+  ['1280 × 720 · HD',1280,720],
+  ['1080 × 1080 · 정사각',1080,1080],
+  ['390 × 844 · 모바일',390,844],
+  ['1600 × 500 · 와이드 배너',1600,500],
+];
+let W=1600, H=1000;
+let bgColor='#f4f6f8', bgImg=null;
+let objs=[], sel=-1;
+let scale=1;
+const cv=$('cv'), ctx=cv.getContext('2d');
+
+/* ══════════════ 그리기 유틸 ══════════════ */
+/* 꼬리가 본체 윤곽선에 통합된 말풍선 경로 — 꼬리 끝(tx,ty)이 어느 방향이든 자연스럽게 */
+function bubblePath(x,y,w,h,r,tail){
+  const p=new Path2D();
+  let side=null, bc=0, bw=0, tip=null, curved=false;
+  if(tail){
+    tip={x:tail.tx,y:tail.ty}; curved=!!tail.curve;
+    const over={l:x-tip.x, r:tip.x-(x+w), t:y-tip.y, b:tip.y-(y+h)};
+    let m=6; for(const k in over) if(over[k]>m){ m=over[k]; side=k; }   // 6px 이상 벗어나야 꼬리 표시
+    if(side){
+      bw=Math.min(tail.bw||22, (side==='t'||side==='b'?w:h)/2-r-2);
+      if(bw<7){ side=null; }
+      else if(side==='t'||side==='b') bc=Math.min(Math.max(tip.x, x+r+bw), x+w-r-bw);
+      else bc=Math.min(Math.max(tip.y, y+r+bw), y+h-r-bw);
+    }
+  }
+  const out=(x1,y1,x2,y2)=>{   // base1→tip→base2 (곡선이면 살짝 오목한 귀여운 꼬리)
+    p.lineTo(x1,y1);
+    if(!curved){ p.lineTo(tip.x,tip.y); p.lineTo(x2,y2); return; }
+    p.quadraticCurveTo((x1+tip.x)/2+(x2-x1)*.16, (y1+tip.y)/2+(y2-y1)*.16, tip.x, tip.y);
+    p.quadraticCurveTo((x2+tip.x)/2-(x2-x1)*.16, (y2+tip.y)/2-(y2-y1)*.16, x2, y2);
+  };
+  p.moveTo(x+r,y);
+  if(side==='t') out(bc-bw,y, bc+bw,y);
+  p.lineTo(x+w-r,y); p.arcTo(x+w,y,x+w,y+r,r);
+  if(side==='r') out(x+w,bc-bw, x+w,bc+bw);
+  p.lineTo(x+w,y+h-r); p.arcTo(x+w,y+h,x+w-r,y+h,r);
+  if(side==='b') out(bc+bw,y+h, bc-bw,y+h);
+  p.lineTo(x+r,y+h); p.arcTo(x,y+h,x,y+h-r,r);
+  if(side==='l') out(x,bc+bw, x,bc-bw);
+  p.lineTo(x,y+r); p.arcTo(x,y,x+r,y,r);
+  p.closePath();
+  return p;
+}
+/* 텍스트 줄바꿈 — 공백 단위 + 한글 등 긴 토큰은 글자 단위 */
+function wrapText(c,text,maxW){
+  const lines=[];
+  for(const para of String(text).split('\n')){
+    let line='';
+    for(const word of para.split(' ')){
+      const t=line?line+' '+word:word;
+      if(c.measureText(t).width<=maxW){ line=t; continue; }
+      if(line){ lines.push(line); line=''; }
+      if(c.measureText(word).width<=maxW){ line=word; continue; }
+      let cur='';   // 한 단어가 폭보다 김 → 글자 단위
+      for(const ch of word){ if(c.measureText(cur+ch).width<=maxW){ cur+=ch; } else { lines.push(cur); cur=ch; } }
+      line=cur;
+    }
+    lines.push(line);
+  }
+  return lines;
+}
+function edgePoint(o,tx,ty){   // 본체 테두리에서 꼬리 방향으로 나가는 점(리더선용)
+  const cx=o.x+o.w/2, cy=o.y+o._h/2, dx=tx-cx, dy=ty-cy;
+  const sx=Math.abs(dx)>1e-6?(o.w/2)/Math.abs(dx):1e9, sy=Math.abs(dy)>1e-6?(o._h/2)/Math.abs(dy):1e9;
+  const s=Math.min(sx,sy);
+  return {x:cx+dx*s, y:cy+dy*s};
+}
+
+/* ══════════════ 말풍선 템플릿 10종 ══════════════
+   각 템플릿: pad(안 여백) + 층위(그림자/채움/테두리/악센트/아이콘/텍스트) 구성.
+   높이는 글 양에 맞춰 자동(_h). */
+const TPL={};
+function measure(c,o){   // 줄바꿈 계산 + 자동 높이 → o._h/_lines/_titleLines
+  const t=TPL[o.tpl], pad=t.pad, innerW=o.w-pad.l-pad.r;
+  c.font='700 '+(o.fs+2)+'px '+FONT;
+  o._titleLines=(t.noTitle||t.skipTitleDraw||!o.title)?[]:wrapText(c,o.title,innerW);
+  c.font='400 '+o.fs+'px '+FONT;
+  o._lines=(t.noBody||!o.body)?[]:wrapText(c,o.body,innerW);
+  const th=o._titleLines.length*(o.fs+2)*1.35, bh=o._lines.length*o.fs*1.5;
+  o._gap=(o._titleLines.length&&o._lines.length)?(t.gap!=null?t.gap:8):0;
+  o._h=Math.max(t.minH||52, pad.t+th+o._gap+bh+pad.b);
+  if(t.autoW){ c.font='700 '+o.fs+'px '+FONT;
+    o.w=Math.max(60, c.measureText(o.title||o.body||'').width+pad.l+pad.r);
+    o._h=Math.max(t.minH||40, o.fs*1.4+pad.t+pad.b); }
+}
+function drawContents(c,o,titleCol,bodyCol){
+  const t=TPL[o.tpl], pad=t.pad; let ty=o.y+pad.t;
+  c.textAlign='left'; c.textBaseline='top';
+  if(o._titleLines.length){
+    c.font='700 '+(o.fs+2)+'px '+FONT; c.fillStyle=titleCol;
+    for(const ln of o._titleLines){ c.fillText(ln, o.x+pad.l, ty+2); ty+=(o.fs+2)*1.35; }
+    ty+=o._gap;
+  }
+  if(o._lines.length){
+    c.font='400 '+o.fs+'px '+FONT; c.fillStyle=bodyCol;
+    for(const ln of o._lines){ c.fillText(ln, o.x+pad.l, ty+2); ty+=o.fs*1.5; }
+  }
+}
+/* 1. 클래식 — 흰 바탕, 부드러운 그림자, 곡선 꼬리 */
+TPL.classic={ name:'클래식 라운드', pad:{l:20,r:20,t:16,b:16},
+  def:{w:320,fs:20,title:'여기를 클릭하세요',body:'버튼을 누르면 다음 단계로 넘어갑니다.'},
+  draw(c,o){
+    const p=bubblePath(o.x,o.y,o.w,o._h,14,{tx:o.tx,ty:o.ty,bw:20,curve:1});
+    c.save(); c.shadowColor='rgba(20,30,50,.20)'; c.shadowBlur=16; c.shadowOffsetY=5;
+    c.fillStyle='#ffffff'; c.fill(p); c.restore();
+    c.lineWidth=1.5; c.strokeStyle='#d9dce1'; c.lineJoin='round'; c.stroke(p);
+    drawContents(c,o,'#1c2128','#4a515b');
+  }};
+/* 2. 팁 카드 — TIP 알약 헤더 + 본문, 노랑 톤 */
+TPL.tip={ name:'팁 카드', pad:{l:20,r:20,t:48,b:16}, noTitle:1,
+  def:{w:340,fs:19,title:'',body:'자주 쓰는 기능은 즐겨찾기에 등록해 두면 편해요.'},
+  draw(c,o){
+    const p=bubblePath(o.x,o.y,o.w,o._h,12,{tx:o.tx,ty:o.ty,bw:18,curve:1});
+    c.save(); c.shadowColor='rgba(120,90,0,.18)'; c.shadowBlur=12; c.shadowOffsetY=4;
+    c.fillStyle='#FFFBEB'; c.fill(p); c.restore();
+    c.lineWidth=1.5; c.strokeStyle='#F1D583'; c.stroke(p);
+    const pr=new Path2D(); pr.roundRect(o.x+16,o.y+13,66,24,12);   // TIP 알약
+    c.fillStyle='#F5B301'; c.fill(pr);
+    c.font='800 13px '+FONT; c.fillStyle='#5c4a00'; c.textAlign='left'; c.textBaseline='middle';
+    c.fillText('💡 TIP', o.x+28, o.y+26);
+    drawContents(c,o,'#5c4a00','#6b5a1e');
+  }};
+/* 3. 스텝 배지 — 파란 번호 원이 모서리에 걸침 */
+TPL.step={ name:'스텝 번호', pad:{l:34,r:18,t:18,b:16}, titleLabel:'번호', skipTitleDraw:1,
+  def:{w:300,fs:19,title:'1',body:'먼저 [데이터] 탭에서 파일을 업로드합니다.'},
+  draw(c,o){
+    const p=bubblePath(o.x,o.y,o.w,o._h,12,{tx:o.tx,ty:o.ty,bw:18});
+    c.save(); c.shadowColor='rgba(30,80,180,.18)'; c.shadowBlur=12; c.shadowOffsetY=4;
+    c.fillStyle='#ffffff'; c.fill(p); c.restore();
+    c.lineWidth=1.5; c.strokeStyle='#B9D2F2'; c.stroke(p);
+    c.beginPath(); c.arc(o.x+4,o.y+4,19,0,7);   // 번호 배지 (모서리에 걸침)
+    c.fillStyle='#2a78d6'; c.fill(); c.lineWidth=3; c.strokeStyle='#fff'; c.stroke();
+    c.font='800 17px '+FONT; c.fillStyle='#fff'; c.textAlign='center'; c.textBaseline='middle';
+    c.fillText(String(o.title||'1'), o.x+4, o.y+5);
+    drawContents(c,o,'#33404f','#33404f');
+  }};
+/* 4. 주의 — 앰버 톤, 좌측 악센트 바 + ⚠ */
+TPL.warn={ name:'주의 콜아웃', pad:{l:52,r:18,t:15,b:15}, gap:5,
+  def:{w:340,fs:19,title:'주의',body:'저장하지 않고 나가면 변경 내용이 사라집니다.'},
+  draw(c,o){
+    const p=bubblePath(o.x,o.y,o.w,o._h,10,{tx:o.tx,ty:o.ty,bw:18});
+    c.save(); c.shadowColor='rgba(180,120,0,.16)'; c.shadowBlur=10; c.shadowOffsetY=3;
+    c.fillStyle='#FFF8EC'; c.fill(p); c.restore();
+    c.lineWidth=1.5; c.strokeStyle='#F0C36D'; c.stroke(p);
+    const bar=new Path2D(); bar.roundRect(o.x+10,o.y+10,5,o._h-20,3);   // 악센트 바
+    c.fillStyle='#F5A623'; c.fill(bar);
+    c.font='17px '+FONT; c.textAlign='left'; c.textBaseline='top'; c.fillText('⚠️', o.x+24, o.y+15);
+    drawContents(c,o,'#9a6200','#7a5a12');
+  }};
+/* 5. 다크 툴팁 — 짙은 배경, 흰 글씨, 위쪽 하이라이트 */
+TPL.dark={ name:'다크 툴팁', pad:{l:18,r:18,t:14,b:14}, gap:5,
+  def:{w:300,fs:19,title:'단축키',body:'Ctrl+Z 로 언제든 되돌릴 수 있어요.'},
+  draw(c,o){
+    const p=bubblePath(o.x,o.y,o.w,o._h,11,{tx:o.tx,ty:o.ty,bw:16});
+    c.save(); c.shadowColor='rgba(0,0,0,.35)'; c.shadowBlur=14; c.shadowOffsetY=5;
+    const g=c.createLinearGradient(0,o.y,0,o.y+o._h); g.addColorStop(0,'#2d333c'); g.addColorStop(1,'#1d2127');
+    c.fillStyle=g; c.fill(p); c.restore();
+    c.lineWidth=1; c.strokeStyle='rgba(255,255,255,.14)'; c.stroke(p);
+    drawContents(c,o,'#8ce99a','#e9ecef');
+  }};
+/* 6. 네온 그라디언트 — 흰 바탕 + 초록→파랑 테두리 */
+TPL.neon={ name:'네온 포인트', pad:{l:20,r:20,t:16,b:16}, gap:6,
+  def:{w:320,fs:19,title:'NEW',body:'이번 업데이트에서 새로 생긴 기능입니다.'},
+  draw(c,o){
+    const p=bubblePath(o.x,o.y,o.w,o._h,14,{tx:o.tx,ty:o.ty,bw:20,curve:1});
+    c.save(); c.shadowColor='rgba(18,184,134,.25)'; c.shadowBlur=16; c.shadowOffsetY=4;
+    c.fillStyle='#ffffff'; c.fill(p); c.restore();
+    const g=c.createLinearGradient(o.x,o.y,o.x+o.w,o.y+o._h);
+    g.addColorStop(0,'#12b886'); g.addColorStop(1,'#4dabf7');
+    c.lineWidth=3.5; c.strokeStyle=g; c.lineJoin='round'; c.stroke(p);
+    drawContents(c,o,'#0ca678','#37414d');
+  }};
+/* 7. 생각 풍선 — 몽글몽글 점선 + 점점 작아지는 방울 꼬리 */
+TPL.thought={ name:'생각 풍선', pad:{l:26,r:26,t:18,b:18}, noTitle:1, minH:64,
+  def:{w:300,fs:19,title:'',body:'이 값은 어디서 온 걸까?'},
+  draw(c,o){
+    const r=Math.min(30,o._h/2-2);
+    const p=bubblePath(o.x,o.y,o.w,o._h,r,null);
+    c.save(); c.shadowColor='rgba(90,100,160,.20)'; c.shadowBlur=14; c.shadowOffsetY=4;
+    c.fillStyle='#ffffff'; c.fill(p); c.restore();
+    c.lineWidth=2; c.strokeStyle='#c5cbe3'; c.setLineDash([1,7]); c.lineCap='round'; c.stroke(p);
+    c.setLineDash([]); c.lineCap='butt';
+    const e=edgePoint(o,o.tx,o.ty);
+    [[.35,8],[.62,5.5],[.85,3.5]].forEach(pair=>{   // 방울 3개
+      const bx=e.x+(o.tx-e.x)*pair[0], by=e.y+(o.ty-e.y)*pair[0];
+      c.beginPath(); c.arc(bx,by,pair[1],0,7); c.fillStyle='#fff'; c.fill();
+      c.lineWidth=1.5; c.strokeStyle='#c5cbe3'; c.stroke();
+    });
+    drawContents(c,o,'#333','#4d566b');
+  }};
+/* 8. 코믹 스티커 — 굵은 윤곽 + 어긋난 단색 그림자 */
+TPL.comic={ name:'코믹 스티커', pad:{l:20,r:20,t:15,b:15}, noTitle:1,
+  def:{w:280,fs:20,title:'',body:'완전 쉬움!'},
+  draw(c,o){
+    const mk=(dx,dy)=>bubblePath(o.x+dx,o.y+dy,o.w,o._h,10,{tx:o.tx+dx,ty:o.ty+dy,bw:18});
+    c.fillStyle='#141a21'; c.fill(mk(6,7));           // 어긋난 하드 섀도
+    const p=mk(0,0);
+    c.fillStyle='#FFE24A'; c.fill(p);
+    c.lineWidth=3; c.strokeStyle='#141a21'; c.lineJoin='round'; c.stroke(p);
+    drawContents(c,o,'#141a21','#141a21');
+  }};
+/* 9. 미니 라벨 — 캡슐 + 리더선/점 (도면 주석 느낌) */
+TPL.pill={ name:'미니 라벨 + 리더선', pad:{l:18,r:18,t:9,b:9}, noBody:1, autoW:1, minH:38, skipTitleDraw:1, titleLabel:'라벨',
+  def:{w:0,fs:17,title:'저장 버튼',body:''},
+  draw(c,o){
+    const e=edgePoint(o,o.tx,o.ty);
+    c.beginPath(); c.moveTo(e.x,e.y); c.lineTo(o.tx,o.ty);   // 리더선
+    c.lineWidth=1.8; c.strokeStyle='#1e2a3a'; c.stroke();
+    c.beginPath(); c.arc(o.tx,o.ty,5,0,7); c.fillStyle='#eb6834'; c.fill();
+    c.lineWidth=2; c.strokeStyle='#fff'; c.stroke();
+    const p=new Path2D(); p.roundRect(o.x,o.y,o.w,o._h,o._h/2);
+    c.save(); c.shadowColor='rgba(20,30,50,.25)'; c.shadowBlur=10; c.shadowOffsetY=3;
+    c.fillStyle='#1e2a3a'; c.fill(p); c.restore();
+    c.font='700 '+o.fs+'px '+FONT; c.fillStyle='#fff'; c.textAlign='left'; c.textBaseline='middle';
+    c.fillText(o.title||'', o.x+18, o.y+o._h/2+1);
+  }};
+/* 10. 브라켓 인용 — 왼쪽 꺾쇠 + 화살표 리더 */
+TPL.bracket={ name:'브라켓 콜아웃', pad:{l:36,r:20,t:14,b:14}, gap:5,
+  def:{w:330,fs:19,title:'참고',body:'관리자 모드에서만 보이는 화면입니다.'},
+  draw(c,o){
+    const e=edgePoint(o,o.tx,o.ty);
+    c.beginPath(); c.moveTo(e.x,e.y); c.lineTo(o.tx,o.ty); c.lineWidth=2; c.strokeStyle='#405264'; c.stroke();
+    const a=Math.atan2(o.ty-e.y,o.tx-e.x);   // 화살촉
+    c.beginPath(); c.moveTo(o.tx,o.ty);
+    c.lineTo(o.tx-11*Math.cos(a-.42), o.ty-11*Math.sin(a-.42));
+    c.lineTo(o.tx-11*Math.cos(a+.42), o.ty-11*Math.sin(a+.42));
+    c.closePath(); c.fillStyle='#405264'; c.fill();
+    const p=new Path2D(); p.roundRect(o.x,o.y,o.w,o._h,8);
+    c.save(); c.shadowColor='rgba(30,42,58,.14)'; c.shadowBlur=10; c.shadowOffsetY=3;
+    c.fillStyle='rgba(255,255,255,.95)'; c.fill(p); c.restore();
+    c.lineWidth=1; c.strokeStyle='#cdd5dd'; c.stroke(p);
+    c.lineWidth=4; c.strokeStyle='#405264'; c.lineCap='round';   // 왼쪽 꺾쇠 「
+    c.beginPath(); c.moveTo(o.x+16,o.y+11); c.lineTo(o.x+16,o.y+o._h-11); c.stroke();
+    c.beginPath(); c.moveTo(o.x+16,o.y+11); c.lineTo(o.x+27,o.y+11); c.stroke();
+    c.beginPath(); c.moveTo(o.x+16,o.y+o._h-11); c.lineTo(o.x+27,o.y+o._h-11); c.stroke();
+    c.lineCap='butt';
+    drawContents(c,o,'#1e2a3a','#44505c');
+  }};
+
+const TPL_ORDER=['classic','tip','step','warn','dark','neon','thought','comic','pill','bracket'];
+
+/* ══════════════ 렌더 ══════════════ */
+function drawScene(c,forExport){
+  c.clearRect(0,0,W,H);
+  c.fillStyle=bgColor; c.fillRect(0,0,W,H);
+  if(bgImg){   // 캔버스에 맞춰 contain 배치
+    const s=Math.min(W/bgImg.width, H/bgImg.height);
+    const iw=bgImg.width*s, ih=bgImg.height*s;
+    c.drawImage(bgImg,(W-iw)/2,(H-ih)/2,iw,ih);
+  }
+  for(const o of objs){ measure(c,o); TPL[o.tpl].draw.call(TPL[o.tpl],c,o); }
+  if(!forExport && !bgImg && !objs.length){
+    c.fillStyle='#b9bfc8'; c.font='500 26px '+FONT; c.textAlign='center'; c.textBaseline='middle';
+    c.fillText('스크린샷을 붙여넣고 (Ctrl+V), 왼쪽에서 말풍선을 골라보세요', W/2, H/2); c.textAlign='left';
+  }
+  if(!forExport && sel>=0 && objs[sel]){   // 선택 UI
+    const o=objs[sel];
+    c.save(); c.setLineDash([6,4]); c.lineWidth=1.5; c.strokeStyle='#eb6834';
+    c.strokeRect(o.x-7,o.y-7,o.w+14,o._h+14); c.setLineDash([]);
+    c.fillStyle='#fff'; c.strokeStyle='#eb6834'; c.lineWidth=2;
+    c.fillRect(o.x+o.w+1,o.y+o._h+1,12,12); c.strokeRect(o.x+o.w+1,o.y+o._h+1,12,12);   // 폭 조절 핸들
+    c.beginPath(); c.arc(o.tx,o.ty,8,0,7); c.fillStyle='#eb6834'; c.fill();
+    c.lineWidth=2.5; c.strokeStyle='#fff'; c.stroke();   // 꼬리 핸들
+    c.restore();
+  }
+}
+function render(){ drawScene(ctx,false); }
+
+/* ══════════════ 배치/확대 ══════════════ */
+function fitStage(){
+  const st=$('stage'), pad=64;
+  scale=Math.min((st.clientWidth-pad)/W, (st.clientHeight-pad)/H, 1);
+  cv.style.width=(W*scale)+'px'; cv.style.height=(H*scale)+'px';
+}
+function setCanvas(w,h){ W=w; H=h; cv.width=W; cv.height=H; fitStage(); render(); }
+window.addEventListener('resize', fitStage);
+
+/* ══════════════ 갤러리 ══════════════ */
+function buildGallery(){
+  const g=$('gallery');
+  for(const id of TPL_ORDER){
+    const t=TPL[id];
+    const btn=document.createElement('button'); btn.className='tpl';
+    const pc=document.createElement('canvas'); pc.width=376; pc.height=190;
+    btn.appendChild(pc);
+    const nm=document.createElement('div'); nm.className='nm'; nm.textContent=t.name; btn.appendChild(nm);
+    const c=pc.getContext('2d');
+    c.fillStyle='#f1f3f5'; c.fillRect(0,0,376,190);
+    const o={tpl:id, x:34, y:24, w:t.def.w, fs:t.def.fs, title:t.def.title, body:t.def.body, tx:120, ty:180};
+    if(id==='pill'){ o.x=70; o.y=48; o.tx=300; o.ty=156; }
+    if(id==='bracket'){ o.y=20; o.tx=346; o.ty=170; }
+    measure(c,o); TPL[id].draw.call(TPL[id],c,o);
+    btn.addEventListener('click', ()=>addObj(id));
+    g.appendChild(btn);
+  }
+}
+function addObj(id){
+  const t=TPL[id], w=t.def.w||200;
+  const o={tpl:id, x:W/2-w/2, y:H/2-90, w, fs:t.def.fs,
+    title:t.def.title, body:t.def.body, tx:W/2-w/2+80, ty:H/2+150};
+  objs.push(o); sel=objs.length-1;
+  pushUndo(); syncInspector(); render();
+}
+
+/* ══════════════ 선택/드래그 ══════════════ */
+let drag=null;
+function pt(e){ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/scale, y:(e.clientY-r.top)/scale}; }
+cv.addEventListener('pointerdown', e=>{
+  const m=pt(e); cv.setPointerCapture(e.pointerId);
+  if(sel>=0 && objs[sel]){
+    const o=objs[sel];
+    if(Math.hypot(m.x-o.tx,m.y-o.ty)<16){ drag={mode:'tail',o}; return; }
+    if(m.x>=o.x+o.w-6&&m.x<=o.x+o.w+20&&m.y>=o.y+o._h-6&&m.y<=o.y+o._h+20){ drag={mode:'size',o,sx:m.x,sw:o.w}; return; }
+  }
+  for(let i=objs.length-1;i>=0;i--){ const o=objs[i];
+    if(m.x>=o.x&&m.x<=o.x+o.w&&m.y>=o.y&&m.y<=o.y+o._h){
+      sel=i; drag={mode:'move',o,dx:m.x-o.x,dy:m.y-o.y,tdx:m.x-o.tx,tdy:m.y-o.ty};
+      syncInspector(); render(); return; }
+  }
+  sel=-1; syncInspector(); render();
+});
+cv.addEventListener('pointermove', e=>{
+  if(!drag) return;
+  const m=pt(e), o=drag.o;
+  if(drag.mode==='move'){ o.x=m.x-drag.dx; o.y=m.y-drag.dy; o.tx=m.x-drag.tdx; o.ty=m.y-drag.tdy; }
+  else if(drag.mode==='tail'){ o.tx=m.x; o.ty=m.y; }
+  else if(drag.mode==='size'){ o.w=Math.max(140, drag.sw+(m.x-drag.sx)); }
+  render();
+});
+cv.addEventListener('pointerup', ()=>{ if(drag){ drag=null; pushUndo(); } });
+
+/* ══════════════ 속성 패널 ══════════════ */
+function syncInspector(){
+  const has=sel>=0&&!!objs[sel];
+  $('insp-empty').style.display=has?'none':'block';
+  $('insp-obj').style.display=has?'block':'none';
+  if(!has) return;
+  const o=objs[sel], t=TPL[o.tpl];
+  $('insp-title').textContent=t.name;
+  $('fld-title').style.display=t.noTitle?'none':'block';
+  $('lbl-title').textContent=t.titleLabel||'제목';
+  $('fld-body').style.display=t.noBody?'none':'block';
+  $('in-title').value=o.title||'';
+  $('in-body').value=o.body||'';
+  $('in-fs').value=o.fs; $('fs-val').textContent=o.fs+'px';
+}
+let editT=null;
+function onEdit(){
+  if(sel<0) return;
+  const o=objs[sel];
+  o.title=$('in-title').value; o.body=$('in-body').value;
+  o.fs=+$('in-fs').value; $('fs-val').textContent=o.fs+'px';
+  render();
+  clearTimeout(editT); editT=setTimeout(pushUndo, 600);
+}
+$('in-title').addEventListener('input', onEdit);
+$('in-body').addEventListener('input', onEdit);
+$('in-fs').addEventListener('input', onEdit);
+$('b-del').addEventListener('click', ()=>{ if(sel<0)return; objs.splice(sel,1); sel=-1; pushUndo(); syncInspector(); render(); });
+$('b-dup').addEventListener('click', ()=>{ if(sel<0)return; const o=JSON.parse(JSON.stringify(objs[sel]));
+  o.x+=28; o.y+=28; o.tx+=28; o.ty+=28; objs.push(o); sel=objs.length-1; pushUndo(); syncInspector(); render(); });
+$('b-front').addEventListener('click', ()=>{ if(sel<0)return; const o=objs.splice(sel,1)[0]; objs.push(o); sel=objs.length-1; pushUndo(); render(); });
+$('b-back').addEventListener('click', ()=>{ if(sel<0)return; const o=objs.splice(sel,1)[0]; objs.unshift(o); sel=0; pushUndo(); render(); });
+
+/* ══════════════ 배경 ══════════════ */
+$('bg-color').addEventListener('input', e=>{ bgColor=e.target.value; render(); });
+$('btn-bg').addEventListener('click', ()=>$('bg-file').click());
+$('bg-file').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) loadBg(f); e.target.value=''; });
+$('btn-bg-clear').addEventListener('click', ()=>{ bgImg=null; render(); toast('배경 이미지를 제거했습니다'); });
+function loadBg(file){
+  const rd=new FileReader();
+  rd.onload=()=>{ const im=new Image(); im.onload=()=>{ bgImg=im; render(); toast('🖼️ 배경 이미지 적용 ('+im.width+'×'+im.height+')'); }; im.src=rd.result; };
+  rd.readAsDataURL(file);
+}
+document.addEventListener('paste', e=>{
+  const items=(e.clipboardData&&e.clipboardData.items)||[];
+  for(const it of items){
+    if(it.type.indexOf('image')===0){ loadBg(it.getAsFile()); e.preventDefault(); return; }
+  }
+});
+
+/* ══════════════ 내보내기 ══════════════ */
+function exportCanvas(){
+  const oc=document.createElement('canvas'); oc.width=W; oc.height=H;
+  drawScene(oc.getContext('2d'),true);
+  return oc;
+}
+$('btn-save').addEventListener('click', ()=>{
+  exportCanvas().toBlob(b=>{
+    const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+    a.download='마법사마법사_'+W+'x'+H+'.png';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    toast('💾 PNG 저장됨 ('+W+'×'+H+')');
+  },'image/png');
+});
+$('btn-copy').addEventListener('click', async ()=>{
+  try{
+    const blob=await new Promise(r=>exportCanvas().toBlob(r,'image/png'));
+    await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+    toast('📋 클립보드에 복사됨 — 문서에 바로 붙여넣으세요');
+  }catch(e){ toast('복사 미지원 브라우저 — PNG 저장을 이용하세요'); }
+});
+
+/* ══════════════ 실행 취소 / 단축키 ══════════════ */
+let undoStack=[], undoIdx=-1;
+function pushUndo(){
+  const s=JSON.stringify({objs,bgColor,W,H});
+  if(undoStack[undoIdx]===s) return;
+  undoStack=undoStack.slice(0,undoIdx+1); undoStack.push(s);
+  if(undoStack.length>60) undoStack.shift();
+  undoIdx=undoStack.length-1;
+}
+function undo(){
+  if(undoIdx<=0) return;
+  undoIdx--;
+  const s=JSON.parse(undoStack[undoIdx]);
+  objs=s.objs; bgColor=s.bgColor; $('bg-color').value=bgColor;
+  if(s.W!==W||s.H!==H) setCanvas(s.W,s.H);
+  sel=-1; syncInspector(); render();
+}
+document.addEventListener('keydown', e=>{
+  const ae=document.activeElement;
+  if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){ e.preventDefault(); undo(); return; }
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='d'){ e.preventDefault(); $('b-dup').click(); return; }
+  if(sel<0) return;
+  const o=objs[sel], step=e.shiftKey?10:2;
+  if(e.key==='Delete'||e.key==='Backspace'){ e.preventDefault(); $('b-del').click(); }
+  else if(e.key==='ArrowLeft'){ o.x-=step; o.tx-=step; render(); }
+  else if(e.key==='ArrowRight'){ o.x+=step; o.tx+=step; render(); }
+  else if(e.key==='ArrowUp'){ o.y-=step; o.ty-=step; render(); }
+  else if(e.key==='ArrowDown'){ o.y+=step; o.ty+=step; render(); }
+});
+
+/* ══════════════ 프리셋/초기화 ══════════════ */
+(function init(){
+  const selEl=$('canvas-preset');
+  PRESETS.forEach((p,i)=>{ const op=document.createElement('option'); op.value=i; op.textContent=p[0]; selEl.appendChild(op); });
+  const cu=document.createElement('option'); cu.value='custom'; cu.textContent='직접 입력…'; selEl.appendChild(cu);
+  selEl.addEventListener('change', ()=>{
+    if(selEl.value==='custom'){
+      const v=prompt('캔버스 크기 (예: 1400x900)', W+'x'+H);
+      const m=v&&v.match(/(\d+)\s*[x×,\s]\s*(\d+)/i);
+      if(m){ setCanvas(+m[1],+m[2]); pushUndo(); toast('캔버스 '+m[1]+'×'+m[2]); }
+      else{ const i=PRESETS.findIndex(p=>p[1]===W&&p[2]===H); selEl.value=i>=0?i:0; }
+      return;
+    }
+    const p=PRESETS[+selEl.value]; setCanvas(p[1],p[2]); pushUndo(); toast('캔버스 '+p[1]+'×'+p[2]);
+  });
+  setCanvas(1600,1000);
+  buildGallery();
+  pushUndo();
+  const mins=Math.max(1,Math.round((Date.now()-BUILD_TS)/60000));
+  $('build-ts').textContent=mins<60?mins+'분 전 수정':Math.round(mins/60)+'시간 전 수정';
+})();
+</script>
 </body>
 </html>
