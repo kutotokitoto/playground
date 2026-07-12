@@ -260,7 +260,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783837221231;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783837344858;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -822,7 +822,7 @@ function tourDraw(c,o){
     c.save(); c.shadowColor=hexA('#18181B',.05); c.shadowBlur=6*SC; c.shadowOffsetY=2*SC; c.fillStyle=S.surf; c.fill(p); c.restore(); };
   // ── 소형 타입 표면 ──
   if(B.surf==='tooltip'){
-    const p=bubblePath(o.x,o.y,o.w,o._h,10.5*SC,{tx:o.tx,ty:o.ty,bw:6*SC});
+    const p=bubblePath(o.x,o.y,o.w,o._h,10.5*SC,{tx:o.tx,ty:o.ty,bw:7.2*SC});
     c.save(); c.shadowColor='rgba(0,0,0,.28)'; c.shadowBlur=14*SC; c.shadowOffsetY=4*SC; c.fillStyle=T.tt; c.fill(p); c.restore();
     drawRuns(c,B.lines,o.x+padX*0.7,o.y+7*SC,B.fsB,ff,B.fsB*1.5,T.ttfg,T.ttfg,{bg:hexA('#F7F7F8',.12),bd:hexA('#F7F7F8',.22),fg:T.ttfg});
     return;
@@ -864,8 +864,8 @@ function tourDraw(c,o){
   }
   // ── 카드형 표면 (꼬리 통합 경로, 라운드 = 스펙 r × 1.5) ──
   const RR=S.r*1.5*SC;
-  const p=bubblePath(o.x,o.y,o.w,o._h,RR,{tx:o.tx,ty:o.ty,bw:7*SC});
-  if(S.shadow==='pop'){ const p2=bubblePath(o.x+4*SC,o.y+4*SC,o.w,o._h,RR,{tx:o.tx+4*SC,ty:o.ty+4*SC,bw:7*SC});
+  const p=bubblePath(o.x,o.y,o.w,o._h,RR,{tx:o.tx,ty:o.ty,bw:8.4*SC});
+  if(S.shadow==='pop'){ const p2=bubblePath(o.x+4*SC,o.y+4*SC,o.w,o._h,RR,{tx:o.tx+4*SC,ty:o.ty+4*SC,bw:8.4*SC});
     c.fillStyle=T.txt; c.fill(p2); c.fillStyle=S.surf; c.fill(p); }
   else if(S.shadow==='none'){ c.fillStyle=S.surf; c.fill(p); }
   else shStd(p);
@@ -1179,7 +1179,7 @@ function buildTpls(ids, containerId){
     if(id==='comic'){ o.y=40; o.x=40; }
     if(TPL[id].tour){ o.w=316; o.fs=13; o.y=12; }
     measure(c,o);
-    if(!t.noTail && id!=='pill'){ o.tx=o.x+Math.min(80, o.w*0.3); o.ty=Math.min(o.y+o._h+32, 216); }   // 썸네일도 균일 돌출
+    if(!t.noTail && id!=='pill'){ o.tx=o.x+Math.min(80, o.w*0.3); o.ty=Math.min(o.y+o._h+22, 216); }   // 썸네일도 균일 돌출
     TPL[id].draw.call(TPL[id],c,o);
     // 드래그 → 캔버스에 놓으면 그 자리에 생성, 짧은 클릭 → 중앙에 생성
     btn.addEventListener('pointerdown', ev=>{
@@ -1217,7 +1217,7 @@ function addObjAt(id,x,y){
   objs.push(o); sel=objs.length-1;
   measure(ctx,o);   // 실제 높이 산출 후 꼬리를 "바닥에서 균일 돌출량"으로
   if(id==='arrow'){ o.tx=x+150; o.ty=y-120; }   // 화살표는 우상향 기본
-  else if(!t.noTail){ o.tx=o.x+Math.min(90, o.w*0.3); o.ty=o.y+o._h+54; }
+  else if(!t.noTail){ o.tx=o.x+Math.min(90, o.w*0.3); o.ty=o.y+o._h+36; }   // 돌출 = 기존의 2/3
   pushUndo(); syncInspector(); render();
 }
 
