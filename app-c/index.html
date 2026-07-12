@@ -260,7 +260,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783837344858;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783837944730;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -648,14 +648,18 @@ function tourParse(md){
     else { const m=meta.step.match(/(\d+)\s*\/\s*(\d+)/);
       if(m) step={n:+m[1],m:+m[2],label:meta['step-label']||(m[1]+' / '+m[2])}; } }
   return {meta,title,paras,tips,buttons,step, type:meta.type||'tour-step', style:meta.style||'classic',
-    close:meta.close!=='false', media:meta.media||null, preset:meta.preset||'light'};
+    close:meta.close==='true', media:meta.media||null, preset:meta.preset||'light'};   // ×는 기본 숨김
 }
+const HL_COLORS={'노랑':'#FFE977','민트':'#A8F0CB','분홍':'#FBC5DA','파랑':'#B7E3FC','주황':'#FFD9A8'};
 function inlineRuns(t){
-  const runs=[]; let rest=String(t); const re=/(\*\*([^*]+)\*\*)|(`([^`]+)`)/;
+  const runs=[]; let rest=String(t);
+  const re=/(\*\*([^*]+)\*\*)|(`([^`]+)`)|(==(?:([^=:\s]{1,6}):)?([^=]+)==)/;
   while(rest){ const m=re.exec(rest);
     if(!m){ runs.push({t:rest,k:'n'}); break; }
     if(m.index) runs.push({t:rest.slice(0,m.index),k:'n'});
-    if(m[2]!=null) runs.push({t:m[2],k:'b'}); else runs.push({t:m[4],k:'kbd'});
+    if(m[2]!=null) runs.push({t:m[2],k:'b'});
+    else if(m[4]!=null) runs.push({t:m[4],k:'kbd'});
+    else runs.push({t:m[7],k:'hl',hc:HL_COLORS[m[6]]||'#FFE977'});   // ==형광펜== / ==민트:텍스트==
     rest=rest.slice(m.index+m[0].length); }
   return runs;
 }
@@ -669,7 +673,7 @@ function layoutRuns(c,runs,maxW,fs,ff){
     parts.forEach((w,i)=>{ if(w==='') return;
       // 앞 run이 공백 없이 끝났고 이 run도 공백 없이 시작 → 붙여 쓰기 ("**강조**에" 조사 처리)
       const glue=i===0 && r.t.charAt(0)!==' ' && words.length>0 && words[words.length-1]._open;
-      words.push({t:w,k:r.k,glue}); });
+      words.push({t:w,k:r.k,hc:r.hc,glue}); });
     if(words.length) words[words.length-1]._open=r.t.charAt(r.t.length-1)!==' ';
   }
   const wOf=w=>{ if(w.k==='kbd'){ c.font=KF; return c.measureText(w.t).width+fs*0.85; }
@@ -688,13 +692,25 @@ function drawRuns(c,lines,x0,y0,fs,ff,lh,nCol,bCol,kbd){
   let y=y0;
   c.textAlign='left'; c.textBaseline='top';
   for(const line of lines){
+    let i=0;   // 형광펜: 같은 색 연속 단어를 한 덩어리 밴드로 (띄어쓰기 구간도 이어지게)
+    while(i<line.length){
+      const w=line[i];
+      if(w.k==='hl'){
+        let j=i; while(j+1<line.length && line[j+1].k==='hl' && line[j+1].hc===w.hc) j++;
+        const x1=x0+w.x-3, x2=x0+line[j].x+line[j].w+3;
+        const hp=new Path2D(); hp.roundRect(x1, y-fs*0.02, x2-x1, fs*1.22, 3);
+        c.fillStyle=w.hc; c.fill(hp);
+        i=j+1;
+      } else i++;
+    }
     for(const w of line){
       if(w.k==='kbd'){
         const bh=fs*1.32, p=new Path2D(); p.roundRect(x0+w.x,y-fs*0.1,w.w,bh,fs*0.33);
         c.fillStyle=kbd.bg; c.fill(p); c.lineWidth=1; c.strokeStyle=kbd.bd; c.stroke(p);
         c.font=KF; c.fillStyle=kbd.fg; c.fillText(w.t, x0+w.x+fs*0.42, y+fs*0.12);
       } else {
-        c.font=(w.k==='b'?'600 ':'400 ')+fs+'px '+ff; c.fillStyle=w.k==='b'?bCol:nCol;
+        c.font=(w.k==='b'?'600 ':'400 ')+fs+'px '+ff;
+        c.fillStyle=w.k==='b'?bCol:(w.k==='hl'?'#232629':nCol);   // 형광펜 위 글자는 항상 진하게
         c.fillText(w.t, x0+w.x, y);
       }
     }
@@ -739,7 +755,7 @@ function tourMeasure(c,o){
   }
   if(P.type==='banner'){ S.surf=T.warnbg; S.bd=hexA('#935F0C',.25); S.shadow='none'; }   // 배너는 warn 표면
   const SC=o.fs/15;                       // 스펙 px × SC
-  const fsT=o.fs, fsB=o.fs*0.9, fsTip=o.fs*0.833, fsPg=o.fs*0.733, fsBtn=o.fs*0.867;
+  const fsT=o.fs*1.25, fsB=o.fs*0.9, fsTip=o.fs*0.833, fsPg=o.fs*0.733, fsBtn=o.fs*0.867;   // 제목 1.25배
   const padX=16*SC, padT=13*SC, padB=14*SC;
   const type=P.type;
   // 자동 폭 타입
@@ -775,7 +791,7 @@ function tourMeasure(c,o){
   const indent=type==='banner'?28*SC:0;
   if(P.step && !S.header && type==='tour-step'){
     el('pg',{x:padX,y,label:P.step.label});
-    y+=fsPg*1.45+6*SC;   // 라벨 줄높이 + 스펙 간격 6px
+    y+=fsPg*1.75+7*SC;   // 필 뱃지 높이 + 간격
   }
   if(S.header && type==='tour-step'){   // accent-header: 헤더 존 (진행도 위, 제목 아래 — 2행)
     const hasL=!!P.step;
@@ -898,7 +914,14 @@ function tourDraw(c,o){
         const pp=new Path2D(); pp.roundRect(o.x+e.x,o.y+e.y-2*SC,w2,B.fsPg*1.6,999);
         c.fillStyle=T.acc; c.fill(pp); c.fillStyle=T.accfg; c.textBaseline='middle';
         c.fillText('STEP '+e.label.replace(/\s/g,''), o.x+e.x+7*SC, o.y+e.y-2*SC+B.fsPg*0.8); c.textBaseline='top'; }
-      else { c.font='600 '+B.fsPg+'px '+ff; c.fillStyle=S.mut; c.fillText(e.label, o.x+e.x, o.y+e.y); }
+      else {   // 진행도 = 아웃라인 필 뱃지
+        c.font='600 '+B.fsPg+'px '+ff;
+        const tw=c.measureText(e.label).width, pw=tw+16*SC, ph=B.fsPg*1.7;
+        const pp=new Path2D(); pp.roundRect(o.x+e.x, o.y+e.y, pw, ph, ph/2);
+        c.lineWidth=1.2; c.strokeStyle=S.mut; c.stroke(pp);
+        c.fillStyle=S.mut; c.textBaseline='middle';
+        c.fillText(e.label, o.x+e.x+8*SC, o.y+e.y+ph/2+0.5); c.textBaseline='top';
+      }
     }
     else if(e.kind==='title'){
       c.font=S.titleW+' '+e.fs+'px '+ff; c.fillStyle=P.type==='banner'?T.warn:S.txt;
@@ -912,11 +935,13 @@ function tourDraw(c,o){
       const tp=new Path2D(); tp.roundRect(o.x+e.x,o.y+e.y,e.w,e.h,8*SC);
       if(S.tipDash){ c.setLineDash([5*SC,4*SC]); c.lineWidth=1.5; c.strokeStyle=hexA('#18181B',.4); c.stroke(tp); c.setLineDash([]); }
       else { c.fillStyle=S.tipBg; c.fill(tp); }
+      const lbH=B.fsTip*1.3, lbY=o.y+e.y+(e.h-lbH)/2;   // 라벨·본문 모두 인셋 안 수직 중앙
       c.font='800 '+Math.round(B.fsTip*0.76)+'px '+ff;
-      const lp=new Path2D(); lp.roundRect(o.x+e.x+10*SC,o.y+e.y+8*SC,e.lbW,B.fsTip*1.3,999);
+      const lp=new Path2D(); lp.roundRect(o.x+e.x+10*SC,lbY,e.lbW,lbH,999);
       c.fillStyle=S.tipLbBg; c.fill(lp);
-      c.fillStyle=S.tipLbFg; c.textBaseline='middle'; c.fillText(e.label, o.x+e.x+10*SC+7*SC, o.y+e.y+8*SC+B.fsTip*0.66); c.textBaseline='top';
-      drawRuns(c,e.lines,o.x+e.x+e.lbW+20*SC,o.y+e.y+8*SC,e.fs,ff,e.fs*1.55,S.tipFg,S.tipFg,S.kbd);
+      c.fillStyle=S.tipLbFg; c.textBaseline='middle'; c.fillText(e.label, o.x+e.x+10*SC+7*SC, lbY+lbH/2+0.5); c.textBaseline='top';
+      const contentH=e.lines.length*e.fs*1.55;
+      drawRuns(c,e.lines,o.x+e.x+e.lbW+20*SC, o.y+e.y+(e.h-contentH)/2+e.fs*0.08, e.fs,ff,e.fs*1.55,S.tipFg,S.tipFg,S.kbd);
     }
     else if(e.kind==='check'){
       c.beginPath(); c.arc(o.x+e.x+e.size/2,o.y+e.y+e.size/2,e.size/2,0,7); c.fillStyle=T.okbg; c.fill();
@@ -969,17 +994,17 @@ function tourDraw(c,o){
 }
 /* 갤러리 = 투어 카드 스타일 6종 — 모든 카드가 같은 마크다운 문법을 쓰고, 기본 예문이 각 스타일을 보여준다 */
 [['classic','클래식',
-  'step: 1/3\n\n# 여기를 클릭하세요\n## 버튼을 누르면 **다음 단계**로 넘어가요.\n### `Ctrl N` 단축키도 있어요\n\n[건너뛰기](skip) [다음](next)'],
+  'step: 1/3\n\n# 여기를 클릭하세요\n## 버튼을 누르면 ==다음 단계==로 넘어가요.\n### `Ctrl N` 단축키도 있어요\n\n[다음](next)'],
  ['dark','다크',
-  'step: 2/3\nstyle: dark\n\n# 다크 스타일\n## 밝은 화면 위에서 **또렷하게** 보여요.\n\n[건너뛰기](skip) [다음](next)'],
+  'step: 2/3\nstyle: dark\n\n# 다크 스타일\n## 밝은 화면 위에서 **또렷하게** 보여요.\n\n[다음](next)'],
  ['accent','액센트 헤더',
-  'step: 1/3\nstyle: accent-header\n\n# 환영해요!\n## 핵심만 빠르게 보여 드릴게요. 1분이면 충분해요.\n\n[나중에](skip) [시작](next)'],
+  'step: 1/3\nstyle: accent-header\n\n# 환영해요!\n## 핵심만 빠르게 보여 드릴게요. 1분이면 충분해요.\n\n[시작](next)'],
  ['soft','소프트 틴트',
   'style: soft-tint\n\n# 부드러운 안내\n## 은은한 배경이라 **참고 설명**에 잘 어울려요.\n\n[다음 →](next)'],
  ['outline','아웃라인',
   'step: 2/4\nstyle: outline\n\n# 아웃라인\n## 선 위주의 **담백한** 스타일이에요.\n### 팁: 점선 인셋이 특징\n\n[다음](next)'],
  ['pop','팝',
-  'step: 3/3\nstyle: pop\n\n# 팝!\n## 두꺼운 보더와 **오프셋 섀도**로 눈에 확 띄어요.\n\n[완료](done)']]
+  'step: 3/3\nstyle: pop\n\n# 팝!\n## 두꺼운 보더와 ==분홍:오프셋 섀도==로 눈에 확 띄어요.\n\n[완료](done)']]
 .forEach(v=>{ TPL['tour-'+v[0]]={ name:v[1], pad:{l:16,r:16,t:13,b:14}, tour:1, noTitle:1,
   def:{w:430,fs:19,title:'',body:v[2]}, draw(c,o){ tourDraw(c,o); } }; });
 
@@ -1381,7 +1406,7 @@ $('rail-md').addEventListener('click', ()=>{
 '## 본문 문단',
 '### 팁 문구',
 '',
-'[건너뛰기](skip) [다음](next)   ← 버튼 줄 (마지막 줄)',
+'[다음](next)          ← 버튼 줄 (마지막 줄, 보통 하나면 충분)',
 '```',
 '',
 '## 2. 내용 층위',
@@ -1394,6 +1419,8 @@ $('rail-md').addEventListener('click', ()=>{
 '| `### 주의: 텍스트` | 라벨을 TIP 대신 "주의"로 |',
 '| `**텍스트**` | 본문 강조 (진하게) |',
 '| \\`Ctrl N\\` | 키보드 단축키 칩 |',
+'| `==텍스트==` | 형광펜 (기본 노랑) — 여러 단어도 한 줄이면 이어진 밴드로 |',
+'| `==민트:텍스트==` | 형광펜 색 지정 — `노랑` `민트` `분홍` `파랑` `주황` |',
 '',
 '- 헤딩 바로 아래 일반 줄은 위 헤딩에 이어 붙습니다.',
 '- 층위는 빼도 됩니다. `##` 한 줄만 쓰면 툴팁처럼 작아져요.',
@@ -1407,7 +1434,7 @@ $('rail-md').addEventListener('click', ()=>{
 '| `style` | `classic` `dark` `accent-header` `soft-tint` `outline` `pop` | 카드 스타일 6종 |',
 '| `preset` | `light` `blue` `sky` `cyan` `teal` `emerald` `lime` `yellow` `amber` `rose` `fuchsia` `violet` `slate` `mono` `dark` | 색 팔레트 (구성 불변, 색만) — 속성 패널 스와치와 동일 |',
 '| `type` | `tour-step`(기본) `tooltip` `confirm` `toast` `banner` `chip` `hotspot` `complete` | 카드 형태 변형 |',
-'| `close` | `false` | 우상단 × 숨김 |',
+'| `close` | `true` | 우상단 × 표시 (기본은 숨김 — 정지 이미지라 불필요) |',
 '| `media` | `placeholder` | 카드 상단 미디어 영역 |',
 '',
 '## 4. 버튼 줄',
@@ -1443,7 +1470,7 @@ $('rail-md').addEventListener('click', ()=>{
 '## [데이터] 탭에서 **업로드**를 누르거나 파일을 끌어다 놓으면 돼요.',
 '### `Ctrl V` 붙여넣기로도 올릴 수 있어요',
 '',
-'[건너뛰기](skip) [다음](next)',
+'[다음](next)',
 '```',
 '',
 '## 8. AI 변환 스킬로 쓰기 (이 문서를 통째로 AI에게 주세요)',
@@ -1456,10 +1483,12 @@ $('rail-md').addEventListener('click', ()=>{
 '> 2. 각 카드는 `---` 줄로 구분해 출력한다. (도구에는 블록을 하나씩 잘라 페이지마다 붙여넣는다)',
 '> 3. 카드마다 첫 줄에 `step: auto` 를 넣는다 (페이지 수와 자동 연동).',
 '> 4. `#` 제목은 **명령형 한 줄** ("~해 보세요"). 카드당 하나.',
-'> 5. `##` 본문은 1~2문장으로 요약. 클릭할 **버튼·메뉴 이름은 `**강조**`**, 단축키는 백틱(`Ctrl S`)으로.',
+'> 5. `##` 본문은 1~2문장으로 요약. 클릭할 **버튼·메뉴 이름은 `**강조**`**, 단축키는 백틱(`Ctrl S`)으로,',
+'>    꼭 기억할 핵심 문구 하나는 `==형광펜==`으로 (카드당 최대 1곳).',
 '> 6. 부가 설명·예외·요령은 `### 팁:` 또는 `### 주의:` 로 분리한다. 카드당 0~1개.',
-'> 7. 첫 카드는 환영 카드: `style: accent-header`, 본문은 전체 요약, 버튼 `[나중에](skip) [시작](next)`.',
-'> 8. 중간 카드 버튼은 `[건너뛰기](skip) [다음](next)`, 마지막 카드는 `type: complete` + `[시작하기](done)`.',
+'> 7. 첫 카드는 환영 카드: `style: accent-header`, 본문은 전체 요약, 버튼 `[시작](next)`.',
+'> 8. 카드 버튼은 하나만: 중간 카드 `[다음](next)`, 마지막 카드는 `type: complete` + `[시작하기](done)`.',
+'>    (정지 이미지라 건너뛰기·닫기 같은 부가 액션은 넣지 않는다)',
 '> 9. 경고성 내용이 따로 있으면 `type: confirm`(파괴적 행동) 또는 `type: banner`(주의 공지)로 뺀다.',
 '> 10. 출력은 코드블록 하나로, 설명 없이 마크다운만.',
 '',
@@ -1475,7 +1504,7 @@ $('rail-md').addEventListener('click', ()=>{
 '# 환영해요!',
 '## 3단계로 데이터 업로드부터 저장까지 안내해 드릴게요.',
 '',
-'[나중에](skip) [시작](next)',
+'[시작](next)',
 '---',
 'step: auto',
 '',
@@ -1483,14 +1512,14 @@ $('rail-md').addEventListener('click', ()=>{
 '## **[데이터]** 탭에서 파일을 업로드하세요.',
 '### 팁: `Ctrl V` 붙여넣기로도 올릴 수 있어요',
 '',
-'[건너뛰기](skip) [다음](next)',
+'[다음](next)',
 '---',
 'step: auto',
 '',
 '# 그래프를 확인하세요',
 '## **정규분포** 탭에서 분포를 확인하세요. 빨간 점이 불량이에요.',
 '',
-'[건너뛰기](skip) [다음](next)',
+'[다음](next)',
 '---',
 'type: complete',
 '',
