@@ -193,7 +193,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783822974511;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783823774267;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -562,8 +562,10 @@ function tourParse(md){
     else if(it.k==='btns') buttons=[...it.t.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)].map(m=>({label:m[1],act:m[2]}));
   }
   let step=null;
-  if(meta.step&&meta.step!=='none'){ const m=meta.step.match(/(\d+)\s*\/\s*(\d+)/);
-    if(m) step={n:+m[1],m:+m[2],label:meta['step-label']||(m[1]+' / '+m[2])}; }
+  if(meta.step&&meta.step!=='none'){
+    if(meta.step==='auto') step={auto:true};   // 페이지 번호/전체 쪽수와 자동 연동
+    else { const m=meta.step.match(/(\d+)\s*\/\s*(\d+)/);
+      if(m) step={n:+m[1],m:+m[2],label:meta['step-label']||(m[1]+' / '+m[2])}; } }
   return {meta,title,paras,tips,buttons,step, type:meta.type||'tour-step', style:meta.style||'classic',
     close:meta.close!=='false', media:meta.media||null, preset:meta.preset||'light'};
 }
@@ -643,6 +645,10 @@ function tourMeasure(c,o){
     tt:'#F2F2F4',ttfg:'#17181B',ok:'#34D399',okbg:'#1C3A2E',warn:'#E8B04B',warnbg:'#332A15',dgr:'#F87171',
     acc:'#6E76F0',soft:'#262A45',softfg:'#A9B0FA'});
   const S=tourStyleOf(P.style,T);
+  if(P.step&&P.step.auto){   // step: auto → 현재 페이지 / 전체 페이지
+    P.step.n=cp+1; P.step.m=pages.length;
+    P.step.label=P.meta['step-label']||(P.step.n+' / '+P.step.m);
+  }
   if(P.type==='banner'){ S.surf=T.warnbg; S.bd=hexA('#935F0C',.25); S.shadow='none'; }   // 배너는 warn 표면
   const SC=o.fs/15;                       // 스펙 px × SC
   const fsT=o.fs, fsB=o.fs*0.9, fsTip=o.fs*0.833, fsPg=o.fs*0.733, fsBtn=o.fs*0.867;
