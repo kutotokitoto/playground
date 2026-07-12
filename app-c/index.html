@@ -259,7 +259,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783833208447;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783833304148;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1222,7 +1222,7 @@ cv.addEventListener('pointerdown', e=>{
     const o=objs[sel];
     if(!TPL[o.tpl].noTail && Math.hypot(m.x-o.tx,m.y-o.ty)<Math.max(16,18/scale)){ drag={mode:'tail',o}; return; }
     const h=hitHandle(o,m);
-    if(h){ drag={mode:'size',dir:h,o,sx:m.x,sw:o.w,sy:m.y,sh:o.hh||o._h}; return; }
+    if(h){ drag={mode:'size',dir:h,o,sx:m.x,sw:o.w,sy:m.y,sh:o.hh||o._h,sfs:o.fs}; return; }
   }
   for(let i=objs.length-1;i>=0;i--){ const o=objs[i];
     if(m.x>=o.x&&m.x<=o.x+o.w&&m.y>=o.y&&m.y<=o.y+o._h){
@@ -1261,8 +1261,13 @@ cv.addEventListener('pointermove', e=>{
   else if(drag.mode==='tail'){ o.tx=m.x; o.ty=m.y; }
   else if(drag.mode==='size'){
     const t=TPL[o.tpl];
-    if(drag.dir!=='s') o.w=Math.max(t.shape?30:140, drag.sw+(m.x-drag.sx));
-    if(drag.dir!=='e'&&t.shape&&!t.circle) o.hh=Math.max(30, drag.sh+(m.y-drag.sy));   // 도형은 세로도 자유
+    if(t.sticker){   // 스티커는 폭이 이모지 크기에서 자동 계산 → 리사이즈 = 크기(fs) 조절
+      const k=(drag.sw+(m.x-drag.sx))/Math.max(1,drag.sw);
+      o.fs=Math.max(10, Math.min(140, Math.round(drag.sfs*k)));
+    } else {
+      if(drag.dir!=='s') o.w=Math.max(t.shape?30:140, drag.sw+(m.x-drag.sx));
+      if(drag.dir!=='e'&&t.shape&&!t.circle) o.hh=Math.max(30, drag.sh+(m.y-drag.sy));   // 도형은 세로도 자유
+    }
   }
   render();
 });
