@@ -89,8 +89,10 @@
   #toast{position:fixed;left:50%;bottom:56px;transform:translateX(-50%) translateY(20px);background:#23272e;color:#fff;font-size:12.5px;padding:9px 18px;border-radius:9px;opacity:0;transition:all .22s;pointer-events:none;z-index:99;white-space:nowrap}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-  /* ── 페이지 바 ── */
-  #pagebar{height:38px;background:#fff;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:0 10px;flex-shrink:0}
+  /* ── 페이지 바 (캔버스 하단 중앙 플로팅) ── */
+  #pagebar{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:rgba(255,255,255,.94);
+    border:1px solid var(--line);border-radius:10px;padding:5px 7px;display:flex;align-items:center;gap:6px;
+    z-index:5;box-shadow:0 3px 12px rgba(20,30,50,.10);max-width:62%}
   #page-tabs{display:flex;gap:4px;overflow-x:auto}
   .ptab{height:27px;padding:0 12px;border-radius:7px;border:1px solid var(--line);background:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px;white-space:nowrap}
   .ptab:hover{background:#f6f7f9}
@@ -98,9 +100,16 @@
   .ptab.on:hover{background:var(--acc)}
   .ptab .px{font-size:10px;opacity:.8;padding:1px 3px;border-radius:4px}
   .ptab .px:hover{background:rgba(255,255,255,.3)}
-  #page-add{width:27px;height:27px;border:1px solid var(--line);border-radius:7px;font-size:15px;color:var(--muted)}
+  #page-add{width:27px;height:27px;border:1px solid var(--line);border-radius:7px;font-size:15px;color:var(--muted);flex-shrink:0}
   #page-add:hover{background:#f6f7f9;color:var(--acc)}
-  .pb-hint{margin-left:auto;font-size:11px;color:var(--muted)}
+  #paste-hint{bottom:58px}   /* 페이지 바 위로 */
+  /* ── 레이어 목록 ── */
+  .lrow{display:flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid var(--line);border-radius:7px;margin-bottom:4px;cursor:pointer;font-size:11.5px;color:#4a515b}
+  .lrow:hover{background:#f6f7f9}
+  .lrow.on{border-color:var(--acc);background:#fdf4ee}
+  .lrow .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lrow .lz{width:20px;height:20px;border:1px solid var(--line);border-radius:5px;font-size:9px;color:var(--muted);flex-shrink:0}
+  .lrow .lz:hover{background:#fff;color:var(--acc)}
 </style>
 </head>
 <body>
@@ -138,6 +147,10 @@
       <span id="zoom-lab">100%</span>
       <button class="fold-btn" id="zoom-fit" style="width:auto;padding:0 9px" title="캔버스를 화면에 맞춤">맞춤</button>
     </div>
+    <div id="pagebar">
+      <div id="page-tabs"></div>
+      <button id="page-add" title="페이지 추가 — 페이지마다 배경·말풍선이 따로 저장됩니다">＋</button>
+    </div>
   </div>
   <div class="side-strip" id="strip-r" title="속성 패널 펼치기">◂</div>
   <div id="inspector">
@@ -151,6 +164,8 @@
       <div class="insp-sec">
         <div class="fld" id="fld-title"><label id="lbl-title">제목</label><input type="text" id="in-title"></div>
         <div class="fld" id="fld-body"><label>내용</label><textarea id="in-body"></textarea></div>
+        <div class="fld"><label>마크다운 붙여넣기 <span style="font-weight:400;color:#a5acb6">— 위계대로 자동 배치</span></label>
+          <textarea id="md-paste" style="min-height:76px" placeholder="# 첫 제목 줄 → 제목으로&#10;## 소제목 · - 불릿 · 일반 문장&#10;   → 내용으로 순서대로 들어갑니다&#10;(텍스트 블록에는 마크다운 그대로 적용)"></textarea></div>
         <div class="fld"><label>글꼴</label><select id="in-font" style="width:100%;height:30px;border:1px solid var(--line);border-radius:7px;background:#fff"></select></div>
         <div class="fld"><label>글자 크기 <span id="fs-val"></span></label><input type="range" id="in-fs" min="13" max="42" step="1"></div>
       </div>
@@ -162,20 +177,18 @@
       </div>
       <div class="hint">주황 점 = 꼬리 끝. 가리킬 곳으로 끌어다 놓으세요. 말풍선 높이는 글 양에 맞춰 자동입니다.</div>
     </div>
+    <div class="insp-sec" id="layer-sec" style="margin-top:18px">
+      <h2>레이어 <span style="font-weight:400;color:#a5acb6">위가 앞</span></h2>
+      <div id="layer-list"></div>
+    </div>
   </div>
-</div>
-
-<div id="pagebar">
-  <div id="page-tabs"></div>
-  <button id="page-add" title="페이지 추가">＋</button>
-  <span class="pb-hint">페이지마다 배경·말풍선이 따로 저장됩니다 · 내보내기는 현재 페이지</span>
 </div>
 
 <div id="toast"></div>
 
 <script>
 "use strict";
-const BUILD_TS = 1783819902888;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783820291910;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -558,15 +571,20 @@ function render(){ drawScene(ctx,false); }
 let zoom=1, fitMode=true, pan=null, spaceHeld=false;
 function applyScale(){
   scale=zoom;
+  /* 백킹 해상도를 배율×DPR로 → 확대·고해상도 화면에서도 벡터처럼 선명 (내보내기는 정확한 W×H 유지) */
+  const k=Math.min(scale*Math.min(window.devicePixelRatio||1,2.5), 3);
+  cv.width=Math.max(1,Math.round(W*k)); cv.height=Math.max(1,Math.round(H*k));
+  ctx.setTransform(k,0,0,k,0,0);
   cv.style.width=(W*scale)+'px'; cv.style.height=(H*scale)+'px';
   $('zoom-lab').textContent=Math.round(zoom*100)+'%';
+  render();
 }
 function fitStage(){
   const st=$('stage'), pad=64;
   if(fitMode) zoom=Math.min((st.clientWidth-pad)/W, (st.clientHeight-pad)/H, 1);
   applyScale();
 }
-function setCanvas(w,h){ W=w; H=h; cv.width=W; cv.height=H; fitMode=true; fitStage(); render(); }
+function setCanvas(w,h){ W=w; H=h; fitMode=true; fitStage(); }
 window.addEventListener('resize', fitStage);
 /* 휠 = 확대/축소 (커서 기준점 유지) */
 $('stage').addEventListener('wheel', e=>{
@@ -746,6 +764,34 @@ function syncInspector(){
   $('in-body').value=o.body||'';
   $('in-font').value=o.font||'pretendard';
   $('in-fs').value=o.fs; $('fs-val').textContent=o.fs+'px';
+  $('md-paste').value='';
+  renderLayers();
+}
+/* 레이어 목록 (위 = 맨 앞) — 클릭 선택, ▲▼로 순서 이동 */
+function renderLayers(){
+  const el=$('layer-list'); if(!el) return;
+  el.innerHTML='';
+  if(!objs.length){ const d=document.createElement('div'); d.className='empty-note'; d.style.padding='2px';
+    d.textContent='아직 개체가 없습니다'; el.appendChild(d); return; }
+  for(let i=objs.length-1;i>=0;i--){
+    const o=objs[i], row=document.createElement('div');
+    row.className='lrow'+(i===sel?' on':'');
+    const nm=document.createElement('span'); nm.className='nm';
+    nm.textContent=TPL[o.tpl].name.split(' ')[0]+' · '+((o.title||o.body||'').replace(/\n/g,' ').slice(0,14)||'(비어 있음)');
+    row.appendChild(nm);
+    const mk=(lab,fn,tt)=>{ const b=document.createElement('button'); b.className='lz'; b.textContent=lab; b.title=tt;
+      b.addEventListener('click',ev=>{ ev.stopPropagation(); fn(); }); row.appendChild(b); };
+    mk('▲',()=>moveZ(i,1),'한 칸 앞으로'); mk('▼',()=>moveZ(i,-1),'한 칸 뒤로');
+    row.addEventListener('click',()=>{ sel=i; syncInspector(); render(); });
+    el.appendChild(row);
+  }
+}
+function moveZ(i,dir){
+  const j=i+dir; if(j<0||j>=objs.length) return;
+  const so=sel>=0?objs[sel]:null;
+  const o=objs.splice(i,1)[0]; objs.splice(j,0,o);
+  if(so) sel=objs.indexOf(so);
+  pushUndo(); render(); renderLayers();
 }
 let editT=null;
 function onEdit(){
@@ -761,6 +807,27 @@ $('in-title').addEventListener('input', onEdit);
 $('in-body').addEventListener('input', onEdit);
 $('in-font').addEventListener('change', onEdit);
 $('in-fs').addEventListener('input', onEdit);
+/* 마크다운 붙여넣기 → 위계대로 제목/내용 자동 배치 (텍스트 블록엔 원문 그대로) */
+$('md-paste').addEventListener('input', ()=>{
+  if(sel<0) return;
+  const o=objs[sel], t=TPL[o.tpl], v=$('md-paste').value;
+  if(!v.trim()) return;
+  if(t.md){ o.body=v; }
+  else{
+    let title=null; const body=[];
+    for(const it of mdParse(v)){
+      if(it.txt==='') { body.push(''); continue; }
+      if(title===null && (it.lv===1||it.lv===2)){ title=it.txt; continue; }
+      body.push(it.lv===9?('· '+it.txt):it.txt);
+    }
+    if(title!==null){ if(t.noTitle) body.unshift(title); else o.title=title; }
+    o.body=body.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+    if(t.noBody && title!==null) o.title=title;
+  }
+  $('in-title').value=o.title||''; $('in-body').value=o.body||'';
+  render();
+  clearTimeout(editT); editT=setTimeout(pushUndo, 600);
+});
 $('b-del').addEventListener('click', ()=>{ if(sel<0)return; objs.splice(sel,1); sel=-1; pushUndo(); syncInspector(); render(); });
 $('b-dup').addEventListener('click', ()=>{ if(sel<0)return; const o=JSON.parse(JSON.stringify(objs[sel]));
   o.x+=28; o.y+=28; o.tx+=28; o.ty+=28; objs.push(o); sel=objs.length-1; pushUndo(); syncInspector(); render(); });
@@ -859,6 +926,7 @@ function pushUndo(){
   undoStack=undoStack.slice(0,undoIdx+1); undoStack.push(s);
   if(undoStack.length>60) undoStack.shift();
   undoIdx=undoStack.length-1;
+  renderLayers();
 }
 function undo(){
   if(undoIdx<=0) return;
