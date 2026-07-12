@@ -164,7 +164,7 @@
     <div class="insp-head"><h2>속성</h2><button class="fold-btn" id="fold-r" title="패널 접기">▸</button></div>
     <div id="insp-empty">
       <div class="empty-note">왼쪽 갤러리에서 말풍선을 골라 추가하세요.<br><br>
-      · 드래그로 이동, <b>더블클릭</b>으로 글 바로 수정<br>· <b>주황 점</b>을 끌면 꼬리가 움직입니다<br>· 오른쪽 아래 □로 폭 조절<br>· Delete 삭제 · Ctrl+D 복제 · Ctrl+Z 되돌리기<br>· Alt+드래그 = 스냅 끄기</div>
+      · 드래그로 이동, <b>더블클릭</b>으로 글 바로 수정<br>· <b>주황 점</b>을 끌면 꼬리가 움직입니다<br>· 오른쪽 아래 □로 폭 조절<br>· Ctrl+C/V 복사·붙여넣기 (페이지 간에도) · Ctrl+D 복제<br>· Delete 삭제 · Ctrl+Z 되돌리기 · Alt+드래그 = 스냅 끄기</div>
     </div>
     <div id="insp-obj" style="display:none">
       <h2 id="insp-title">말풍선</h2>
@@ -203,7 +203,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783824792104;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783827161342;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1089,7 +1089,7 @@ function addObjAt(id,x,y){
 }
 
 /* ══════════════ 선택/드래그 + 스마트 가이드 스냅 ══════════════ */
-let drag=null, guides=[], showGuide=false, showGrid=false;
+let drag=null, guides=[], showGuide=false, showGrid=false, objClip=null;
 /* pos(왼쪽 기준)를 targets에 스냅 — 앵커는 좌/중/우(상/중/하) 세 곳, tol 이내 최근접 */
 function snapAxis(pos,len,targets,tol){
   let bestD=tol+0.001, bestPos=null, line=null;
@@ -1330,6 +1330,19 @@ document.addEventListener('paste', e=>{
   for(const it of items){
     if(it.type.indexOf('image')===0){ loadBg(it.getAsFile()); e.preventDefault(); return; }
   }
+  const ae=document.activeElement;
+  if(ae&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)) return;   // 필드 입력 중엔 일반 붙여넣기
+  const txt=(e.clipboardData&&e.clipboardData.getData('text/plain'))||'';
+  const s=txt.indexOf('MWMW1')===0?txt:(txt===''?objClip:null);   // 클립보드 접근 불가 환경 대비 내부 백업
+  if(s&&s.indexOf('MWMW1')===0){
+    try{
+      const o=JSON.parse(s.slice(5));
+      o.x+=24; o.y+=24; o.tx+=24; o.ty+=24;
+      objs.push(o); sel=objs.length-1;
+      pushUndo(); syncInspector(); render();
+      toast('📋 말풍선 붙여넣기 완료'); e.preventDefault();
+    }catch(_){}
+  }
 });
 
 /* ══════════════ 페이지 (여러 장의 설명서를 탭으로) ══════════════ */
@@ -1422,6 +1435,13 @@ document.addEventListener('keydown', e=>{
   const ae=document.activeElement;
   if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
   if(e.key===' '){ spaceHeld=true; document.body.classList.add('spacepan'); e.preventDefault(); return; }
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='c'&&sel>=0){
+    e.preventDefault();
+    objClip='MWMW1'+JSON.stringify(objs[sel]);
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(objClip).catch(()=>{});
+    toast('📋 말풍선 복사됨 — Ctrl+V로 붙여넣기 (다른 페이지에도 가능)');
+    return;
+  }
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){ e.preventDefault(); undo(); return; }
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='d'){ e.preventDefault(); $('b-dup').click(); return; }
   if(sel<0) return;
