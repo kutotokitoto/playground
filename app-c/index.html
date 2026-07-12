@@ -264,7 +264,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783840106482;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783840328526;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -669,7 +669,7 @@ function inlineRuns(t){
 }
 /* 인라인 런(일반/강조/kbd) 줄바꿈 배치 */
 function layoutRuns(c,runs,maxW,fs,ff){
-  const KF='500 '+Math.round(fs*.81)+'px ui-monospace,Consolas,monospace';
+  const KF='700 '+Math.round(fs*.84)+'px '+ff;   // kbd 칩: 두꺼운 프리텐다드 (모노 폴백이 굴림으로 새는 문제 방지)
   const words=[];
   for(const r of runs){
     if(r.k==='kbd'){ words.push({t:r.t,k:'kbd'}); if(words.length) words[words.length-1]._open=false; continue; }
@@ -692,7 +692,7 @@ function layoutRuns(c,runs,maxW,fs,ff){
   return lines;
 }
 function drawRuns(c,lines,x0,y0,fs,ff,lh,nCol,bCol,kbd){
-  const KF='500 '+Math.round(fs*.81)+'px ui-monospace,Consolas,monospace';
+  const KF='700 '+Math.round(fs*.84)+'px '+ff;   // kbd 칩: 두꺼운 프리텐다드
   let y=y0;
   c.textAlign='left'; c.textBaseline='top';
   for(const line of lines){
