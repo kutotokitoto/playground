@@ -177,6 +177,10 @@
           <div id="emoji-row"></div></div>
         <div class="fld" id="fld-palette"><label>팔레트 <span style="font-weight:400;color:#a5acb6">— 색만 바뀝니다</span></label>
           <div id="pal-row"></div></div>
+        <div class="fld" id="fld-spot">
+          <label class="ck" style="margin-bottom:5px"><input type="checkbox" id="in-spot"> 💡 강조원 — 꼬리 끝만 밝게, 나머지 음영</label>
+          <input type="range" id="in-spotr" min="40" max="240" step="5" title="강조원 크기">
+        </div>
         <div class="fld"><label>글꼴</label><select id="in-font" style="width:100%;height:30px;border:1px solid var(--line);border-radius:7px;background:#fff"></select></div>
         <div class="fld"><label>글자 크기 <span id="fs-val"></span></label><input type="range" id="in-fs" min="13" max="42" step="1"></div>
       </div>
@@ -199,7 +203,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783824537116;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783824792104;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -756,13 +760,13 @@ function tourDraw(c,o){
     c.save(); c.shadowColor=hexA('#18181B',.05); c.shadowBlur=6*SC; c.shadowOffsetY=2*SC; c.fillStyle=S.surf; c.fill(p); c.restore(); };
   // ── 소형 타입 표면 ──
   if(B.surf==='tooltip'){
-    const p=bubblePath(o.x,o.y,o.w,o._h,7*SC,{tx:o.tx,ty:o.ty,bw:6*SC});
+    const p=bubblePath(o.x,o.y,o.w,o._h,10.5*SC,{tx:o.tx,ty:o.ty,bw:6*SC});
     c.save(); c.shadowColor='rgba(0,0,0,.28)'; c.shadowBlur=14*SC; c.shadowOffsetY=4*SC; c.fillStyle=T.tt; c.fill(p); c.restore();
     drawRuns(c,B.lines,o.x+padX*0.7,o.y+7*SC,B.fsB,ff,B.fsB*1.5,T.ttfg,T.ttfg,{bg:hexA('#F7F7F8',.12),bd:hexA('#F7F7F8',.22),fg:T.ttfg});
     return;
   }
   if(B.surf==='toast'){
-    const p=new Path2D(); p.roundRect(o.x,o.y,o.w,o._h,10*SC);
+    const p=new Path2D(); p.roundRect(o.x,o.y,o.w,o._h,15*SC);
     c.save(); c.shadowColor='rgba(0,0,0,.3)'; c.shadowBlur=16*SC; c.shadowOffsetY=5*SC; c.fillStyle=T.tt; c.fill(p); c.restore();
     const cy=o.y+o._h/2;
     c.beginPath(); c.arc(o.x+16*SC+9*SC,cy,9*SC,0,7); c.fillStyle=T.ok; c.fill();
@@ -791,14 +795,15 @@ function tourDraw(c,o){
     const cy=o.y+o._h/2, bx=o.x+10*SC;
     c.beginPath(); c.arc(bx,cy,11*SC,0,7); c.fillStyle=hexA(T.acc,.25); c.fill();
     c.beginPath(); c.arc(bx,cy,5.5*SC,0,7); c.fillStyle=T.acc; c.fill();
-    const lx=o.x+26*SC, p=new Path2D(); p.roundRect(lx,o.y,o.w-26*SC,o._h,9*SC);
+    const lx=o.x+26*SC, p=new Path2D(); p.roundRect(lx,o.y,o.w-26*SC,o._h,13.5*SC);
     shStd(p); if(S.bd){ c.lineWidth=1; c.strokeStyle=T.bd; c.stroke(p); }
     c.font='500 '+B.fsTip+'px '+ff; c.fillStyle=T.txt; c.textAlign='left'; c.textBaseline='middle';
     c.fillText(P.paras[0]||'', lx+12*SC, cy+0.5); c.textBaseline='top'; return;
   }
-  // ── 카드형 표면 (꼬리 통합 경로) ──
-  const p=bubblePath(o.x,o.y,o.w,o._h,S.r*SC,{tx:o.tx,ty:o.ty,bw:7*SC});
-  if(S.shadow==='pop'){ const p2=bubblePath(o.x+4*SC,o.y+4*SC,o.w,o._h,S.r*SC,{tx:o.tx+4*SC,ty:o.ty+4*SC,bw:7*SC});
+  // ── 카드형 표면 (꼬리 통합 경로, 라운드 = 스펙 r × 1.5) ──
+  const RR=S.r*1.5*SC;
+  const p=bubblePath(o.x,o.y,o.w,o._h,RR,{tx:o.tx,ty:o.ty,bw:7*SC});
+  if(S.shadow==='pop'){ const p2=bubblePath(o.x+4*SC,o.y+4*SC,o.w,o._h,RR,{tx:o.tx+4*SC,ty:o.ty+4*SC,bw:7*SC});
     c.fillStyle=T.txt; c.fill(p2); c.fillStyle=S.surf; c.fill(p); }
   else if(S.shadow==='none'){ c.fillStyle=S.surf; c.fill(p); }
   else shStd(p);
@@ -919,6 +924,24 @@ function tourDraw(c,o){
 const TPL_ORDER=['tour-classic','tour-dark','tour-accent','tour-soft','tour-outline','tour-pop'];
 
 /* ══════════════ 렌더 ══════════════ */
+/* 강조원(스포트라이트): 음영은 단일 레이어 하나 — 켜진 말풍선 수만큼 '구멍'만 늘어난다 */
+let dimCv=null;
+function drawDim(c){
+  if(!dimCv) dimCv=document.createElement('canvas');
+  if(dimCv.width!==W||dimCv.height!==H){ dimCv.width=W; dimCv.height=H; }
+  const dc=dimCv.getContext('2d');
+  dc.globalCompositeOperation='source-over';
+  dc.clearRect(0,0,W,H);
+  dc.fillStyle='rgba(15,17,23,0.32)'; dc.fillRect(0,0,W,H);   // 은은한 음영 (전체 균일)
+  dc.globalCompositeOperation='destination-out';
+  for(const q of objs){ if(!q.spot) continue;
+    const r=q.spotR||80;
+    const g=dc.createRadialGradient(q.tx,q.ty,r*0.55,q.tx,q.ty,r);
+    g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    dc.fillStyle=g; dc.beginPath(); dc.arc(q.tx,q.ty,r,0,7); dc.fill();
+  }
+  c.drawImage(dimCv,0,0,W,H);
+}
 function drawScene(c,forExport){
   c.clearRect(0,0,W,H);
   c.fillStyle=bgColor; c.fillRect(0,0,W,H);
@@ -939,6 +962,7 @@ function drawScene(c,forExport){
       c.beginPath(); c.moveTo(0,H/2); c.lineTo(W,H/2); c.stroke();
       c.restore(); }
   }
+  if(objs.some(q=>q.spot)) drawDim(c);   // 강조원 음영은 배경 위·말풍선 아래
   for(const o of objs){ measure(c,o); TPL[o.tpl].draw.call(TPL[o.tpl],c,o); }
   if(!forExport && guides.length){   // 스냅 스마트 가이드
     c.save(); c.strokeStyle='#ff4f9e'; c.lineWidth=1.2; c.setLineDash([6,4]);
@@ -1166,6 +1190,9 @@ function syncInspector(){
   $('md-paste').value=objToMd(o);   // 현재 제목/내용의 마크다운 표현 — 연동을 눈으로 보여줌
   const isTour=!!t.tour;
   $('fld-palette').style.display=isTour?'block':'none';
+  $('fld-spot').style.display=t.noTail?'none':'block';
+  $('in-spot').checked=!!o.spot;
+  $('in-spotr').value=o.spotR||80; $('in-spotr').disabled=!o.spot;
   if(isTour){
     const m=String(o.body||'').match(/^preset\s*:\s*(\S+)/m), cur=m?m[1]:'light';
     document.querySelectorAll('#pal-row .pswatch').forEach(s=>s.classList.toggle('on', s.dataset.k===cur));
@@ -1238,6 +1265,12 @@ $('in-title').addEventListener('input', onEdit);
 $('in-body').addEventListener('input', onEdit);
 $('in-font').addEventListener('change', onEdit);
 $('in-fs').addEventListener('input', onEdit);
+$('in-spot').addEventListener('change', e=>{ if(sel<0) return;
+  objs[sel].spot=e.target.checked; $('in-spotr').disabled=!e.target.checked;
+  render(); pushUndo(); });
+$('in-spotr').addEventListener('input', e=>{ if(sel<0) return;
+  objs[sel].spotR=+e.target.value; render();
+  clearTimeout(editT); editT=setTimeout(pushUndo, 600); });
 /* 이모지 팔레트 — 마지막으로 포커스한 필드(또는 캔버스 인라인 편집창)의 커서 위치에 삽입 */
 let lastField=null;
 ['in-title','in-body','md-paste'].forEach(id=>$(id).addEventListener('focus', e=>{ lastField=e.target; }));
