@@ -276,7 +276,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783842545902;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783843478081;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1271,6 +1271,8 @@ function buildTpls(ids, containerId){
     const c=pc.getContext('2d');
     c.fillStyle='#f1f3f5'; c.fillRect(0,0,376,220);
     const o={tpl:id, x:20, y:16, w:t.def.w, hh:t.def.hh, fs:t.def.fs, font:t.def.font, title:t.def.title, body:t.def.body, tx:120, ty:212};
+    if(t.tour && curPreset && curPreset!=='light')   // 갤러리 썸네일도 현재 전역 팔레트로
+      o.body=/^preset\s*:/m.test(o.body) ? o.body.replace(/^preset\s*:.*$/m,'preset: '+curPreset) : ('preset: '+curPreset+'\n'+o.body);
     if(id==='pill'){ o.x=70; o.y=80; o.tx=300; o.ty=180; }
     if(id==='comic'){ o.y=40; o.x=40; }
     if(TPL[id].tour){ o.w=316; o.fs=13; o.y=12; }
@@ -1755,6 +1757,8 @@ function setTourPreset(key){
     o.body=b; } };
   for(const p of pages) apply(p.objs);
   document.querySelectorAll('#pal-row .pswatch').forEach(s=>s.classList.toggle('on', s.dataset.k===key));
+  document.querySelectorAll('#gallery .tpl').forEach(n=>n.remove());   // 템플릿 썸네일도 새 팔레트로
+  buildTpls(TPL_ORDER,'gallery');
   syncInspector(); render(); renderPageTabs();
   pushUndo();
   toast('🎨 팔레트 전체 적용: '+((TOUR_PRESETS[key]&&TOUR_PRESETS[key].label)||'다크'));
