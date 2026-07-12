@@ -276,7 +276,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783842036187;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783842194471;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1425,6 +1425,11 @@ cv.addEventListener('pointermove', e=>{
     if(t.sticker){   // 스티커: 리사이즈 = 이모지 크기
       const k=(drag.sw+dx)/Math.max(1,drag.sw);
       o.fs=Math.max(10, Math.min(140, Math.round(drag.sfs*k)));
+    } else if(t.img){   // 이미지: 모서리=비율 유지, 변 중앙=비율 깨고 한 축만
+      if(drag.dir==='se'){ const nw=Math.max(30, drag.sw+dx);
+        o.w=nw; o.hh=Math.max(30, Math.round(drag.sh*nw/Math.max(1,drag.sw))); }
+      else if(drag.dir==='e') o.w=Math.max(30, drag.sw+dx);
+      else if(drag.dir==='s') o.hh=Math.max(30, drag.sh+dy);
     } else if(t.shape){   // 도형: 변=한 축, 모서리=두 축
       if(drag.dir!=='s') o.w=Math.max(30, drag.sw+dx);
       if(drag.dir!=='e'&&!t.circle) o.hh=Math.max(30, drag.sh+dy);
