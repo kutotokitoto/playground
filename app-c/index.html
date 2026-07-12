@@ -264,7 +264,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783840952639;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783841318451;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -735,9 +735,9 @@ function tourStyleOf(st,T){
   else if(st==='soft-tint'){ Object.assign(S,{surf:T.soft, bd:null, lw:0, r:16, shadow:'none', txt:T.softfg,
     mut:hexA(T.softfg,.85), tipBg:T.srf, tipFg:T.softfg, tipLbBg:T.softfg, tipLbFg:T.srf,
     ghost:hexA(T.softfg,.7), dotOff:hexA(T.softfg,.25), kbd:{bg:T.srf,bd:T.bd,fg:T.softfg}}); }
-  else if(st==='outline'){ Object.assign(S,{bd:T.txt, lw:1.5, r:10, shadow:'none',
+  else if(st==='outline'){ Object.assign(S,{bd:T.txt, lw:1.8, r:10, shadow:'none',
     tipBg:'transparent', tipDash:1, primary:{bg:T.txt,fg:T.srf}}); }
-  else if(st==='pop'){ Object.assign(S,{bd:T.txt, lw:2, r:12, shadow:'pop', stepPill:true, titleW:800,
+  else if(st==='pop'){ Object.assign(S,{bd:T.txt, lw:2.4, r:12, shadow:'pop', stepPill:true, titleW:800,
     tipLbBg:T.txt, tipLbFg:T.srf, primary:{bg:T.acc,fg:T.accfg,popBd:T.txt}}); }
   else if(st==='glass'){ Object.assign(S,{surf:hexA('#FFFFFF',.8), r:16, bd:hexA(T.txt,.10)}); }
   else if(st==='accent-header'){ Object.assign(S,{header:true}); }
@@ -760,7 +760,7 @@ function tourMeasure(c,o){
   }
   if(P.type==='banner'){ S.surf=T.warnbg; S.bd=hexA('#935F0C',.25); S.shadow='none'; }   // 배너는 warn 표면
   const SC=o.fs/15;                       // 스펙 px × SC
-  const fsT=o.fs*1.79, fsB=o.fs*0.99, fsTip=o.fs*0.833, fsPg=o.fs*0.807, fsBtn=o.fs*0.867;   // 제목 1.79 · 본문 0.99 · 뱃지 0.807 (축소 이미지 대비)
+  const fsT=o.fs*1.61, fsB=o.fs*0.99, fsTip=o.fs*0.833, fsPg=o.fs*0.807, fsBtn=o.fs*0.867;   // 제목 1.61 · 본문 0.99 · 뱃지 0.807
   const padX=16*SC, padT=13*SC, padB=14*SC;
   const type=P.type;
   // 자동 폭 타입
@@ -808,6 +808,7 @@ function tourMeasure(c,o){
     const fsTi=(type==='confirm'?fsT*0.967:type==='banner'?fsB:fsT);
     c.font=S.titleW+' '+fsTi+'px '+ff;
     const tl=wrapText(c,P.title,innerW-indent-(P.close?18*SC:0));
+    y+=fsTi*0.12;   // 한글 em 상단 여백 보정 — 제목을 살짝 아래로 (상하 균형)
     el('title',{x:padX+indent,y,lines:tl,fs:fsTi});
     y+=tl.length*fsTi*1.38+6*SC;   // 제목 줄높이 여유 + 본문 앞 간격
   }
@@ -818,8 +819,8 @@ function tourMeasure(c,o){
     y+=lines.length*fs2*1.62+6*SC;
   }
   for(const tip of P.tips){
-    c.font='800 '+Math.round(fsTip*0.76)+'px '+ff;
-    const lbW=c.measureText(tip.label).width+14*SC;
+    c.font='800 '+Math.round(fsTip*0.99)+'px '+ff;   // 라벨 뱃지 1.3배
+    const lbW=c.measureText(tip.label).width+16*SC;
     const fsPen=Math.round(fsTip*1.4);   // 손글씨는 시각적으로 작아 보여 보정
     const tLines=layoutRuns(c,inlineRuns(tip.t),innerW-lbW-30*SC,fsPen,PEN_FF);
     const th=Math.max(fsPen*1.5, tLines.length*fsPen*1.5)+16*SC;
@@ -941,8 +942,8 @@ function tourDraw(c,o){
       const tp=new Path2D(); tp.roundRect(o.x+e.x,o.y+e.y,e.w,e.h,8*SC);
       if(S.tipDash){ c.setLineDash([5*SC,4*SC]); c.lineWidth=1.5; c.strokeStyle=hexA('#18181B',.4); c.stroke(tp); c.setLineDash([]); }
       else { c.fillStyle=S.tipBg; c.fill(tp); }
-      const lbH=B.fsTip*1.3, lbY=o.y+e.y+(e.h-lbH)/2;   // 라벨·본문 모두 인셋 안 수직 중앙
-      c.font='800 '+Math.round(B.fsTip*0.76)+'px '+ff;
+      const lbH=B.fsTip*1.69, lbY=o.y+e.y+(e.h-lbH)/2;   // 라벨·본문 모두 인셋 안 수직 중앙 (뱃지 1.3배)
+      c.font='800 '+Math.round(B.fsTip*0.99)+'px '+ff;
       const lp=new Path2D(); lp.roundRect(o.x+e.x+10*SC,lbY,e.lbW,lbH,999);
       c.fillStyle=S.tipLbBg; c.fill(lp);
       c.fillStyle=S.tipLbFg; c.textBaseline='middle'; c.fillText(e.label, o.x+e.x+10*SC+7*SC, lbY+lbH/2+0.5); c.textBaseline='top';
@@ -978,7 +979,7 @@ function tourDraw(c,o){
           else if(primary){
             const bw2=tw+28*SC, bp=new Path2D(); bp.roundRect(rx-bw2,fy,bw2,bh,8*SC);
             c.fillStyle=danger?T.dgr:S.primary.bg; c.fill(bp);
-            if(S.primary.popBd){ c.lineWidth=2; c.strokeStyle=S.primary.popBd; c.stroke(bp); }
+            if(S.primary.popBd){ c.lineWidth=2.4; c.strokeStyle=S.primary.popBd; c.stroke(bp); }
             c.fillStyle=danger?'#fff':S.primary.fg; c.textBaseline='middle'; c.textAlign='center';
             c.fillText(b.label, rx-bw2/2, fy+bh/2+1); c.textAlign='left'; c.textBaseline='top';
             rx-=bw2+10*SC;
