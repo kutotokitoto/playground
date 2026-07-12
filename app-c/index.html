@@ -193,7 +193,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783824000372;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783824132479;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -735,6 +735,7 @@ function tourMeasure(c,o){
 function tourDraw(c,o){
   const B=o._tb; if(!B) return;
   const {P,T,S,SC,ff}=B, padX=B.padX;
+  c.textAlign='left'; c.textBaseline='top';   // 이전 그리기의 기준선 상태를 물려받지 않게 명시 (위로 붙는 버그 방지)
   const shStd=p=>{ c.save(); c.shadowColor=hexA('#18181B',.12); c.shadowBlur=40*SC; c.shadowOffsetY=16*SC; c.fillStyle=S.surf; c.fill(p); c.restore();
     c.save(); c.shadowColor=hexA('#18181B',.05); c.shadowBlur=6*SC; c.shadowOffsetY=2*SC; c.fillStyle=S.surf; c.fill(p); c.restore(); };
   // ── 소형 타입 표면 ──
