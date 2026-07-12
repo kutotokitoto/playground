@@ -193,7 +193,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783820971388;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783821262297;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -785,7 +785,8 @@ function objToMd(o){
   const lines=[];
   if(o.title) lines.push('# '+o.title);
   for(const ln of String(o.body||'').split('\n')){
-    if(ln.indexOf('■ ')===0) lines.push('## '+ln.slice(2));
+    if(ln.indexOf('■ ')===0) lines.push('# '+ln.slice(2));
+    else if(ln.indexOf('□ ')===0) lines.push('## '+ln.slice(2));
     else if(ln.indexOf('▷ ')===0) lines.push('### '+ln.slice(2));
     else if(ln.indexOf('· ')===0) lines.push('- '+ln.slice(2));
     else lines.push(ln);
@@ -856,7 +857,9 @@ $('md-paste').addEventListener('input', ()=>{
     for(const it of mdParse(v)){
       if(it.txt==='') { body.push(''); continue; }
       if(title===null && (it.lv===1||it.lv===2)){ title=it.txt; continue; }
-      if(it.lv===1||it.lv===2){ if(body.length&&body[body.length-1]!=='') body.push(''); body.push('■ '+it.txt); }
+      if(it.lv===1||it.lv===2){   // 층위 유지: # → ■(채움), ## → □(빈 사각형)
+        if(body.length&&body[body.length-1]!=='') body.push('');
+        body.push((it.lv===1?'■ ':'□ ')+it.txt); }
       else if(it.lv===3) body.push('▷ '+it.txt);
       else if(it.lv===9) body.push('· '+it.txt);
       else body.push(it.txt);
