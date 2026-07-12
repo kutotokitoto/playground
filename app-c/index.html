@@ -119,7 +119,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783815044119;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783818373016;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 let toastT=null;
@@ -212,97 +212,120 @@ function measure(c,o){   // 줄바꿈 계산 + 자동 높이 → o._h/_lines/_ti
   o._lines=(t.noBody||!o.body)?[]:wrapText(c,o.body,innerW);
   const th=o._titleLines.length*(o.fs+2)*1.35, bh=o._lines.length*o.fs*1.5;
   o._gap=(o._titleLines.length&&o._lines.length)?(t.gap!=null?t.gap:8):0;
-  o._h=Math.max(t.minH||52, pad.t+th+o._gap+bh+pad.b);
+  o._h=Math.max(t.minH||52, pad.t+th+o._gap+bh+pad.b+(t.footH||0));   // footH: 진행점·버튼 등 푸터 장식 공간
   if(t.autoW){ c.font='700 '+o.fs+'px '+FONT;
     o.w=Math.max(60, c.measureText(o.title||o.body||'').width+pad.l+pad.r);
     o._h=Math.max(t.minH||40, o.fs*1.4+pad.t+pad.b); }
 }
 function drawContents(c,o,titleCol,bodyCol){
   const t=TPL[o.tpl], pad=t.pad; let ty=o.y+pad.t;
-  c.textAlign='left'; c.textBaseline='top';
+  const ctr=!!t.center, tx=ctr?o.x+o.w/2:o.x+pad.l;
+  c.textAlign=ctr?'center':'left'; c.textBaseline='top';
   if(o._titleLines.length){
     c.font='700 '+(o.fs+2)+'px '+FONT; c.fillStyle=titleCol;
-    for(const ln of o._titleLines){ c.fillText(ln, o.x+pad.l, ty+2); ty+=(o.fs+2)*1.35; }
+    for(const ln of o._titleLines){ c.fillText(ln, tx, ty+2); ty+=(o.fs+2)*1.35; }
     ty+=o._gap;
   }
   if(o._lines.length){
     c.font='400 '+o.fs+'px '+FONT; c.fillStyle=bodyCol;
-    for(const ln of o._lines){ c.fillText(ln, o.x+pad.l, ty+2); ty+=o.fs*1.5; }
+    for(const ln of o._lines){ c.fillText(ln, tx, ty+2); ty+=o.fs*1.5; }
   }
+  c.textAlign='left';
 }
-/* 1. 클래식 — 흰 바탕, 부드러운 그림자, 곡선 꼬리 */
-TPL.classic={ name:'클래식 라운드', pad:{l:20,r:20,t:16,b:16},
-  def:{w:320,fs:20,title:'여기를 클릭하세요',body:'버튼을 누르면 다음 단계로 넘어갑니다.'},
+/* 장식 층위: 진행 점 · '다음' 알약 · 닫기 X — 코치마크 특유의 구성 요소 */
+function dots(c,x,y,accent){ for(let i=0;i<3;i++){ c.beginPath(); c.arc(x+i*13,y,3.4,0,7); c.fillStyle=i?'#dcdff2':accent; c.fill(); } }
+function pillBtn(c,right,bottom,label,fs,fill,txt){
+  c.font='700 '+fs+'px '+FONT;
+  const w=c.measureText(label).width+fs*1.7, h=fs*1.95;
+  const p=new Path2D(); p.roundRect(right-w,bottom-h,w,h,h/2);
+  c.fillStyle=fill; c.fill(p);
+  c.fillStyle=txt; c.textAlign='center'; c.textBaseline='middle';
+  c.fillText(label,right-w/2,bottom-h/2+.5);
+  c.textAlign='left'; c.textBaseline='top';
+}
+function closeX(c,x,y,col){ c.save(); c.lineWidth=2; c.strokeStyle=col; c.lineCap='round';
+  c.beginPath(); c.moveTo(x-4.5,y-4.5); c.lineTo(x+4.5,y+4.5); c.moveTo(x+4.5,y-4.5); c.lineTo(x-4.5,y+4.5); c.stroke(); c.restore(); }
+/* 1. 코치마크 카드 — 순백 + 인디고, 진행 점·'다음' 알약 장식 */
+TPL.classic={ name:'코치마크 카드', pad:{l:22,r:22,t:20,b:14}, footH:46, gap:7,
+  def:{w:330,fs:19,title:'여기를 클릭하세요',body:'버튼을 누르면 다음 단계로 넘어갑니다.'},
   draw(c,o){
-    const p=bubblePath(o.x,o.y,o.w,o._h,14,{tx:o.tx,ty:o.ty,bw:20,curve:1});
-    c.save(); c.shadowColor='rgba(20,30,50,.20)'; c.shadowBlur=16; c.shadowOffsetY=5;
+    const p=bubblePath(o.x,o.y,o.w,o._h,18,{tx:o.tx,ty:o.ty,bw:20,curve:1});
+    c.save(); c.shadowColor='rgba(79,70,229,.30)'; c.shadowBlur=28; c.shadowOffsetY=9;
     c.fillStyle='#ffffff'; c.fill(p); c.restore();
-    c.lineWidth=1.5; c.strokeStyle='#d9dce1'; c.lineJoin='round'; c.stroke(p);
-    drawContents(c,o,'#1c2128','#4a515b');
+    drawContents(c,o,'#1e1b4b','#6b7280');
+    dots(c,o.x+26,o.y+o._h-26,'#4f46e5');
+    pillBtn(c,o.x+o.w-18,o.y+o._h-14,'다음',13,'#4f46e5','#fff');
   }};
-/* 2. 팁 카드 — TIP 알약 헤더 + 본문, 노랑 톤 */
-TPL.tip={ name:'팁 카드', pad:{l:20,r:20,t:48,b:16}, noTitle:1,
-  def:{w:340,fs:19,title:'',body:'자주 쓰는 기능은 즐겨찾기에 등록해 두면 편해요.'},
+/* 2. 리본 카드 — 그라디언트 리본 라벨 + 가운데 정렬 본문 */
+TPL.tip={ name:'리본 카드', pad:{l:26,r:26,t:54,b:20}, skipTitleDraw:1, titleLabel:'리본 문구', center:1,
+  def:{w:340,fs:19,title:'PREMIUM',body:'이 기능은 관리자 모드에서 켤 수 있어요.'},
   draw(c,o){
-    const p=bubblePath(o.x,o.y,o.w,o._h,12,{tx:o.tx,ty:o.ty,bw:18,curve:1});
-    c.save(); c.shadowColor='rgba(120,90,0,.18)'; c.shadowBlur=12; c.shadowOffsetY=4;
-    c.fillStyle='#FFFBEB'; c.fill(p); c.restore();
-    c.lineWidth=1.5; c.strokeStyle='#F1D583'; c.stroke(p);
-    const pr=new Path2D(); pr.roundRect(o.x+16,o.y+13,66,24,12);   // TIP 알약
-    c.fillStyle='#F5B301'; c.fill(pr);
-    c.font='800 13px '+FONT; c.fillStyle='#5c4a00'; c.textAlign='left'; c.textBaseline='middle';
-    c.fillText('💡 TIP', o.x+28, o.y+26);
-    drawContents(c,o,'#5c4a00','#6b5a1e');
-  }};
-/* 3. 스텝 배지 — 파란 번호 원이 모서리에 걸침 */
-TPL.step={ name:'스텝 번호', pad:{l:34,r:18,t:18,b:16}, titleLabel:'번호', skipTitleDraw:1,
-  def:{w:300,fs:19,title:'1',body:'먼저 [데이터] 탭에서 파일을 업로드합니다.'},
-  draw(c,o){
-    const p=bubblePath(o.x,o.y,o.w,o._h,12,{tx:o.tx,ty:o.ty,bw:18});
-    c.save(); c.shadowColor='rgba(30,80,180,.18)'; c.shadowBlur=12; c.shadowOffsetY=4;
+    const p=bubblePath(o.x,o.y,o.w,o._h,16,{tx:o.tx,ty:o.ty,bw:18,curve:1});
+    c.save(); c.shadowColor='rgba(139,92,246,.28)'; c.shadowBlur=24; c.shadowOffsetY=7;
     c.fillStyle='#ffffff'; c.fill(p); c.restore();
-    c.lineWidth=1.5; c.strokeStyle='#B9D2F2'; c.stroke(p);
-    c.beginPath(); c.arc(o.x+4,o.y+4,19,0,7);   // 번호 배지 (모서리에 걸침)
-    c.fillStyle='#2a78d6'; c.fill(); c.lineWidth=3; c.strokeStyle='#fff'; c.stroke();
-    c.font='800 17px '+FONT; c.fillStyle='#fff'; c.textAlign='center'; c.textBaseline='middle';
-    c.fillText(String(o.title||'1'), o.x+4, o.y+5);
-    drawContents(c,o,'#33404f','#33404f');
+    const label='🔒 '+String(o.title||'TIP').toUpperCase();
+    c.font='800 12.5px '+FONT;
+    const tw=c.measureText(label).width+28, rh=25, rx=o.x+o.w/2-tw/2, ry=o.y+16;
+    const g=c.createLinearGradient(rx,0,rx+tw,0); g.addColorStop(0,'#8b5cf6'); g.addColorStop(1,'#ec4899');
+    const pr=new Path2D(); pr.roundRect(rx,ry,tw,rh,12.5); c.fillStyle=g; c.fill(pr);
+    c.fillStyle='#fff'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(label,rx+tw/2,ry+rh/2+.5);
+    c.textAlign='left'; c.textBaseline='top';
+    drawContents(c,o,'#312e81','#3f3d76');
   }};
-/* 4. 주의 — 앰버 톤, 좌측 악센트 바 + ⚠ */
-TPL.warn={ name:'주의 콜아웃', pad:{l:52,r:18,t:15,b:15}, gap:5,
+/* 3. 넘버 네이비 — 짙은 남색 + 흰 코너 컷 + 큰 번호 */
+TPL.step={ name:'넘버 네이비', pad:{l:24,r:24,t:58,b:20}, titleLabel:'번호', skipTitleDraw:1,
+  def:{w:300,fs:18,title:'01',body:'먼저 [데이터] 탭에서 파일을 업로드합니다.'},
+  draw(c,o){
+    const p=bubblePath(o.x,o.y,o.w,o._h,16,{tx:o.tx,ty:o.ty,bw:20});
+    c.save(); c.shadowColor='rgba(15,20,60,.35)'; c.shadowBlur=20; c.shadowOffsetY=7;
+    c.fillStyle='#1b2145'; c.fill(p); c.restore();
+    c.save(); c.clip(p);   // 흰 쿼터서클 코너 컷
+    c.beginPath(); c.arc(o.x+o.w,o.y,46,0,7); c.fillStyle='#fff'; c.fill();
+    c.restore();
+    c.font='800 26px '+FONT; c.fillStyle='#fff'; c.textAlign='left'; c.textBaseline='top';
+    c.fillText(String(o.title||'01'), o.x+24, o.y+18);
+    drawContents(c,o,'#fff','rgba(255,255,255,.85)');
+  }};
+/* 4. 주의 콜아웃 — 흰 카드 + 앰버 아이콘 칩 */
+TPL.warn={ name:'주의 콜아웃', pad:{l:64,r:20,t:18,b:18}, gap:5,
   def:{w:340,fs:19,title:'주의',body:'저장하지 않고 나가면 변경 내용이 사라집니다.'},
   draw(c,o){
-    const p=bubblePath(o.x,o.y,o.w,o._h,10,{tx:o.tx,ty:o.ty,bw:18});
-    c.save(); c.shadowColor='rgba(180,120,0,.16)'; c.shadowBlur=10; c.shadowOffsetY=3;
-    c.fillStyle='#FFF8EC'; c.fill(p); c.restore();
-    c.lineWidth=1.5; c.strokeStyle='#F0C36D'; c.stroke(p);
-    const bar=new Path2D(); bar.roundRect(o.x+10,o.y+10,5,o._h-20,3);   // 악센트 바
-    c.fillStyle='#F5A623'; c.fill(bar);
-    c.font='17px '+FONT; c.textAlign='left'; c.textBaseline='top'; c.fillText('⚠️', o.x+24, o.y+15);
-    drawContents(c,o,'#9a6200','#7a5a12');
-  }};
-/* 5. 다크 툴팁 — 짙은 배경, 흰 글씨, 위쪽 하이라이트 */
-TPL.dark={ name:'다크 툴팁', pad:{l:18,r:18,t:14,b:14}, gap:5,
-  def:{w:300,fs:19,title:'단축키',body:'Ctrl+Z 로 언제든 되돌릴 수 있어요.'},
-  draw(c,o){
-    const p=bubblePath(o.x,o.y,o.w,o._h,11,{tx:o.tx,ty:o.ty,bw:16});
-    c.save(); c.shadowColor='rgba(0,0,0,.35)'; c.shadowBlur=14; c.shadowOffsetY=5;
-    const g=c.createLinearGradient(0,o.y,0,o.y+o._h); g.addColorStop(0,'#2d333c'); g.addColorStop(1,'#1d2127');
-    c.fillStyle=g; c.fill(p); c.restore();
-    c.lineWidth=1; c.strokeStyle='rgba(255,255,255,.14)'; c.stroke(p);
-    drawContents(c,o,'#8ce99a','#e9ecef');
-  }};
-/* 6. 네온 그라디언트 — 흰 바탕 + 초록→파랑 테두리 */
-TPL.neon={ name:'네온 포인트', pad:{l:20,r:20,t:16,b:16}, gap:6,
-  def:{w:320,fs:19,title:'NEW',body:'이번 업데이트에서 새로 생긴 기능입니다.'},
-  draw(c,o){
-    const p=bubblePath(o.x,o.y,o.w,o._h,14,{tx:o.tx,ty:o.ty,bw:20,curve:1});
-    c.save(); c.shadowColor='rgba(18,184,134,.25)'; c.shadowBlur=16; c.shadowOffsetY=4;
+    const p=bubblePath(o.x,o.y,o.w,o._h,16,{tx:o.tx,ty:o.ty,bw:18});
+    c.save(); c.shadowColor='rgba(240,170,60,.25)'; c.shadowBlur=20; c.shadowOffsetY=6;
     c.fillStyle='#ffffff'; c.fill(p); c.restore();
-    const g=c.createLinearGradient(o.x,o.y,o.x+o.w,o.y+o._h);
-    g.addColorStop(0,'#12b886'); g.addColorStop(1,'#4dabf7');
-    c.lineWidth=3.5; c.strokeStyle=g; c.lineJoin='round'; c.stroke(p);
-    drawContents(c,o,'#0ca678','#37414d');
+    c.lineWidth=1.2; c.strokeStyle='#F6E3BC'; c.stroke(p);
+    c.beginPath(); c.arc(o.x+34,o.y+34,17,0,7); c.fillStyle='#FDEBC8'; c.fill();   // 아이콘 칩
+    c.font='16px '+FONT; c.textAlign='center'; c.textBaseline='middle'; c.fillText('⚠️',o.x+34,o.y+35);
+    c.textAlign='left'; c.textBaseline='top';
+    drawContents(c,o,'#b45309','#8a7a58');
+  }};
+/* 5. 블랙 슬릭 — 진회색 카드, ⊕ 칩 + '1 / 5' + 흰 알약 */
+TPL.dark={ name:'블랙 슬릭', pad:{l:22,r:40,t:56,b:14}, footH:46, gap:6,
+  def:{w:320,fs:18,title:'질문 추가',body:'왼쪽 아이콘 중 하나를 눌러 시작하세요.'},
+  draw(c,o){
+    const p=bubblePath(o.x,o.y,o.w,o._h,18,{tx:o.tx,ty:o.ty,bw:18});
+    c.save(); c.shadowColor='rgba(0,0,0,.42)'; c.shadowBlur=22; c.shadowOffsetY=8;
+    c.fillStyle='#17181c'; c.fill(p); c.restore();
+    c.lineWidth=2; c.strokeStyle='#fff';   // ⊕ 아이콘 칩
+    c.beginPath(); c.arc(o.x+34,o.y+31,12,0,7); c.stroke();
+    c.beginPath(); c.moveTo(o.x+29,o.y+31); c.lineTo(o.x+39,o.y+31); c.moveTo(o.x+34,o.y+26); c.lineTo(o.x+34,o.y+36); c.stroke();
+    closeX(c,o.x+o.w-20,o.y+22,'rgba(255,255,255,.8)');
+    drawContents(c,o,'#ffffff','#b7bcc5');
+    c.font='500 12.5px '+FONT; c.fillStyle='rgba(255,255,255,.55)'; c.textBaseline='middle';
+    c.fillText('1 / 5', o.x+24, o.y+o._h-26); c.textBaseline='top';
+    pillBtn(c,o.x+o.w-16,o.y+o._h-14,'다음',13,'#ffffff','#17181c');
+  }};
+/* 6. 네온 라임 — 라임 그라디언트 + 다크 X칩 + 두툼한 꼬리 */
+TPL.neon={ name:'네온 라임', pad:{l:24,r:44,t:18,b:18}, gap:6,
+  def:{w:330,fs:19,title:'전체 화면으로 볼까요?',body:'하단 공유 버튼 → 홈 화면에 추가'},
+  draw(c,o){
+    const p=bubblePath(o.x,o.y,o.w,o._h,18,{tx:o.tx,ty:o.ty,bw:26});
+    c.save(); c.shadowColor='rgba(150,230,50,.5)'; c.shadowBlur=30; c.shadowOffsetY=6;
+    const g=c.createLinearGradient(o.x,o.y,o.x,o.y+o._h); g.addColorStop(0,'#c9f65a'); g.addColorStop(1,'#a5e22b');
+    c.fillStyle=g; c.fill(p); c.restore();
+    c.beginPath(); c.arc(o.x+o.w-24,o.y+24,11,0,7); c.fillStyle='#1a2408'; c.fill();
+    closeX(c,o.x+o.w-24,o.y+24,'#d8f79a');
+    drawContents(c,o,'#1a2408','#2b3a10');
   }};
 /* 7. 생각 풍선 — 몽글몽글 점선 + 점점 작아지는 방울 꼬리 */
 TPL.thought={ name:'생각 풍선', pad:{l:26,r:26,t:18,b:18}, noTitle:1, minH:64,
@@ -310,65 +333,56 @@ TPL.thought={ name:'생각 풍선', pad:{l:26,r:26,t:18,b:18}, noTitle:1, minH:6
   draw(c,o){
     const r=Math.min(30,o._h/2-2);
     const p=bubblePath(o.x,o.y,o.w,o._h,r,null);
-    c.save(); c.shadowColor='rgba(90,100,160,.20)'; c.shadowBlur=14; c.shadowOffsetY=4;
+    c.save(); c.shadowColor='rgba(99,102,241,.20)'; c.shadowBlur=18; c.shadowOffsetY=5;
     c.fillStyle='#ffffff'; c.fill(p); c.restore();
-    c.lineWidth=2; c.strokeStyle='#c5cbe3'; c.setLineDash([1,7]); c.lineCap='round'; c.stroke(p);
+    c.lineWidth=2; c.strokeStyle='#c7cdf5'; c.setLineDash([1,7]); c.lineCap='round'; c.stroke(p);
     c.setLineDash([]); c.lineCap='butt';
     const e=edgePoint(o,o.tx,o.ty);
     [[.35,8],[.62,5.5],[.85,3.5]].forEach(pair=>{   // 방울 3개
       const bx=e.x+(o.tx-e.x)*pair[0], by=e.y+(o.ty-e.y)*pair[0];
       c.beginPath(); c.arc(bx,by,pair[1],0,7); c.fillStyle='#fff'; c.fill();
-      c.lineWidth=1.5; c.strokeStyle='#c5cbe3'; c.stroke();
+      c.lineWidth=1.5; c.strokeStyle='#c7cdf5'; c.stroke();
     });
-    drawContents(c,o,'#333','#4d566b');
+    drawContents(c,o,'#333','#4b5563');
   }};
 /* 8. 코믹 스티커 — 굵은 윤곽 + 어긋난 단색 그림자 */
-TPL.comic={ name:'코믹 스티커', pad:{l:20,r:20,t:15,b:15}, noTitle:1,
+TPL.comic={ name:'코믹 스티커', pad:{l:22,r:22,t:16,b:16}, noTitle:1,
   def:{w:280,fs:20,title:'',body:'완전 쉬움!'},
   draw(c,o){
-    const mk=(dx,dy)=>bubblePath(o.x+dx,o.y+dy,o.w,o._h,10,{tx:o.tx+dx,ty:o.ty+dy,bw:18});
-    c.fillStyle='#141a21'; c.fill(mk(6,7));           // 어긋난 하드 섀도
+    const mk=(dx,dy)=>bubblePath(o.x+dx,o.y+dy,o.w,o._h,12,{tx:o.tx+dx,ty:o.ty+dy,bw:18});
+    c.fillStyle='#1d2129'; c.fill(mk(5,6));           // 어긋난 하드 섀도
     const p=mk(0,0);
-    c.fillStyle='#FFE24A'; c.fill(p);
-    c.lineWidth=3; c.strokeStyle='#141a21'; c.lineJoin='round'; c.stroke(p);
-    drawContents(c,o,'#141a21','#141a21');
+    c.fillStyle='#FFD84D'; c.fill(p);
+    c.lineWidth=2.5; c.strokeStyle='#1d2129'; c.lineJoin='round'; c.stroke(p);
+    drawContents(c,o,'#1d2129','#1d2129');
   }};
-/* 9. 미니 라벨 — 캡슐 + 리더선/점 (도면 주석 느낌) */
+/* 9. 미니 라벨 — 인디고 캡슐 + 리더선/점 (도면 주석 느낌) */
 TPL.pill={ name:'미니 라벨 + 리더선', pad:{l:18,r:18,t:9,b:9}, noBody:1, autoW:1, minH:38, skipTitleDraw:1, titleLabel:'라벨',
   def:{w:0,fs:17,title:'저장 버튼',body:''},
   draw(c,o){
     const e=edgePoint(o,o.tx,o.ty);
     c.beginPath(); c.moveTo(e.x,e.y); c.lineTo(o.tx,o.ty);   // 리더선
-    c.lineWidth=1.8; c.strokeStyle='#1e2a3a'; c.stroke();
-    c.beginPath(); c.arc(o.tx,o.ty,5,0,7); c.fillStyle='#eb6834'; c.fill();
-    c.lineWidth=2; c.strokeStyle='#fff'; c.stroke();
+    c.lineWidth=1.6; c.strokeStyle='#4f46e5'; c.stroke();
+    c.beginPath(); c.arc(o.tx,o.ty,5.5,0,7); c.fillStyle='#4f46e5'; c.fill();
+    c.lineWidth=2.5; c.strokeStyle='#fff'; c.stroke();
     const p=new Path2D(); p.roundRect(o.x,o.y,o.w,o._h,o._h/2);
-    c.save(); c.shadowColor='rgba(20,30,50,.25)'; c.shadowBlur=10; c.shadowOffsetY=3;
-    c.fillStyle='#1e2a3a'; c.fill(p); c.restore();
+    c.save(); c.shadowColor='rgba(79,70,229,.35)'; c.shadowBlur=14; c.shadowOffsetY=4;
+    c.fillStyle='#4f46e5'; c.fill(p); c.restore();
     c.font='700 '+o.fs+'px '+FONT; c.fillStyle='#fff'; c.textAlign='left'; c.textBaseline='middle';
-    c.fillText(o.title||'', o.x+18, o.y+o._h/2+1);
+    c.fillText(o.title||'', o.x+18, o.y+o._h/2+1); c.textBaseline='top';
   }};
-/* 10. 브라켓 인용 — 왼쪽 꺾쇠 + 화살표 리더 */
-TPL.bracket={ name:'브라켓 콜아웃', pad:{l:36,r:20,t:14,b:14}, gap:5,
-  def:{w:330,fs:19,title:'참고',body:'관리자 모드에서만 보이는 화면입니다.'},
+/* 10. 블루 툴팁 — 셰퍼드풍 파란 카드, X + '1/3' + 다크 알약 */
+TPL.bracket={ name:'블루 툴팁', pad:{l:20,r:40,t:16,b:12}, footH:44, gap:5,
+  def:{w:320,fs:18,title:'다크 테마 툴팁',body:'원하는 내용을 여기에 적어 주세요.'},
   draw(c,o){
-    const e=edgePoint(o,o.tx,o.ty);
-    c.beginPath(); c.moveTo(e.x,e.y); c.lineTo(o.tx,o.ty); c.lineWidth=2; c.strokeStyle='#405264'; c.stroke();
-    const a=Math.atan2(o.ty-e.y,o.tx-e.x);   // 화살촉
-    c.beginPath(); c.moveTo(o.tx,o.ty);
-    c.lineTo(o.tx-11*Math.cos(a-.42), o.ty-11*Math.sin(a-.42));
-    c.lineTo(o.tx-11*Math.cos(a+.42), o.ty-11*Math.sin(a+.42));
-    c.closePath(); c.fillStyle='#405264'; c.fill();
-    const p=new Path2D(); p.roundRect(o.x,o.y,o.w,o._h,8);
-    c.save(); c.shadowColor='rgba(30,42,58,.14)'; c.shadowBlur=10; c.shadowOffsetY=3;
-    c.fillStyle='rgba(255,255,255,.95)'; c.fill(p); c.restore();
-    c.lineWidth=1; c.strokeStyle='#cdd5dd'; c.stroke(p);
-    c.lineWidth=4; c.strokeStyle='#405264'; c.lineCap='round';   // 왼쪽 꺾쇠 「
-    c.beginPath(); c.moveTo(o.x+16,o.y+11); c.lineTo(o.x+16,o.y+o._h-11); c.stroke();
-    c.beginPath(); c.moveTo(o.x+16,o.y+11); c.lineTo(o.x+27,o.y+11); c.stroke();
-    c.beginPath(); c.moveTo(o.x+16,o.y+o._h-11); c.lineTo(o.x+27,o.y+o._h-11); c.stroke();
-    c.lineCap='butt';
-    drawContents(c,o,'#1e2a3a','#44505c');
+    const p=bubblePath(o.x,o.y,o.w,o._h,13,{tx:o.tx,ty:o.ty,bw:16});
+    c.save(); c.shadowColor='rgba(35,90,180,.32)'; c.shadowBlur=18; c.shadowOffsetY=6;
+    c.fillStyle='#4a8fe7'; c.fill(p); c.restore();
+    closeX(c,o.x+o.w-19,o.y+20,'rgba(255,255,255,.85)');
+    drawContents(c,o,'#ffffff','rgba(255,255,255,.93)');
+    c.font='600 12.5px '+FONT; c.fillStyle='rgba(255,255,255,.75)'; c.textBaseline='middle';
+    c.fillText('1/3', o.x+21, o.y+o._h-25); c.textBaseline='top';
+    pillBtn(c,o.x+o.w-15,o.y+o._h-13,'다음',13,'#3b4046','#fff');
   }};
 
 const TPL_ORDER=['classic','tip','step','warn','dark','neon','thought','comic','pill','bracket'];
@@ -415,14 +429,14 @@ function buildGallery(){
   for(const id of TPL_ORDER){
     const t=TPL[id];
     const btn=document.createElement('button'); btn.className='tpl';
-    const pc=document.createElement('canvas'); pc.width=376; pc.height=190;
+    const pc=document.createElement('canvas'); pc.width=376; pc.height=220;
     btn.appendChild(pc);
     const nm=document.createElement('div'); nm.className='nm'; nm.textContent=t.name; btn.appendChild(nm);
     const c=pc.getContext('2d');
-    c.fillStyle='#f1f3f5'; c.fillRect(0,0,376,190);
-    const o={tpl:id, x:34, y:24, w:t.def.w, fs:t.def.fs, title:t.def.title, body:t.def.body, tx:120, ty:180};
-    if(id==='pill'){ o.x=70; o.y=48; o.tx=300; o.ty=156; }
-    if(id==='bracket'){ o.y=20; o.tx=346; o.ty=170; }
+    c.fillStyle='#f1f3f5'; c.fillRect(0,0,376,220);
+    const o={tpl:id, x:20, y:16, w:t.def.w, fs:t.def.fs, title:t.def.title, body:t.def.body, tx:120, ty:212};
+    if(id==='pill'){ o.x=70; o.y=80; o.tx=300; o.ty=180; }
+    if(id==='comic'){ o.y=40; o.x=40; }
     measure(c,o); TPL[id].draw.call(TPL[id],c,o);
     btn.addEventListener('click', ()=>addObj(id));
     g.appendChild(btn);
