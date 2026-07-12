@@ -111,6 +111,10 @@
   .lrow .lz{width:20px;height:20px;border:1px solid var(--line);border-radius:5px;font-size:9px;color:var(--muted);flex-shrink:0}
   .lrow .lz:hover{background:#fff;color:var(--acc)}
   #emoji-row{display:flex;flex-wrap:wrap;gap:3px;max-height:220px;overflow-y:auto;padding:2px;border:1px solid var(--line);border-radius:8px;background:#fafbfc}
+  #pal-row{display:flex;flex-wrap:wrap;gap:6px;padding:2px}
+  .pswatch{width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+  .pswatch:hover{transform:scale(1.12)}
+  .pswatch.on{box-shadow:0 0 0 2px var(--acc)}
   .emj{width:26px;height:26px;font-size:15px;line-height:1;border:1px solid var(--line);border-radius:6px;background:#fff;padding:0}
   .emj:hover{background:#fdf4ee;border-color:var(--acc)}
 </style>
@@ -171,6 +175,8 @@
           <textarea id="md-paste" style="min-height:220px" placeholder="#첫 제목 줄 → 제목으로 (공백 없어도 됨)&#10;##소제목 · -불릿 · 일반 문장&#10;   → 내용으로 순서대로 들어갑니다&#10;(텍스트 블록을 선택하면 3층위로 조판)"></textarea></div>
         <div class="fld"><label>이모지 넣기 <span style="font-weight:400;color:#a5acb6">— 커서 위치에 삽입</span></label>
           <div id="emoji-row"></div></div>
+        <div class="fld" id="fld-palette"><label>팔레트 <span style="font-weight:400;color:#a5acb6">— 색만 바뀝니다</span></label>
+          <div id="pal-row"></div></div>
         <div class="fld"><label>글꼴</label><select id="in-font" style="width:100%;height:30px;border:1px solid var(--line);border-radius:7px;background:#fff"></select></div>
         <div class="fld"><label>글자 크기 <span id="fs-val"></span></label><input type="range" id="in-fs" min="13" max="42" step="1"></div>
       </div>
@@ -193,7 +199,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783824360534;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783824537116;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -531,12 +537,22 @@ TPL.md={ name:'📝 텍스트 블록 (마크다운)', pad:{l:26,r:26,t:18,b:18},
 
 /* ══════════════ 투어 카드 — '투어 마크다운 규칙 v1' × '말풍선 렌더링 스펙 v1' 구현 ══════════════
    #제목 / ##본문(** 강조·`kbd`) / ###팁(라벨: 지원) / [버튼](액션) / 메타(step·style·type·preset·close·media) */
-const TOUR_PRESETS={ light:{acc:'#4F46E5',soft:'#EEF0FE',softfg:'#4338CA'},
-  mono:{acc:'#18181B',soft:'#F1F1F3',softfg:'#3F3F46',r:10},
-  violet:{acc:'#7C3AED',soft:'#F4EEFE',softfg:'#6D28D9'},
-  emerald:{acc:'#059669',soft:'#E7F6EF',softfg:'#047857'},
-  amber:{acc:'#EA580C',soft:'#FCEFE6',softfg:'#C2410C'},
-  rose:{acc:'#E11D48',soft:'#FCE9EE',softfg:'#BE123C'} };
+/* 팔레트 = 악센트 3색(acc/soft/softfg)만 교체 — 구성·위계는 그대로 (렌더링 스펙 §1b) */
+const TOUR_PRESETS={
+  light:{label:'인디고 (기본)',acc:'#4F46E5',soft:'#EEF0FE',softfg:'#4338CA'},
+  blue:{label:'블루',acc:'#2563EB',soft:'#E8F0FE',softfg:'#1D4ED8'},
+  sky:{label:'스카이',acc:'#0284C7',soft:'#E4F3FB',softfg:'#0369A1'},
+  cyan:{label:'시안',acc:'#0891B2',soft:'#E0F5F9',softfg:'#0E7490'},
+  teal:{label:'틸',acc:'#0D9488',soft:'#DFF5F2',softfg:'#0F766E'},
+  emerald:{label:'에메랄드',acc:'#059669',soft:'#E7F6EF',softfg:'#047857'},
+  lime:{label:'라임',acc:'#65A30D',soft:'#F0F7E2',softfg:'#4D7C0F'},
+  yellow:{label:'옐로',acc:'#CA8A04',soft:'#FBF3D9',softfg:'#A16207'},
+  amber:{label:'앰버',acc:'#EA580C',soft:'#FCEFE6',softfg:'#C2410C'},
+  rose:{label:'로즈',acc:'#E11D48',soft:'#FCE9EE',softfg:'#BE123C'},
+  fuchsia:{label:'푸시아',acc:'#C026D3',soft:'#F9E8FC',softfg:'#A21CAF'},
+  violet:{label:'바이올렛',acc:'#7C3AED',soft:'#F4EEFE',softfg:'#6D28D9'},
+  slate:{label:'슬레이트',acc:'#475569',soft:'#EDF0F4',softfg:'#334155'},
+  mono:{label:'모노',acc:'#18181B',soft:'#F1F1F3',softfg:'#3F3F46',r:10} };
 function hexA(hex,a){ const n=parseInt(hex.replace('#',''),16);
   return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
 function tourParse(md){
@@ -1148,7 +1164,23 @@ function syncInspector(){
   $('in-font').value=o.font||'pretendard';
   $('in-fs').value=o.fs; $('fs-val').textContent=o.fs+'px';
   $('md-paste').value=objToMd(o);   // 현재 제목/내용의 마크다운 표현 — 연동을 눈으로 보여줌
+  const isTour=!!t.tour;
+  $('fld-palette').style.display=isTour?'block':'none';
+  if(isTour){
+    const m=String(o.body||'').match(/^preset\s*:\s*(\S+)/m), cur=m?m[1]:'light';
+    document.querySelectorAll('#pal-row .pswatch').forEach(s=>s.classList.toggle('on', s.dataset.k===cur));
+  }
   renderLayers();
+}
+/* 팔레트 교체: 마크다운의 preset: 메타만 갈아끼움 — 구성·위계 불변 */
+function setTourPreset(key){
+  if(sel<0) return; const o=objs[sel]; if(!TPL[o.tpl].tour) return;
+  let b=String(o.body||'');
+  if(/^preset\s*:.*$/m.test(b)) b=b.replace(/^preset\s*:.*$/m, 'preset: '+key);
+  else b='preset: '+key+'\n'+b;
+  o.body=b;
+  syncInspector(); render();
+  clearTimeout(editT); editT=setTimeout(pushUndo, 600);
 }
 /* 개체의 제목/내용 → 마크다운 표현 (md-paste와 양방향 연동) */
 function objToMd(o){
@@ -1384,6 +1416,12 @@ document.addEventListener('keydown', e=>{
     const p=PRESETS[+selEl.value]; setCanvas(p[1],p[2]); pushUndo(); toast('캔버스 '+p[1]+'×'+p[2]);
   });
   for(const k in FONTS){ const op=document.createElement('option'); op.value=k; op.textContent=FONTS[k].label; $('in-font').appendChild(op); }
+  for(const k in TOUR_PRESETS){ const b=document.createElement('button'); b.className='pswatch'; b.dataset.k=k;
+    b.style.background=TOUR_PRESETS[k].acc; b.title=TOUR_PRESETS[k].label;
+    b.addEventListener('click', ()=>setTourPreset(k)); $('pal-row').appendChild(b); }
+  { const b=document.createElement('button'); b.className='pswatch'; b.dataset.k='dark';
+    b.style.background='linear-gradient(135deg,#212228 55%,#6E76F0 55%)'; b.title='다크 (전체 반전)';
+    b.addEventListener('click', ()=>setTourPreset('dark')); $('pal-row').appendChild(b); }
   ['👉','👈','👆','👇','🖱️','⌨️','✏️','📝','✂️','📋','📎','🔗',
    '✅','☑️','✔️','❌','⭕','🚫','⚠️','❗','❓','💯','🆗','🆕',
    '1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','#️⃣','*️⃣',
