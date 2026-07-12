@@ -152,6 +152,7 @@
     <button class="rl on" data-sec="tpl" title="말풍선 템플릿"><span>💬</span>템플릿</button>
     <button class="rl" data-sec="el" title="도형·아이콘·클래식 말풍선"><span>🧩</span>요소</button>
     <button class="rl" data-sec="up" title="배경 이미지"><span>🖼️</span>업로드</button>
+    <button class="rl" id="rail-md" title="이 도구의 마크다운 작성법 문서(.md) 내려받기" style="margin-top:auto;margin-bottom:8px"><span>📖</span>가이드</button>
   </div>
   <div id="leftpanel">
     <div class="lp-sec" id="sec-tpl">
@@ -259,7 +260,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783833781923;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783836129457;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1357,6 +1358,97 @@ document.querySelectorAll('#sec-el [data-el]').forEach(b=>wireDragAdd(b, b.datas
   .forEach(ch=>{ const b=document.createElement('button'); b.className='icobtn'; b.textContent=ch; b.title=ch+' 스티커 추가';
     wireDragAdd(b,'sticker',ch, ()=>{ objs[sel].title=ch; syncInspector(); render(); pushUndo(); });
     $('el-icons').appendChild(b); });
+/* 마크다운 작성 가이드 다운로드 (레일 하단 📖) */
+$('rail-md').addEventListener('click', ()=>{
+  const G=[
+'# 마법사 마법사 — 투어 카드 마크다운 가이드',
+'',
+'말풍선(투어 카드)을 선택하고 **마크다운 붙여넣기** 필드에 아래 문법으로 쓰면 카드가 그려집니다.',
+'캔버스에서 카드를 더블클릭해도 같은 내용을 편집할 수 있어요.',
+'',
+'## 1. 기본 구조 (위에서 아래 순서)',
+'',
+'```',
+'step: 1/3          ← 메타 줄들 (생략 가능)',
+'style: classic',
+'',
+'# 제목',
+'## 본문 문단',
+'### 팁 문구',
+'',
+'[건너뛰기](skip) [다음](next)   ← 버튼 줄 (마지막 줄)',
+'```',
+'',
+'## 2. 내용 층위',
+'',
+'| 문법 | 역할 |',
+'|---|---|',
+'| `# 텍스트` | 카드 제목 (카드당 1개, 공백 없이 `#제목`도 인식) |',
+'| `## 텍스트` | 본문 문단 — 여러 줄이면 문단으로 쌓임 |',
+'| `### 텍스트` | TIP 인셋 (연한 배경 + TIP 라벨) |',
+'| `### 주의: 텍스트` | 라벨을 TIP 대신 "주의"로 |',
+'| `**텍스트**` | 본문 강조 (진하게) |',
+'| \\`Ctrl N\\` | 키보드 단축키 칩 |',
+'',
+'- 헤딩 바로 아래 일반 줄은 위 헤딩에 이어 붙습니다.',
+'- 층위는 빼도 됩니다. `##` 한 줄만 쓰면 툴팁처럼 작아져요.',
+'',
+'## 3. 메타 줄 (첫 헤딩보다 위, `키: 값`)',
+'',
+'| 키 | 값 | 설명 |',
+'|---|---|---|',
+'| `step` | `2/5` · `auto` · `none` | 진행도 라벨+도트. `auto`면 현재 페이지/전체 쪽수와 자동 연동 |',
+'| `step-label` | `STEP 2/5` | 진행도 표기 커스텀 |',
+'| `style` | `classic` `dark` `accent-header` `soft-tint` `outline` `pop` | 카드 스타일 6종 |',
+'| `preset` | `light` `blue` `sky` `cyan` `teal` `emerald` `lime` `yellow` `amber` `rose` `fuchsia` `violet` `slate` `mono` `dark` | 색 팔레트 (구성 불변, 색만) — 속성 패널 스와치와 동일 |',
+'| `type` | `tour-step`(기본) `tooltip` `confirm` `toast` `banner` `chip` `hotspot` `complete` | 카드 형태 변형 |',
+'| `close` | `false` | 우상단 × 숨김 |',
+'| `media` | `placeholder` | 카드 상단 미디어 영역 |',
+'',
+'## 4. 버튼 줄',
+'',
+'- `[라벨](액션)` 나열 — **마지막 버튼이 강조색**, 나머지는 고스트.',
+'- 액션 키워드: `next` `prev` `skip` `done` `dismiss` `undo` (그림용이라 동작은 없음)',
+'- `[삭제](danger:del)` → 빨간 파괴 버튼 · 라벨이 `→`로 끝나면 텍스트 링크',
+'- 버튼 줄이 없으면 푸터 생략.',
+'',
+'## 5. 타입별 요령',
+'',
+'- `tooltip` — `##` 한 줄이면 다크 미니 툴팁, `# + ##`이면 작은 카드',
+'- `confirm` — `#` 질문 + `##` 설명 + 버튼 2개(마지막에 `danger:` 권장)',
+'- `toast` — `##` 한 줄 + 선택적 `[실행 취소](undo)`',
+'- `banner` — 경고색 배너, `#` 헤드라인 + `##` 상세',
+'- `chip` — `## NEW: 내용` 형식의 알약',
+'- `hotspot` — `##` 한 줄 = 비컨 + 미니 라벨',
+'- `complete` — 완료 카드 (체크 아이콘)',
+'',
+'## 6. 일반(클래식) 말풍선·텍스트 블록에 붙여넣으면',
+'',
+'- 클래식 말풍선: 첫 `#` → 제목, 이후 `#`→`■`, `##`→`□`, `###`→`▷`, `-`→`·` 마커로 본문에 배치',
+'- 📝 텍스트 블록: `#`(구분선)/`##`(주황 바)/`###`(▸)/`-`(불릿) 3층위로 자동 조판',
+'',
+'## 7. 전체 예시',
+'',
+'```',
+'step: auto',
+'style: accent-header',
+'preset: teal',
+'',
+'# 측정 데이터를 올려 보세요',
+'## [데이터] 탭에서 **업로드**를 누르거나 파일을 끌어다 놓으면 돼요.',
+'### `Ctrl V` 붙여넣기로도 올릴 수 있어요',
+'',
+'[건너뛰기](skip) [다음](next)',
+'```',
+'',
+'—',
+'강조원(스포트라이트)·회전·팔레트는 마크다운이 아니라 속성 패널/핸들에서 조절합니다.',
+''].join('\n');
+  const blob=new Blob(['﻿'+G],{type:'text/markdown;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='마법사마법사_마크다운_가이드.md';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast('📖 마크다운 가이드를 내려받았습니다');
+});
 $('up-open').addEventListener('click', ()=>$('bg-file').click());
 $('up-clear').addEventListener('click', ()=>{ bgImg=null; render(); toast('배경 이미지를 제거했습니다'); });
 /* 우측 탭: 디자인/페이지/레이어 */
