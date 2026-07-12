@@ -87,6 +87,11 @@
   .ck input{accent-color:var(--acc);width:14px;height:14px}
   .lp-btn{width:100%;height:38px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:12.5px;font-weight:600;margin-bottom:8px}
   .lp-btn:hover{border-color:var(--acc);color:var(--acc-d)}
+  .el2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .el2 .lp-btn{margin-bottom:0}
+  #el-icons{display:flex;flex-wrap:wrap;gap:4px}
+  .icobtn{width:33px;height:33px;font-size:19px;line-height:1;border:1px solid var(--line);border-radius:8px;background:#fff;padding:0}
+  .icobtn:hover{border-color:var(--acc);background:#f3f1fd}
 
   #toast{position:fixed;left:50%;bottom:56px;transform:translateX(-50%) translateY(20px);background:#23272e;color:#fff;font-size:12.5px;padding:9px 18px;border-radius:9px;opacity:0;transition:all .22s;pointer-events:none;z-index:99;white-space:nowrap}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -145,7 +150,7 @@
 <div id="main">
   <div id="rail">
     <button class="rl on" data-sec="tpl" title="말풍선 템플릿"><span>💬</span>템플릿</button>
-    <button class="rl" data-sec="text" title="텍스트 블록"><span>🅣</span>텍스트</button>
+    <button class="rl" data-sec="el" title="도형·아이콘·클래식 말풍선"><span>🧩</span>요소</button>
     <button class="rl" data-sec="up" title="배경 이미지"><span>🖼️</span>업로드</button>
   </div>
   <div id="leftpanel">
@@ -153,10 +158,20 @@
       <h2>말풍선 템플릿 — 끌어다 놓기</h2>
       <div id="gallery"></div>
     </div>
-    <div class="lp-sec" id="sec-text" style="display:none">
-      <h2>텍스트</h2>
-      <button class="lp-btn" id="add-md">📝 텍스트 블록 추가</button>
-      <div class="hint">#, ##, ### 제목과 - 불릿을 3층위로 자동 조판하는 카드예요. 추가 후 더블클릭해서 쓰면 됩니다.</div>
+    <div class="lp-sec" id="sec-el" style="display:none">
+      <h2>도형</h2>
+      <div class="el2">
+        <button class="lp-btn" data-el="box">▭ 강조 박스</button>
+        <button class="lp-btn" data-el="ring">◯ 강조 원</button>
+        <button class="lp-btn" data-el="arrow">↗ 화살표</button>
+        <button class="lp-btn" data-el="badge">❶ 번호 배지</button>
+      </div>
+      <h2 style="margin-top:14px">텍스트</h2>
+      <button class="lp-btn" id="add-md">📝 텍스트 블록 (마크다운 3층위)</button>
+      <h2 style="margin-top:14px">아이콘 스티커</h2>
+      <div id="el-icons"></div>
+      <h2 style="margin-top:14px">클래식 말풍선</h2>
+      <div id="el-bubbles"></div>
     </div>
     <div class="lp-sec" id="sec-up" style="display:none">
       <h2>배경 이미지</h2>
@@ -244,7 +259,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783831934167;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783832596049;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -339,6 +354,10 @@ function edgePoint(o,tx,ty){   // 본체 테두리에서 꼬리 방향으로 나
 const TPL={};
 function measure(c,o){   // 줄바꿈 계산 + 자동 높이 → o._h/_lines/_titleLines
   const t=TPL[o.tpl];
+  if(t.shape){ o._h=t.circle?o.w:(o.hh||140); o._titleLines=[]; o._lines=[]; o._gap=0; return; }
+  if(t.sticker){ c.font=Math.round(o.fs*2.6)+'px '+FONT;
+    o.w=Math.max(40, c.measureText(o.title||'⭐').width+14); o._h=o.fs*2.6*1.25;
+    o._titleLines=[]; o._lines=[]; o._gap=0; return; }
   if(t.tour){ tourMeasure(c,o); o._titleLines=[]; o._lines=[]; o._gap=0; return; }
   if(t.md){ mdMeasure(c,o); return; }
   const pad=t.pad, innerW=o.w-pad.l-pad.r, ff=fontOf(o);
@@ -962,7 +981,47 @@ function tourDraw(c,o){
 .forEach(v=>{ TPL['tour-'+v[0]]={ name:v[1], pad:{l:16,r:16,t:13,b:14}, tour:1, noTitle:1,
   def:{w:430,fs:19,title:'',body:v[2]}, draw(c,o){ tourDraw(c,o); } }; });
 
+/* ── 요소: 도형·아이콘 스티커 (설명서 주석용, 인디고 + 흰 헤일로로 어떤 배경에서도 또렷) ── */
+TPL.box={ name:'강조 박스', shape:1, noTitle:1, noBody:1, noTail:1, noFs:1, pad:{l:0,r:0,t:0,b:0},
+  def:{w:280,hh:150,fs:19},
+  draw(c,o){ const p=new Path2D(); p.roundRect(o.x,o.y,o.w,o._h,14);
+    c.lineJoin='round';
+    c.lineWidth=7; c.strokeStyle='rgba(255,255,255,.85)'; c.stroke(p);
+    c.lineWidth=3.5; c.strokeStyle='#6156E4'; c.stroke(p); }};
+TPL.ring={ name:'강조 원', shape:1, noTitle:1, noBody:1, noTail:1, noFs:1, pad:{l:0,r:0,t:0,b:0},
+  def:{w:220,hh:130,fs:19},
+  draw(c,o){ const cx=o.x+o.w/2, cy=o.y+o._h/2;
+    const seg=(lw,col)=>{ c.lineWidth=lw; c.strokeStyle=col;
+      c.beginPath(); c.ellipse(cx,cy,o.w/2-4,o._h/2-4,0,0,7); c.stroke(); };
+    seg(7,'rgba(255,255,255,.85)'); seg(3.5,'#6156E4'); }};
+TPL.arrow={ name:'화살표', shape:1, noTitle:1, noBody:1, noFs:1, pad:{l:0,r:0,t:0,b:0},
+  def:{w:26,hh:26,fs:19},
+  draw(c,o){ const sx=o.x+o.w/2, sy=o.y+o._h/2, ex=o.tx, ey=o.ty;
+    const a=Math.atan2(ey-sy,ex-sx);
+    const seg=(lw,col,hs)=>{ c.lineWidth=lw; c.strokeStyle=col; c.lineCap='round';
+      c.beginPath(); c.moveTo(sx,sy); c.lineTo(ex-hs*0.7*Math.cos(a),ey-hs*0.7*Math.sin(a)); c.stroke();
+      c.beginPath(); c.moveTo(ex+ (hs-17)*Math.cos(a), ey+(hs-17)*Math.sin(a));
+      c.lineTo(ex-hs*Math.cos(a-.42),ey-hs*Math.sin(a-.42));
+      c.lineTo(ex-hs*Math.cos(a+.42),ey-hs*Math.sin(a+.42));
+      c.closePath(); c.fillStyle=col; c.fill(); };
+    seg(8,'rgba(255,255,255,.85)',21); seg(4.5,'#6156E4',17); c.lineCap='butt'; }};
+TPL.badge={ name:'번호 배지', shape:1, circle:1, noBody:1, noTail:1, noFs:1, titleLabel:'번호', pad:{l:0,r:0,t:0,b:0},
+  def:{w:56,fs:19,title:'1'},
+  draw(c,o){ const r2=o.w/2, cx=o.x+r2, cy=o.y+r2;
+    c.save(); c.shadowColor='rgba(97,86,228,.4)'; c.shadowBlur=12; c.shadowOffsetY=3;
+    c.beginPath(); c.arc(cx,cy,r2,0,7); c.fillStyle='#6156E4'; c.fill(); c.restore();
+    c.lineWidth=3; c.strokeStyle='#fff'; c.stroke();
+    c.font='800 '+Math.round(o.w*0.46)+'px '+FONT; c.fillStyle='#fff'; c.textAlign='center'; c.textBaseline='middle';
+    c.fillText(String(o.title||'1'), cx, cy+o.w*0.02);
+    c.textAlign='left'; c.textBaseline='top'; }};
+TPL.sticker={ name:'아이콘 스티커', sticker:1, noBody:1, noTail:1, titleLabel:'이모지', pad:{l:0,r:0,t:0,b:0},
+  def:{w:60,fs:22,title:'⭐'},
+  draw(c,o){ c.font=Math.round(o.fs*2.6)+'px '+FONT; c.textAlign='center'; c.textBaseline='middle';
+    c.fillStyle='#000'; c.fillText(o.title||'⭐', o.x+o.w/2, o.y+o._h/2+2);
+    c.textAlign='left'; c.textBaseline='top'; }};
+
 const TPL_ORDER=['tour-classic','tour-dark','tour-accent','tour-soft','tour-outline','tour-pop'];
+const EL_BUBBLES=['classic','tip','step','warn','dark','neon','thought','comic','pill','bracket'];
 
 /* ══════════════ 렌더 ══════════════ */
 /* 강조원(스포트라이트): 음영은 단일 레이어 하나 — 켜진 말풍선 수만큼 '구멍'만 늘어난다 */
@@ -1077,9 +1136,10 @@ $('stage').addEventListener('pointerup', ()=>{ pan=null; });
 document.addEventListener('keyup', e=>{ if(e.key===' '){ spaceHeld=false; document.body.classList.remove('spacepan'); } });
 
 /* ══════════════ 갤러리 ══════════════ */
-function buildGallery(){
-  const g=$('gallery');
-  for(const id of TPL_ORDER){
+function buildGallery(){ buildTpls(TPL_ORDER,'gallery'); buildTpls(EL_BUBBLES,'el-bubbles'); }
+function buildTpls(ids, containerId){
+  const g=$(containerId);
+  for(const id of ids){
     const t=TPL[id];
     const btn=document.createElement('button'); btn.className='tpl';
     const pc=document.createElement('canvas'); pc.width=376; pc.height=220;
@@ -1087,7 +1147,7 @@ function buildGallery(){
     const nm=document.createElement('div'); nm.className='nm'; nm.textContent=t.name; btn.appendChild(nm);
     const c=pc.getContext('2d');
     c.fillStyle='#f1f3f5'; c.fillRect(0,0,376,220);
-    const o={tpl:id, x:20, y:16, w:t.def.w, fs:t.def.fs, font:t.def.font, title:t.def.title, body:t.def.body, tx:120, ty:212};
+    const o={tpl:id, x:20, y:16, w:t.def.w, hh:t.def.hh, fs:t.def.fs, font:t.def.font, title:t.def.title, body:t.def.body, tx:120, ty:212};
     if(id==='pill'){ o.x=70; o.y=80; o.tx=300; o.ty=180; }
     if(id==='comic'){ o.y=40; o.x=40; }
     if(TPL[id].tour){ o.w=316; o.fs=13; o.y=12; o.ty=214; }
@@ -1123,8 +1183,9 @@ function buildGallery(){
 function addObj(id){ addObjAt(id, W/2, H/2-20); }
 function addObjAt(id,x,y){
   const t=TPL[id], w=t.def.w||200;
-  const o={tpl:id, x:x-w/2, y:y-60, w, fs:t.def.fs, font:t.def.font||'pretendard',
+  const o={tpl:id, x:x-w/2, y:y-60, w, hh:t.def.hh, fs:t.def.fs, font:t.def.font||'pretendard',
     title:t.def.title, body:t.def.body, tx:x-w/2+80, ty:y+180};
+  if(id==='arrow'){ o.tx=x+150; o.ty=y-120; }   // 화살표는 우상향 기본
   objs.push(o); sel=objs.length-1;
   pushUndo(); syncInspector(); render();
 }
@@ -1147,7 +1208,7 @@ cv.addEventListener('pointerdown', e=>{
   if(sel>=0 && objs[sel]){
     const o=objs[sel];
     if(!TPL[o.tpl].noTail && Math.hypot(m.x-o.tx,m.y-o.ty)<16){ drag={mode:'tail',o}; return; }
-    if(m.x>=o.x+o.w-6&&m.x<=o.x+o.w+20&&m.y>=o.y+o._h-6&&m.y<=o.y+o._h+20){ drag={mode:'size',o,sx:m.x,sw:o.w}; return; }
+    if(m.x>=o.x+o.w-6&&m.x<=o.x+o.w+20&&m.y>=o.y+o._h-6&&m.y<=o.y+o._h+20){ drag={mode:'size',o,sx:m.x,sw:o.w,sy:m.y,sh:o.hh||o._h}; return; }
   }
   for(let i=objs.length-1;i>=0;i--){ const o=objs[i];
     if(m.x>=o.x&&m.x<=o.x+o.w&&m.y>=o.y&&m.y<=o.y+o._h){
@@ -1174,7 +1235,11 @@ cv.addEventListener('pointermove', e=>{
     o.x=nx; o.y=ny; o.tx=m.x-drag.tdx+ddx; o.ty=m.y-drag.tdy+ddy;
   }
   else if(drag.mode==='tail'){ o.tx=m.x; o.ty=m.y; }
-  else if(drag.mode==='size'){ o.w=Math.max(140, drag.sw+(m.x-drag.sx)); }
+  else if(drag.mode==='size'){
+    const t=TPL[o.tpl];
+    o.w=Math.max(t.shape?30:140, drag.sw+(m.x-drag.sx));
+    if(t.shape&&!t.circle) o.hh=Math.max(30, drag.sh+(m.y-drag.sy));   // 도형은 세로도 자유 조절
+  }
   render();
 });
 cv.addEventListener('pointerup', ()=>{ if(drag){ drag=null; guides=[]; pushUndo(); render(); } });
@@ -1186,11 +1251,16 @@ function setSec(s){
   curSec=(curSec===s)?null:s;
   document.querySelectorAll('#rail .rl').forEach(x=>x.classList.toggle('on', x.dataset.sec===curSec));
   $('leftpanel').style.display=curSec?'block':'none';
-  ['tpl','text','up'].forEach(k=>{ $('sec-'+k).style.display=(k===curSec)?'block':'none'; });
+  ['tpl','el','up'].forEach(k=>{ $('sec-'+k).style.display=(k===curSec)?'block':'none'; });
   fitStage();
 }
 document.querySelectorAll('#rail .rl').forEach(b=>b.addEventListener('click', ()=>setSec(b.dataset.sec)));
 $('add-md').addEventListener('click', ()=>addObj('md'));
+document.querySelectorAll('#sec-el [data-el]').forEach(b=>b.addEventListener('click', ()=>addObj(b.dataset.el)));
+['👉','👆','👇','✅','❌','⚠️','💡','⭐','🎯','🔍','🖱️','⌨️','📌','🔒','❗','❓','🔥','✨','🚀','🎉','👍','💬']
+  .forEach(ch=>{ const b=document.createElement('button'); b.className='icobtn'; b.textContent=ch; b.title=ch+' 스티커 추가';
+    b.addEventListener('click', ()=>{ addObj('sticker'); objs[sel].title=ch; syncInspector(); render(); pushUndo(); });
+    $('el-icons').appendChild(b); });
 $('up-open').addEventListener('click', ()=>$('bg-file').click());
 $('up-clear').addEventListener('click', ()=>{ bgImg=null; render(); toast('배경 이미지를 제거했습니다'); });
 /* 우측 탭: 디자인/페이지/레이어 */
@@ -1248,6 +1318,11 @@ function syncInspector(){
   $('fld-title').style.display=t.noTitle?'none':'block';
   $('lbl-title').textContent=t.titleLabel||'제목';
   $('fld-body').style.display=t.noBody?'none':'block';
+  const shp=!!t.shape, stk=!!t.sticker;   // 도형/스티커는 텍스트 계열 필드 숨김
+  $('md-paste').closest('.fld').style.display=(shp||stk)?'none':'block';
+  $('emoji-row').closest('.fld').style.display=shp?'none':'block';
+  $('in-font').closest('.fld').style.display=(shp||stk)?'none':'block';
+  $('in-fs').closest('.fld').style.display=t.noFs?'none':'block';
   $('in-title').value=o.title||'';
   $('in-body').value=o.body||'';
   $('in-font').value=o.font||'pretendard';
@@ -1584,8 +1659,8 @@ document.addEventListener('keydown', e=>{
   renderPageTabs();
   pushUndo();
   document.fonts.ready.then(()=>{   // 임베딩 폰트 로딩 후 썸네일·캔버스 다시 그림
-    document.querySelectorAll('#gallery .tpl').forEach(n=>n.remove());
-    buildGallery(); render();
+    document.querySelectorAll('#gallery .tpl, #el-bubbles .tpl').forEach(n=>n.remove());
+    buildGallery(); render(); renderPageTabs();
   });
   const mins=Math.max(1,Math.round((Date.now()-BUILD_TS)/60000));
   $('build-ts').textContent=mins<60?mins+'분 전 수정':Math.round(mins/60)+'시간 전 수정';
