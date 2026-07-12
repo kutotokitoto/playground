@@ -260,7 +260,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783836634333;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783837221231;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1177,8 +1177,10 @@ function buildTpls(ids, containerId){
     const o={tpl:id, x:20, y:16, w:t.def.w, hh:t.def.hh, fs:t.def.fs, font:t.def.font, title:t.def.title, body:t.def.body, tx:120, ty:212};
     if(id==='pill'){ o.x=70; o.y=80; o.tx=300; o.ty=180; }
     if(id==='comic'){ o.y=40; o.x=40; }
-    if(TPL[id].tour){ o.w=316; o.fs=13; o.y=12; o.ty=214; }
-    measure(c,o); TPL[id].draw.call(TPL[id],c,o);
+    if(TPL[id].tour){ o.w=316; o.fs=13; o.y=12; }
+    measure(c,o);
+    if(!t.noTail && id!=='pill'){ o.tx=o.x+Math.min(80, o.w*0.3); o.ty=Math.min(o.y+o._h+32, 216); }   // 썸네일도 균일 돌출
+    TPL[id].draw.call(TPL[id],c,o);
     // 드래그 → 캔버스에 놓으면 그 자리에 생성, 짧은 클릭 → 중앙에 생성
     btn.addEventListener('pointerdown', ev=>{
       if(ev.button!==0) return;
@@ -1212,8 +1214,10 @@ function addObjAt(id,x,y){
   const t=TPL[id], w=t.def.w||200;
   const o={tpl:id, x:x-w/2, y:y-60, w, hh:t.def.hh, fs:t.def.fs, font:t.def.font||'pretendard',
     title:t.def.title, body:t.def.body, tx:x-w/2+80, ty:y+180};
-  if(id==='arrow'){ o.tx=x+150; o.ty=y-120; }   // 화살표는 우상향 기본
   objs.push(o); sel=objs.length-1;
+  measure(ctx,o);   // 실제 높이 산출 후 꼬리를 "바닥에서 균일 돌출량"으로
+  if(id==='arrow'){ o.tx=x+150; o.ty=y-120; }   // 화살표는 우상향 기본
+  else if(!t.noTail){ o.tx=o.x+Math.min(90, o.w*0.3); o.ty=o.y+o._h+54; }
   pushUndo(); syncInspector(); render();
 }
 
