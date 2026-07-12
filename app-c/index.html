@@ -62,7 +62,7 @@
   .fld{margin-bottom:10px}
   .fld label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px}
   .fld input[type=text],.fld textarea{width:100%;border:1px solid var(--line);border-radius:7px;padding:7px 9px;resize:vertical}
-  .fld textarea{min-height:64px;line-height:1.5}
+  .fld textarea{min-height:160px;line-height:1.5}
   .fld input[type=range]{width:100%}
   .btnrow{display:flex;gap:6px;flex-wrap:wrap}
   .sm-btn{flex:1;min-width:64px;height:30px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:12px;font-weight:600}
@@ -110,7 +110,7 @@
   .lrow .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .lrow .lz{width:20px;height:20px;border:1px solid var(--line);border-radius:5px;font-size:9px;color:var(--muted);flex-shrink:0}
   .lrow .lz:hover{background:#fff;color:var(--acc)}
-  #emoji-row{display:flex;flex-wrap:wrap;gap:3px;max-height:98px;overflow-y:auto;padding:2px;border:1px solid var(--line);border-radius:8px;background:#fafbfc}
+  #emoji-row{display:flex;flex-wrap:wrap;gap:3px;max-height:220px;overflow-y:auto;padding:2px;border:1px solid var(--line);border-radius:8px;background:#fafbfc}
   .emj{width:26px;height:26px;font-size:15px;line-height:1;border:1px solid var(--line);border-radius:6px;background:#fff;padding:0}
   .emj:hover{background:#fdf4ee;border-color:var(--acc)}
 </style>
@@ -168,7 +168,7 @@
         <div class="fld" id="fld-title"><label id="lbl-title">제목</label><input type="text" id="in-title"></div>
         <div class="fld" id="fld-body"><label>내용</label><textarea id="in-body"></textarea></div>
         <div class="fld"><label>마크다운 붙여넣기 <span style="font-weight:400;color:#a5acb6">— 위계대로 자동 배치</span></label>
-          <textarea id="md-paste" style="min-height:76px" placeholder="#첫 제목 줄 → 제목으로 (공백 없어도 됨)&#10;##소제목 · -불릿 · 일반 문장&#10;   → 내용으로 순서대로 들어갑니다&#10;(텍스트 블록을 선택하면 3층위로 조판)"></textarea></div>
+          <textarea id="md-paste" style="min-height:220px" placeholder="#첫 제목 줄 → 제목으로 (공백 없어도 됨)&#10;##소제목 · -불릿 · 일반 문장&#10;   → 내용으로 순서대로 들어갑니다&#10;(텍스트 블록을 선택하면 3층위로 조판)"></textarea></div>
         <div class="fld"><label>이모지 넣기 <span style="font-weight:400;color:#a5acb6">— 커서 위치에 삽입</span></label>
           <div id="emoji-row"></div></div>
         <div class="fld"><label>글꼴</label><select id="in-font" style="width:100%;height:30px;border:1px solid var(--line);border-radius:7px;background:#fff"></select></div>
@@ -193,7 +193,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783824132479;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783824360534;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
