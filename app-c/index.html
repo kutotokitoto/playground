@@ -276,7 +276,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783842325779;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783842545902;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1149,18 +1149,6 @@ function drawScene(c,forExport){
     const iw=bgImg.width*s, ih=bgImg.height*s;
     c.drawImage(bgImg,(W-iw)/2,(H-ih)/2,iw,ih);
   }
-  if(!forExport){   // 그리드·중심선은 화면 전용 (내보내기 제외)
-    if(showGrid){ c.save(); c.lineWidth=1;
-      for(let gx=50;gx<W;gx+=50){ c.strokeStyle=gx%200?'rgba(60,90,200,.07)':'rgba(60,90,200,.14)';
-        c.beginPath(); c.moveTo(gx+.5,0); c.lineTo(gx+.5,H); c.stroke(); }
-      for(let gy=50;gy<H;gy+=50){ c.strokeStyle=gy%200?'rgba(60,90,200,.07)':'rgba(60,90,200,.14)';
-        c.beginPath(); c.moveTo(0,gy+.5); c.lineTo(W,gy+.5); c.stroke(); }
-      c.restore(); }
-    if(showGuide){ c.save(); c.strokeStyle='rgba(235,104,52,.5)'; c.lineWidth=1; c.setLineDash([9,7]);
-      c.beginPath(); c.moveTo(W/2,0); c.lineTo(W/2,H); c.stroke();
-      c.beginPath(); c.moveTo(0,H/2); c.lineTo(W,H/2); c.stroke();
-      c.restore(); }
-  }
   if(objs.some(q=>q.spot)){
     // 강조원: 이미지 개체(=어두워질 화면)를 먼저 그리고 음영, 그 위에 말풍선·도형
     for(const o of objs){ measure(c,o); if(TPL[o.tpl].img) drawObj(c,o); }
@@ -1168,6 +1156,18 @@ function drawScene(c,forExport){
     for(const o of objs){ if(!TPL[o.tpl].img) drawObj(c,o); }
   } else {
     for(const o of objs){ measure(c,o); drawObj(c,o); }
+  }
+  if(!forExport){   // 그리드·중심선: 화면 전용 오버레이 — 개체 위에 그려 이미지에 가려지지 않게
+    if(showGrid){ c.save(); c.lineWidth=1;
+      for(let gx=50;gx<W;gx+=50){ c.strokeStyle=gx%200?'rgba(60,90,200,.12)':'rgba(60,90,200,.22)';
+        c.beginPath(); c.moveTo(gx+.5,0); c.lineTo(gx+.5,H); c.stroke(); }
+      for(let gy=50;gy<H;gy+=50){ c.strokeStyle=gy%200?'rgba(60,90,200,.12)':'rgba(60,90,200,.22)';
+        c.beginPath(); c.moveTo(0,gy+.5); c.lineTo(W,gy+.5); c.stroke(); }
+      c.restore(); }
+    if(showGuide){ c.save(); c.strokeStyle='rgba(97,86,228,.55)'; c.lineWidth=1; c.setLineDash([9,7]);
+      c.beginPath(); c.moveTo(W/2,0); c.lineTo(W/2,H); c.stroke();
+      c.beginPath(); c.moveTo(0,H/2); c.lineTo(W,H/2); c.stroke();
+      c.restore(); }
   }
   if(!forExport && guides.length){   // 스냅 스마트 가이드
     c.save(); c.strokeStyle='#ff4f9e'; c.lineWidth=1.2; c.setLineDash([6,4]);
