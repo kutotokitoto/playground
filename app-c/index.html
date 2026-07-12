@@ -110,7 +110,7 @@
   .lrow .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .lrow .lz{width:20px;height:20px;border:1px solid var(--line);border-radius:5px;font-size:9px;color:var(--muted);flex-shrink:0}
   .lrow .lz:hover{background:#fff;color:var(--acc)}
-  #emoji-row{display:flex;flex-wrap:wrap;gap:3px}
+  #emoji-row{display:flex;flex-wrap:wrap;gap:3px;max-height:98px;overflow-y:auto;padding:2px;border:1px solid var(--line);border-radius:8px;background:#fafbfc}
   .emj{width:26px;height:26px;font-size:15px;line-height:1;border:1px solid var(--line);border-radius:6px;background:#fff;padding:0}
   .emj:hover{background:#fdf4ee;border-color:var(--acc)}
 </style>
@@ -193,7 +193,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783820743639;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783820971388;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -775,8 +775,22 @@ function syncInspector(){
   $('in-body').value=o.body||'';
   $('in-font').value=o.font||'pretendard';
   $('in-fs').value=o.fs; $('fs-val').textContent=o.fs+'px';
-  $('md-paste').value='';
+  $('md-paste').value=objToMd(o);   // 현재 제목/내용의 마크다운 표현 — 연동을 눈으로 보여줌
   renderLayers();
+}
+/* 개체의 제목/내용 → 마크다운 표현 (md-paste와 양방향 연동) */
+function objToMd(o){
+  const t=TPL[o.tpl];
+  if(t.md) return o.body||'';
+  const lines=[];
+  if(o.title) lines.push('# '+o.title);
+  for(const ln of String(o.body||'').split('\n')){
+    if(ln.indexOf('■ ')===0) lines.push('## '+ln.slice(2));
+    else if(ln.indexOf('▷ ')===0) lines.push('### '+ln.slice(2));
+    else if(ln.indexOf('· ')===0) lines.push('- '+ln.slice(2));
+    else lines.push(ln);
+  }
+  return lines.join('\n').trim();
 }
 /* 레이어 목록 (위 = 맨 앞) — 클릭 선택, ▲▼로 순서 이동 */
 function renderLayers(){
@@ -811,6 +825,7 @@ function onEdit(){
   o.title=$('in-title').value; o.body=$('in-body').value;
   o.font=$('in-font').value;
   o.fs=+$('in-fs').value; $('fs-val').textContent=o.fs+'px';
+  if(document.activeElement!==$('md-paste')) $('md-paste').value=objToMd(o);   // 제목/내용 → 마크다운 동기화
   render();
   clearTimeout(editT); editT=setTimeout(pushUndo, 600);
 }
@@ -994,7 +1009,15 @@ document.addEventListener('keydown', e=>{
     const p=PRESETS[+selEl.value]; setCanvas(p[1],p[2]); pushUndo(); toast('캔버스 '+p[1]+'×'+p[2]);
   });
   for(const k in FONTS){ const op=document.createElement('option'); op.value=k; op.textContent=FONTS[k].label; $('in-font').appendChild(op); }
-  ['👉','✅','❌','⚠️','💡','📌','⭐','🎯','🔍','🔒','🖱️','⌨️','📷','✂️','🔧','📊','1️⃣','2️⃣','3️⃣','❗','❓','🚫']
+  ['👉','👈','👆','👇','🖱️','⌨️','✏️','📝','✂️','📋','📎','🔗',
+   '✅','☑️','✔️','❌','⭕','🚫','⚠️','❗','❓','💯','🆗','🆕',
+   '1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','#️⃣','*️⃣',
+   '💡','🔍','📌','📍','⭐','🌟','🎯','🔒','🔓','🔑','🔧','⚙️',
+   '📷','📊','📈','📉','📁','🗂️','💾','💻','🖥️','📱','⏰','📅',
+   '🔴','🟠','🟡','🟢','🔵','⚫','⬛','⬜','🔺','🔻','▶️','◀️',
+   '⬆️','⬇️','➡️','⬅️','🔄','↩️','↪️','⏸️','⏹️','🏁','🚩','🏷️',
+   '😀','😄','🙂','😉','🤔','😅','😮','😱','😎','🥳','🤝','👍',
+   '👎','👏','🙏','💪','🎉','🚀','🔥','✨','💥','📣','🔔','💬']
     .forEach(ch=>{ const b=document.createElement('button'); b.className='emj'; b.textContent=ch; b.title=ch+' 삽입';
       b.addEventListener('pointerdown', ev=>{ ev.preventDefault(); insertEmoji(ch); });   // 포커스 안 뺏고 삽입
       $('emoji-row').appendChild(b); });
