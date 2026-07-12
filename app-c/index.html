@@ -264,7 +264,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783841318451;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783841506739;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -735,9 +735,9 @@ function tourStyleOf(st,T){
   else if(st==='soft-tint'){ Object.assign(S,{surf:T.soft, bd:null, lw:0, r:16, shadow:'none', txt:T.softfg,
     mut:hexA(T.softfg,.85), tipBg:T.srf, tipFg:T.softfg, tipLbBg:T.softfg, tipLbFg:T.srf,
     ghost:hexA(T.softfg,.7), dotOff:hexA(T.softfg,.25), kbd:{bg:T.srf,bd:T.bd,fg:T.softfg}}); }
-  else if(st==='outline'){ Object.assign(S,{bd:T.txt, lw:1.8, r:10, shadow:'none',
+  else if(st==='outline'){ Object.assign(S,{bd:T.txt, lw:2.2, r:10, shadow:'none',
     tipBg:'transparent', tipDash:1, primary:{bg:T.txt,fg:T.srf}}); }
-  else if(st==='pop'){ Object.assign(S,{bd:T.txt, lw:2.4, r:12, shadow:'pop', stepPill:true, titleW:800,
+  else if(st==='pop'){ Object.assign(S,{bd:T.txt, lw:2.9, r:12, shadow:'pop', stepPill:true, titleW:800,
     tipLbBg:T.txt, tipLbFg:T.srf, primary:{bg:T.acc,fg:T.accfg,popBd:T.txt}}); }
   else if(st==='glass'){ Object.assign(S,{surf:hexA('#FFFFFF',.8), r:16, bd:hexA(T.txt,.10)}); }
   else if(st==='accent-header'){ Object.assign(S,{header:true}); }
@@ -940,7 +940,7 @@ function tourDraw(c,o){
     }
     else if(e.kind==='tip'){
       const tp=new Path2D(); tp.roundRect(o.x+e.x,o.y+e.y,e.w,e.h,8*SC);
-      if(S.tipDash){ c.setLineDash([5*SC,4*SC]); c.lineWidth=1.5; c.strokeStyle=hexA('#18181B',.4); c.stroke(tp); c.setLineDash([]); }
+      if(S.tipDash){ c.setLineDash([5*SC,4*SC]); c.lineWidth=1.8; c.strokeStyle=hexA('#18181B',.4); c.stroke(tp); c.setLineDash([]); }
       else { c.fillStyle=S.tipBg; c.fill(tp); }
       const lbH=B.fsTip*1.69, lbY=o.y+e.y+(e.h-lbH)/2;   // 라벨·본문 모두 인셋 안 수직 중앙 (뱃지 1.3배)
       c.font='800 '+Math.round(B.fsTip*0.99)+'px '+ff;
@@ -979,7 +979,7 @@ function tourDraw(c,o){
           else if(primary){
             const bw2=tw+28*SC, bp=new Path2D(); bp.roundRect(rx-bw2,fy,bw2,bh,8*SC);
             c.fillStyle=danger?T.dgr:S.primary.bg; c.fill(bp);
-            if(S.primary.popBd){ c.lineWidth=2.4; c.strokeStyle=S.primary.popBd; c.stroke(bp); }
+            if(S.primary.popBd){ c.lineWidth=2.9; c.strokeStyle=S.primary.popBd; c.stroke(bp); }
             c.fillStyle=danger?'#fff':S.primary.fg; c.textBaseline='middle'; c.textAlign='center';
             c.fillText(b.label, rx-bw2/2, fy+bh/2+1); c.textAlign='left'; c.textBaseline='top';
             rx-=bw2+10*SC;
