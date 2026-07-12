@@ -190,6 +190,9 @@
   <div id="stage"><div id="stage-inner"><canvas id="cv"></canvas></div>
     <div id="paste-hint">💡 스크린샷을 Ctrl+V로 붙여넣으면 배경이 됩니다</div>
     <div id="view-ctl">
+      <label class="ck"><input type="checkbox" id="ck-guide"> ✛ 중심선</label>
+      <label class="ck"><input type="checkbox" id="ck-grid"> ▦ 그리드</label>
+      <span style="width:1px;height:16px;background:var(--line)"></span>
       <button class="zbtn" id="zoom-out" title="축소">−</button>
       <span id="zoom-lab">100%</span>
       <button class="zbtn" id="zoom-in" title="확대">＋</button>
@@ -206,6 +209,8 @@
       <button data-rt="pages">페이지</button>
     </div>
     <div class="rt-body" id="rt-design">
+    <div class="fld" id="fld-palette"><label>팔레트 <span style="font-weight:400;color:#a5acb6">— 모든 페이지에 적용</span></label>
+      <div id="pal-row"></div></div>
     <div id="insp-empty">
       <div class="fld"><label>크기</label><select id="canvas-preset" style="width:100%;height:32px;border:1px solid var(--line);border-radius:7px;background:#fff"></select></div>
       <div class="fld"><label>배경 색상</label>
@@ -214,11 +219,6 @@
         <button class="sm-btn" id="btn-bg">🖼️ 이미지 배경</button>
         <button class="sm-btn" id="btn-bg-clear">✕ 제거</button>
       </div>
-      <div class="fld"><label>보기</label>
-        <div style="display:flex;gap:14px;padding:7px 9px;background:#f6f7f9;border-radius:8px">
-          <label class="ck"><input type="checkbox" id="ck-guide"> ✛ 중심선</label>
-          <label class="ck"><input type="checkbox" id="ck-grid"> ▦ 그리드</label>
-        </div></div>
       <div class="empty-note">왼쪽에서 말풍선을 캔버스로 끌어다 놓으세요.<br><br>
       · 드래그로 이동, <b>더블클릭</b>으로 글 바로 수정<br>· <b>보라 점</b>을 끌면 꼬리가 움직입니다<br>· 오른쪽 아래 □로 폭 조절<br>· Ctrl+C/V 복사·붙여넣기 (페이지 간에도) · Ctrl+D 복제<br>· Delete 삭제 · Ctrl+Z/Y 되돌리기·다시 실행<br>· 휠 확대/축소 · Space+드래그 이동 · Alt+드래그 = 스냅 끄기</div>
     </div>
@@ -231,8 +231,6 @@
           <textarea id="md-paste" style="min-height:220px" placeholder="#첫 제목 줄 → 제목으로 (공백 없어도 됨)&#10;##소제목 · -불릿 · 일반 문장&#10;   → 내용으로 순서대로 들어갑니다&#10;(텍스트 블록을 선택하면 3층위로 조판)"></textarea></div>
         <div class="fld"><label>이모지 넣기 <span style="font-weight:400;color:#a5acb6">— 커서 위치에 삽입</span></label>
           <div id="emoji-row"></div></div>
-        <div class="fld" id="fld-palette"><label>팔레트 <span style="font-weight:400;color:#a5acb6">— 색만 바뀝니다</span></label>
-          <div id="pal-row"></div></div>
         <div class="fld" id="fld-spot">
           <label class="ck" style="margin-bottom:5px"><input type="checkbox" id="in-spot"> 💡 강조원 — 꼬리 끝만 밝게, 나머지 음영</label>
           <label style="display:block;font-size:11px;color:#a5acb6;margin:2px 0">크기</label>
@@ -264,7 +262,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783841506739;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783841727297;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1277,6 +1275,8 @@ function addObjAt(id,x,y){
     title:t.def.title, body:t.def.body, tx:x-w/2+80, ty:y+180};
   objs.push(o); sel=objs.length-1;
   measure(ctx,o);   // 실제 높이 산출 후 꼬리를 "바닥에서 균일 돌출량"으로
+  if(t.tour && curPreset!=='light' && !/^preset\s*:/m.test(o.body||''))
+    o.body='preset: '+curPreset+'\n'+(o.body||'');   // 새 카드도 현재 전역 팔레트 상속
   if(id==='arrow'){ o.tx=x+150; o.ty=y-120; }   // 화살표는 우상향 기본
   else if(!t.noTail){ o.tx=o.x+Math.min(90, o.w*0.3); o.ty=o.y+o._h+36; }   // 돌출 = 기존의 2/3
   selectOnly(objs.length-1);
@@ -1680,27 +1680,28 @@ function syncInspector(){
   $('in-font').value=o.font||'pretendard';
   $('in-fs').value=o.fs; $('fs-val').textContent=o.fs+'px';
   $('md-paste').value=objToMd(o);   // 현재 제목/내용의 마크다운 표현 — 연동을 눈으로 보여줌
-  const isTour=!!t.tour;
-  $('fld-palette').style.display=isTour?'block':'none';
   $('fld-spot').style.display=t.noTail?'none':'block';
   $('in-spot').checked=!!o.spot;
   $('in-spotr').value=o.spotR||80; $('in-spotr').disabled=!o.spot;
   $('in-spotf').value=Math.round((o.spotF!=null?o.spotF:0.45)*100); $('in-spotf').disabled=!o.spot;
-  if(isTour){
-    const m=String(o.body||'').match(/^preset\s*:\s*(\S+)/m), cur=m?m[1]:'light';
-    document.querySelectorAll('#pal-row .pswatch').forEach(s=>s.classList.toggle('on', s.dataset.k===cur));
-  }
   renderLayers();
 }
-/* 팔레트 교체: 마크다운의 preset: 메타만 갈아끼움 — 구성·위계 불변 */
+/* 팔레트 교체: 모든 페이지의 모든 투어 카드에 preset: 메타 적용 — 구성·위계 불변 */
+let curPreset='light';
 function setTourPreset(key){
-  if(sel<0) return; const o=objs[sel]; if(!TPL[o.tpl].tour) return;
-  let b=String(o.body||'');
-  if(/^preset\s*:.*$/m.test(b)) b=b.replace(/^preset\s*:.*$/m, 'preset: '+key);
-  else b='preset: '+key+'\n'+b;
-  o.body=b;
-  syncInspector(); render();
-  clearTimeout(editT); editT=setTimeout(pushUndo, 600);
+  curPreset=key;
+  saveCurPage();
+  const apply=list=>{ for(const o of list){
+    const t=TPL[o.tpl]; if(!t||!t.tour) continue;
+    let b=String(o.body||'');
+    if(/^preset\s*:.*$/m.test(b)) b=b.replace(/^preset\s*:.*$/m, 'preset: '+key);
+    else b='preset: '+key+'\n'+b;
+    o.body=b; } };
+  for(const p of pages) apply(p.objs);
+  document.querySelectorAll('#pal-row .pswatch').forEach(s=>s.classList.toggle('on', s.dataset.k===key));
+  syncInspector(); render(); renderPageTabs();
+  pushUndo();
+  toast('🎨 팔레트 전체 적용: '+((TOUR_PRESETS[key]&&TOUR_PRESETS[key].label)||'다크'));
 }
 /* 개체의 제목/내용 → 마크다운 표현 (md-paste와 양방향 연동) */
 function objToMd(o){
@@ -2015,6 +2016,7 @@ document.addEventListener('keydown', e=>{
   { const b=document.createElement('button'); b.className='pswatch'; b.dataset.k='dark';
     b.style.background='linear-gradient(135deg,#212228 55%,#6E76F0 55%)'; b.title='다크 (전체 반전)';
     b.addEventListener('click', ()=>setTourPreset('dark')); $('pal-row').appendChild(b); }
+  document.querySelector('#pal-row .pswatch[data-k="light"]').classList.add('on');
   ['👉','👈','👆','👇','🖱️','⌨️','✏️','📝','✂️','📋','📎','🔗',
    '✅','☑️','✔️','❌','⭕','🚫','⚠️','❗','❓','💯','🆗','🆕',
    '1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟','#️⃣','*️⃣',
