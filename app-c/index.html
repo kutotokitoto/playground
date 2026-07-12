@@ -264,7 +264,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783840328526;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783840565455;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1011,7 +1011,7 @@ function tourDraw(c,o){
  ['pop','팝',
   'step: 3/3\nstyle: pop\n\n# 팝!\n## 두꺼운 보더와 ==분홍:오프셋 섀도==로 눈에 확 띄어요.\n\n[완료](done)']]
 .forEach(v=>{ TPL['tour-'+v[0]]={ name:v[1], pad:{l:16,r:16,t:13,b:14}, tour:1, noTitle:1,
-  def:{w:430,fs:19,title:'',body:v[2]}, draw(c,o){ tourDraw(c,o); } }; });
+  def:{w:540,fs:24,title:'',body:v[2]}, draw(c,o){ tourDraw(c,o); } }; });
 
 /* ── 요소: 도형·아이콘 스티커 (설명서 주석용, 인디고 + 흰 헤일로로 어떤 배경에서도 또렷) ── */
 TPL.box={ name:'강조 박스', shape:1, noTitle:1, noBody:1, noTail:1, noFs:1, pad:{l:0,r:0,t:0,b:0},
