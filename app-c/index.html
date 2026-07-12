@@ -276,7 +276,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783843624855;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783844162716;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -634,7 +634,6 @@ const TOUR_PRESETS={
   fuchsia:{label:'푸시아',acc:'#C026D3',soft:'#F9E8FC',softfg:'#A21CAF'},
   violet:{label:'바이올렛',acc:'#7C3AED',soft:'#F4EEFE',softfg:'#6D28D9'},
   slate:{label:'슬레이트',acc:'#475569',soft:'#EDF0F4',softfg:'#334155'},
-  mist:{label:'미스트 — 좌상단 워시 그라데이션',acc:'#6156E4',soft:'#EEF0FE',softfg:'#4338CA',grad:1},
   mono:{label:'모노',acc:'#18181B',soft:'#F1F1F3',softfg:'#3F3F46',r:10} };
 function hexA(hex,a){ const n=parseInt(hex.replace('#',''),16);
   return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
@@ -746,6 +745,9 @@ function tourStyleOf(st,T){
     tipBg:hexA('#F7F7F8',.10), tipFg:T.ttfg, tipLbBg:hexA('#F7F7F8',.18), tipLbFg:T.ttfg,
     ghost:hexA('#F7F7F8',.6), dotOff:hexA('#F7F7F8',.25), kbd:{bg:hexA('#F7F7F8',.12),bd:hexA('#F7F7F8',.22),fg:T.ttfg}}); }
   else if(st==='soft-tint'){ Object.assign(S,{surf:T.soft, bd:null, lw:0, r:16, shadow:'none', txt:T.softfg,
+    mut:hexA(T.softfg,.85), tipBg:T.srf, tipFg:T.softfg, tipLbBg:T.softfg, tipLbFg:T.srf,
+    ghost:hexA(T.softfg,.7), dotOff:hexA(T.softfg,.25), kbd:{bg:T.srf,bd:T.bd,fg:T.softfg}}); }
+  else if(st==='mist'){ Object.assign(S,{grad:1, bd:null, lw:0, r:16, shadow:'none', txt:T.softfg,
     mut:hexA(T.softfg,.85), tipBg:T.srf, tipFg:T.softfg, tipLbBg:T.softfg, tipLbFg:T.srf,
     ghost:hexA(T.softfg,.7), dotOff:hexA(T.softfg,.25), kbd:{bg:T.srf,bd:T.bd,fg:T.softfg}}); }
   else if(st==='outline'){ Object.assign(S,{bd:T.txt, lw:2.2, r:10, shadow:'none',
@@ -903,15 +905,16 @@ function tourDraw(c,o){
   const p=bubblePath(o.x,o.y,o.w,o._h,RR,{tx:o.tx,ty:o.ty,bw:8.4*SC});
   if(S.shadow==='pop'){ const p2=bubblePath(o.x+4*SC,o.y+4*SC,o.w,o._h,RR,{tx:o.tx+4*SC,ty:o.ty+4*SC,bw:8.4*SC});
     c.fillStyle=T.txt; c.fill(p2); c.fillStyle=S.surf; c.fill(p); }
-  else if(S.shadow==='none'){ c.fillStyle=S.surf; c.fill(p); }
+  else if(S.shadow==='none'){
+    if(S.grad){   // 미스트: 강조색 좌상단 엷게 → 우하단 투명 (꼬리 포함 경로 전체)
+      const g=c.createLinearGradient(o.x,o.y,o.x+o.w,o.y+o._h);
+      g.addColorStop(0,hexA(T.acc,.30)); g.addColorStop(.55,hexA(T.acc,.11)); g.addColorStop(1,hexA(T.acc,0));
+      c.fillStyle=g;
+    } else c.fillStyle=S.surf;
+    c.fill(p); }
   else shStd(p);
   if(S.bd){ c.lineWidth=S.lw; c.strokeStyle=S.bd; c.lineJoin='round'; c.stroke(p); }
   c.save(); c.clip(p);
-  if(T.grad && S.surf===T.srf){   // 미스트 프리셋: 강조색 워시 — 좌상단 엷게 → 우하단 투명
-    const g=c.createLinearGradient(o.x,o.y,o.x+o.w,o.y+o._h);
-    g.addColorStop(0,hexA(T.acc,.20)); g.addColorStop(0.6,hexA(T.acc,.06)); g.addColorStop(1,hexA(T.acc,0));
-    c.fillStyle=g; c.fillRect(o.x,o.y,o.w,o._h);
-  }
   const els=B.els;
   for(const e of els){
     if(e.kind==='media'){
@@ -1027,6 +1030,8 @@ function tourDraw(c,o){
   'step: 1/3\nstyle: accent-header\n\n# 🎉 환영해요!\n## 핵심만 빠르게 보여 드릴게요. ⏱️ 1분이면 충분해요.\n### 참고: 진행도가 헤더 안으로 들어가는 스타일이에요 ☝️\n\n[시작](next)'],
  ['soft','소프트 틴트',
   'style: soft-tint\n\n# 🍃 부드러운 안내\n## 은은한 배경이라 **참고 설명**에 잘 어울려요. 📎\n### 메모: 부가 설명은 이렇게 손글씨로 붙어요 ✍️\n\n[다음 →](next)'],
+ ['mist','미스트',
+  'style: mist\n\n# 🌫️ 미스트\n## 강조색이 **좌상단에서 엷게** 물들었다가, 우하단으로 갈수록 투명하게 사라져요. 🫧\n### 팁: 배경이 은은하게 비치는 스타일이에요 ✨\n\n[다음 →](next)'],
  ['outline','아웃라인',
   'step: 2/4\nstyle: outline\n\n# ✏️ 아웃라인\n## 선 위주의 **담백한** 스타일이에요. 📐\n### 팁: 점선 인셋이 특징 ✂️\n\n[다음](next)'],
  ['pop','팝',
@@ -1090,7 +1095,7 @@ TPL.sticker={ name:'아이콘 스티커', sticker:1, noBody:1, noTail:1, titleLa
     c.fillStyle='#000'; c.fillText(o.title||'⭐', o.x+o.w/2, o.y+o._h/2+2);
     c.textAlign='left'; c.textBaseline='top'; }};
 
-const TPL_ORDER=['tour-classic','tour-dark','tour-accent','tour-soft','tour-outline','tour-pop'];
+const TPL_ORDER=['tour-classic','tour-dark','tour-accent','tour-soft','tour-mist','tour-outline','tour-pop'];
 const EL_BUBBLES=['classic','tip','step','warn','dark','neon','thought','comic','pill','bracket'];
 
 /* ══════════════ 렌더 ══════════════ */
@@ -1552,8 +1557,8 @@ $('rail-md').addEventListener('click', ()=>{
 '|---|---|---|',
 '| `step` | `2/5` · `auto` · `none` | 진행도 라벨+도트. `auto`면 현재 페이지/전체 쪽수와 자동 연동 |',
 '| `step-label` | `STEP 2/5` | 진행도 표기 커스텀 |',
-'| `style` | `classic` `dark` `accent-header` `soft-tint` `outline` `pop` | 카드 스타일 6종 |',
-'| `preset` | `light` `blue` `sky` `cyan` `teal` `emerald` `lime` `yellow` `amber` `rose` `fuchsia` `violet` `slate` `mist` `mono` `dark` | 색 팔레트 (구성 불변, 색만). `mist`는 좌상단 강조색 워시 그라데이션 |',
+'| `style` | `classic` `dark` `accent-header` `soft-tint` `mist` `outline` `pop` | 카드 스타일 7종. `mist`는 강조색이 좌상단에서 엷게 → 우하단 투명 그라데이션 |',
+'| `preset` | `light` `blue` `sky` `cyan` `teal` `emerald` `lime` `yellow` `amber` `rose` `fuchsia` `violet` `slate` `mono` `dark` | 색 팔레트 (구성 불변, 색만) — 속성 패널 스와치와 동일 |',
 '| `type` | `tour-step`(기본) `tooltip` `confirm` `toast` `banner` `chip` `hotspot` `complete` | 카드 형태 변형 |',
 '| `close` | `true` | 우상단 × 표시 (기본은 숨김 — 정지 이미지라 불필요) |',
 '| `media` | `placeholder` | 카드 상단 미디어 영역 |',
@@ -2105,8 +2110,7 @@ document.addEventListener('keydown', e=>{
   });
   for(const k in FONTS){ const op=document.createElement('option'); op.value=k; op.textContent=FONTS[k].label; $('in-font').appendChild(op); }
   for(const k in TOUR_PRESETS){ const b=document.createElement('button'); b.className='pswatch'; b.dataset.k=k;
-    b.style.background=TOUR_PRESETS[k].grad?'linear-gradient(135deg,#8F86EF 0%,#EDEBFC 55%,#ffffff 100%)':TOUR_PRESETS[k].acc;
-    b.title=TOUR_PRESETS[k].label;
+    b.style.background=TOUR_PRESETS[k].acc; b.title=TOUR_PRESETS[k].label;
     b.addEventListener('click', ()=>setTourPreset(k)); $('pal-row').appendChild(b); }
   { const b=document.createElement('button'); b.className='pswatch'; b.dataset.k='dark';
     b.style.background='linear-gradient(135deg,#212228 55%,#6E76F0 55%)'; b.title='다크 (전체 반전)';
