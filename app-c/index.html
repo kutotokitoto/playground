@@ -155,6 +155,7 @@
     <button class="rl on" data-sec="tpl" title="말풍선 템플릿"><span>💬</span>템플릿</button>
     <button class="rl" data-sec="el" title="도형·아이콘·클래식 말풍선"><span>🧩</span>요소</button>
     <button class="rl" data-sec="up" title="배경 이미지"><span>🖼️</span>업로드</button>
+    <button class="rl" data-sec="paste" title="여러 장 통째로 붙여넣기 → 자동으로 N페이지"><span>📋</span>붙여넣기</button>
     <button class="rl" id="rail-md" title="이 도구의 마크다운 작성법 문서(.md) 내려받기" style="margin-top:auto;margin-bottom:8px"><span>📖</span>가이드</button>
   </div>
   <div id="leftpanel">
@@ -186,6 +187,16 @@
       <button class="lp-btn" id="up-clear">✕ 배경 이미지 제거</button>
       <div class="hint">디자인 탭의 '이미지 배경'은 캔버스에 맞춰 깔리는 고정 배경입니다(조작 불가).</div>
     </div>
+    <div class="lp-sec" id="sec-paste" style="display:none">
+      <h2>여러 장 통째로 붙여넣기</h2>
+      <div class="hint" style="margin-bottom:8px"><code>---</code> 로 구분된 카드가 <b>각각 한 페이지</b>가 됩니다. AI 스킬(<code>SKILL.md</code>)로 만든 마크다운을 통째로 넣어 보세요.</div>
+      <textarea id="bulk-md" style="width:100%;min-height:300px;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font:12.5px/1.55 ui-monospace,Consolas,monospace;resize:vertical;background:#fff;color:#2b2f36" placeholder="step: auto&#10;style: accent-header&#10;&#10;# 환영해요!&#10;## 핵심만 빠르게 안내할게요.&#10;&#10;[시작](next)&#10;---&#10;step: auto&#10;&#10;# 다음 단계&#10;## ...&#10;&#10;[다음](next)"></textarea>
+      <button class="lp-btn" id="bulk-go" style="margin-top:8px">📋 N장으로 만들기</button>
+      <div style="height:1px;background:var(--line);margin:16px 0"></div>
+      <h2>이 도구 사용법 투어</h2>
+      <div class="hint" style="margin-bottom:8px">'마법사 마법사'가 처음이라면 — 사용법을 <b>투어 카드 여러 장</b>으로 바로 만들어 드려요. (이 기능으로 생성됩니다)</div>
+      <button class="lp-btn" id="load-help-tour">✨ 사용법 투어 불러오기</button>
+    </div>
   </div>
   <div id="layerbar">
     <h2>레이어 <span style="font-weight:400;color:#a5acb6">위가 앞</span></h2>
@@ -216,6 +227,7 @@
     <div class="fld" id="fld-palette"><label>팔레트 <span style="font-weight:400;color:#a5acb6">— 모든 페이지에 적용</span></label>
       <div id="pal-row"></div></div>
     <div id="insp-empty">
+      <button class="lp-btn" id="load-help-tour2" style="margin-bottom:12px;background:linear-gradient(135deg,#6156E4,#7C6BF0);color:#fff;border:none">✨ 사용법 투어 보기 — 처음이세요?</button>
       <div class="fld"><label>크기</label><select id="canvas-preset" style="width:100%;height:32px;border:1px solid var(--line);border-radius:7px;background:#fff"></select></div>
       <div class="fld"><label>배경 색상</label>
         <input type="color" id="bg-color" value="#f4f6f8" style="width:100%;height:32px;border:1px solid var(--line);border-radius:7px;padding:2px;background:#fff"></div>
@@ -276,7 +288,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783846148790;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783983105297;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1510,7 +1522,7 @@ function setSec(s){
   curSec=(curSec===s)?null:s;
   document.querySelectorAll('#rail .rl').forEach(x=>x.classList.toggle('on', x.dataset.sec===curSec));
   $('leftpanel').style.display=curSec?'block':'none';
-  ['tpl','el','up'].forEach(k=>{ $('sec-'+k).style.display=(k===curSec)?'block':'none'; });
+  ['tpl','el','up','paste'].forEach(k=>{ $('sec-'+k).style.display=(k===curSec)?'block':'none'; });
   fitStage();
 }
 document.querySelectorAll('#rail .rl').forEach(b=>b.addEventListener('click', ()=>setSec(b.dataset.sec)));
@@ -1640,7 +1652,7 @@ $('rail-md').addEventListener('click', ()=>{
 '',
 '> **변환 지침 (AI용)**',
 '> 1. 줄글을 **행동 단위**로 나눠 3~5단계로 만든다. 한 카드 = 한 행동.',
-'> 2. 각 카드는 `---` 줄로 구분해 출력한다. (도구에는 블록을 하나씩 잘라 페이지마다 붙여넣는다)',
+'> 2. 각 카드는 `---` 줄로 구분해 출력한다. (도구의 📋 통째로 붙여넣기에 전체를 한 번에 넣으면 자동으로 페이지가 나뉜다)',
 '> 3. 카드마다 첫 줄에 `step: auto` 를 넣는다 (페이지 수와 자동 연동).',
 '> 4. `#` 제목은 **명령형 한 줄** ("~해 보세요"). 카드당 하나.',
 '> 5. `##` 본문은 1~2문장으로 요약. 클릭할 **버튼·메뉴 이름은 `**강조**`**, 단축키는 백틱(`Ctrl S`)으로,',
@@ -2057,6 +2069,99 @@ function renderPageList(){   // 우측 '페이지' 탭 목록
 }
 $('page-add').addEventListener('click', addPage);
 $('page-add2').addEventListener('click', addPage);
+
+/* ══════════════ 통째로 붙여넣기 → N페이지 (--- 로 나뉜 카드마다 한 장씩) ══════════════ */
+function bulkPaste(text){
+  const blocks=String(text||'').split(/^\s*---\s*$/m).map(s=>s.replace(/^\s+|\s+$/g,'')).filter(Boolean);
+  if(!blocks.length){ toast('붙여넣을 카드가 없어요 — 마크다운을 넣어 주세요'); return; }
+  saveCurPage();
+  const reuseFirst = pages[cp].objs.length===0;   // 현재 페이지가 비었으면 첫 카드는 여기에
+  const made=[];
+  blocks.forEach((raw,bi)=>{
+    let body=raw;
+    if(curPreset && curPreset!=='light' && !/^preset\s*:/m.test(body)) body='preset: '+curPreset+'\n'+body;   // 전역 팔레트 상속
+    const sm=/^\s*style\s*:\s*([\w-]+)/m.exec(body);
+    const tplId=(sm&&TPL['tour-'+sm[1]])?'tour-'+sm[1]:'tour-classic';   // style 메타로 컨테이너 선택(vivid 기본 꼬리 등)
+    const t=TPL[tplId], w=(t.def&&t.def.w)||540;
+    let pi;
+    if(bi===0 && reuseFirst){ pi=cp; }
+    else { pages.push({W:pages[cp].W, H:pages[cp].H, bgColor:pages[cp].bgColor, bgImg:pages[cp].bgImg, objs:[]}); pi=pages.length-1; }
+    const P=pages[pi];
+    const o={tpl:tplId, x:Math.round((P.W-w)/2), y:60, w, fs:(t.def&&t.def.fs)||24, font:'pretendard', title:'', body, tx:0, ty:0};
+    measure(ctx,o);                                    // 높이 산출 → 세로 중앙 + 꼬리 기본 돌출
+    o.y=Math.max(40, Math.round((P.H-o._h)/2));
+    if(tplId==='tour-vivid'){ o.tx=o.x+o.w+92; o.ty=o.y+o._h*0.5; }
+    else { o.tx=o.x+Math.min(90,o.w*0.3); o.ty=o.y+o._h+36; }
+    P.objs=[o]; made.push(pi);
+  });
+  loadPage(made[0]);
+  if(objs.length){ selectOnly(0); syncInspector(); }
+  renderPageTabs(); render();
+  toast('📋 '+blocks.length+'장으로 배치했어요 — 페이지마다 말풍선 1개씩');
+}
+$('bulk-go').addEventListener('click', ()=>bulkPaste($('bulk-md').value));
+
+/* 이 도구 사용법 투어 — 통째로 붙여넣기 기능으로 바로 생성(자기 자신을 도그푸딩) */
+const HELP_TOUR_MD=`step: auto
+style: accent-header
+preset: violet
+
+# 마법사 마법사에 오신 걸 환영해요!
+## 사용법을 안내하는 **투어 카드(말풍선)**를 만드는 도구예요. 7장으로 핵심만 짚어 드릴게요. ✨
+
+[시작](next)
+---
+step: auto
+
+# 말풍선을 끌어다 놓으세요
+## 왼쪽 **💬 템플릿**에서 마음에 드는 카드를 캔버스로 드래그하면 돼요. 🖱️
+### 팁: 짧게 클릭하면 캔버스 한가운데에 바로 놓여요
+
+[다음](next)
+---
+step: auto
+style: divider
+
+# 글을 고쳐 보세요
+## 카드를 **더블클릭**하거나, 오른쪽 **마크다운 붙여넣기** 칸에 쓰면 바로 바뀌어요.
+### 메모: 제목·본문·팁 — ==헤딩 수가 곧 위계==예요
+
+[다음 →](next)
+---
+step: auto
+style: vivid
+
+# 꼬리와 크기를 조절해요
+## **보라색 점**을 끌면 꼬리가 가리키는 곳이 바뀌고, 모서리 **□**를 끌면 폭이 바뀌어요. 👉
+
+[다음](next)
+---
+step: auto
+style: window
+
+# 색과 강조를 입혀요
+## 오른쪽 **팔레트**로 전체 색을 한 번에 바꾸고, **💡 강조원**으로 원하는 곳만 밝게 비춰요.
+### 참고: 팔레트는 ==민트:모든 장에== 함께 적용돼요
+
+[다음](next)
+---
+step: auto
+
+# 여러 장을 한 번에!
+## 아래 **＋**로 페이지를 늘리거나, **📋 통째로 붙여넣기**에 마크다운을 넣으면 자동으로 여러 장이 돼요.
+### 팁: 지금 이 사용법 투어도 그렇게 만들어졌어요 😉
+
+[다음](next)
+---
+type: complete
+preset: emerald
+
+# 이제 만들어 볼까요?
+## 다 됐으면 오른쪽 위 **내보내기**로 PNG를 저장하세요. 즐겁게 만드세요! 🎉
+
+[시작하기](done)`;
+function loadHelpTour(){ bulkPaste(HELP_TOUR_MD); setSec(null); }
+['load-help-tour','load-help-tour2'].forEach(id=>{ const b=$(id); if(b) b.addEventListener('click', loadHelpTour); });
 
 /* ══════════════ 내보내기 ══════════════ */
 async function exportCanvas(){
