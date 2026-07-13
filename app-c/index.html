@@ -57,6 +57,11 @@
   #ruler-top{top:0;left:0;height:20px}
   #ruler-left{top:20px;left:0;width:20px}
   #ruler-corner{top:0;left:0;width:20px;height:20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .info-i{position:relative;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#eef0f3;color:#7a828d;font-size:12px;font-style:normal;cursor:help;flex:none}
+  .info-i:hover,.info-i:focus{background:#e2e5ea;color:#4a515b;outline:none}
+  .info-tip{position:absolute;bottom:calc(100% + 8px);right:0;width:190px;background:#23262b;color:#f3f4f6;font-size:11px;line-height:1.5;font-weight:400;padding:9px 11px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.22);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .12s,transform .12s;z-index:20;pointer-events:none}
+  .info-i:hover .info-tip,.info-i:focus .info-tip{opacity:1;visibility:visible;transform:translateY(0)}
+  .info-tip b{color:#fff}
   body.spacepan #stage{cursor:grab}
   body.spacepan #stage:active{cursor:grabbing}
   #view-ctl{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:rgba(255,255,255,.95);border:1px solid var(--line);
@@ -110,7 +115,7 @@
   .pthumb{position:relative;border:2px solid var(--line);border-radius:8px;background:#fff;padding:2px;display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0}
   .pthumb:hover{border-color:#c6c2f0}
   .pthumb.on{border-color:var(--acc)}
-  .pthumb canvas{display:block;border-radius:5px;background:#f4f6f8}
+  .pthumb canvas{display:block;border-radius:5px;background:#ffffff}
   .pthumb .pn{font-size:10px;font-weight:600;color:var(--muted)}
   .pthumb.on .pn{color:var(--acc-d)}
   .pthumb .px{position:absolute;top:-7px;right:-7px;width:16px;height:16px;border-radius:50%;background:#23272e;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center}
@@ -192,14 +197,14 @@
       <div class="hint">디자인 탭의 '이미지 배경'은 캔버스에 맞춰 깔리는 고정 배경입니다(조작 불가).</div>
     </div>
     <div class="lp-sec" id="sec-paste" style="display:none">
-      <h2>AI 변환 스킬</h2>
-      <div class="hint" style="margin-bottom:8px">줄글 사용법을 이 도구의 투어 카드 마크다운으로 바꿔 주는 <b>스킬 문서</b>예요. 받아서 클로드 등 AI에 첨부하고 "이 스킬대로 변환해 줘"라고 하면 됩니다.</div>
-      <button class="lp-btn" id="skill-dl">⬇️ AI 변환 스킬(.md) 받기</button>
-      <div style="height:1px;background:var(--line);margin:16px 0"></div>
       <h2>여러 장 통째로 붙여넣기</h2>
-      <div class="hint" style="margin-bottom:8px"><code>---</code> 로 구분된 카드가 <b>각각 한 페이지</b>가 됩니다. 위 스킬로 만든 마크다운을 통째로 넣어 보세요.</div>
+      <div class="hint" style="margin-bottom:8px"><code>---</code> 로 구분된 카드가 <b>각각 한 페이지</b>가 됩니다. AI 변환 스킬로 만든 마크다운을 통째로 넣어 보세요.</div>
       <textarea id="bulk-md" style="width:100%;min-height:300px;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font:12.5px/1.55 ui-monospace,Consolas,monospace;resize:vertical;background:#fff;color:#2b2f36" placeholder="step: auto&#10;style: accent-header&#10;&#10;# 환영해요!&#10;## 핵심만 빠르게 안내할게요.&#10;&#10;[시작](next)&#10;---&#10;step: auto&#10;&#10;# 다음 단계&#10;## ...&#10;&#10;[다음](next)"></textarea>
       <button class="lp-btn" id="bulk-go" style="margin-top:8px">📋 N장으로 만들기</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="lp-btn" id="skill-dl" style="flex:1;margin:0">⬇️ AI 변환 스킬(.md) 받기</button>
+        <span class="info-i" tabindex="0">ⓘ<span class="info-tip">줄글로 쓴 사용법을 이 도구의 투어 카드 마크다운으로 바꿔 주는 <b>스킬 문서</b>입니다. 받아서 클로드 등 AI에 첨부하고 "이 스킬대로 변환해 줘"라고 하면 돼요.</span></span>
+      </div>
       <div style="height:1px;background:var(--line);margin:16px 0"></div>
       <h2>이 도구 사용법 투어</h2>
       <div class="hint" style="margin-bottom:8px">'마법사 마법사'가 처음이라면 — 사용법을 <b>투어 카드 여러 장</b>으로 바로 만들어 드려요. (이 기능으로 생성됩니다)</div>
@@ -240,7 +245,7 @@
       <button class="lp-btn" id="load-help-tour2" style="margin-bottom:12px;background:linear-gradient(135deg,#6156E4,#7C6BF0);color:#fff;border:none">✨ 사용법 투어 보기 — 처음이세요?</button>
       <div class="fld"><label>크기</label><select id="canvas-preset" style="width:100%;height:32px;border:1px solid var(--line);border-radius:7px;background:#fff"></select></div>
       <div class="fld"><label>배경 색상</label>
-        <input type="color" id="bg-color" value="#f4f6f8" style="width:100%;height:32px;border:1px solid var(--line);border-radius:7px;padding:2px;background:#fff"></div>
+        <input type="color" id="bg-color" value="#ffffff" style="width:100%;height:32px;border:1px solid var(--line);border-radius:7px;padding:2px;background:#fff"></div>
       <div class="fld btnrow">
         <button class="sm-btn" id="btn-bg">🖼️ 이미지 배경</button>
         <button class="sm-btn" id="btn-bg-clear">✕ 제거</button>
@@ -298,7 +303,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783984740138;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783985191747;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -324,7 +329,7 @@ const PRESETS=[
   ['1600 × 500 · 와이드 배너',1600,500],
 ];
 let W=1600, H=1000;
-let bgColor='#f4f6f8', bgImg=null;
+let bgColor='#ffffff', bgImg=null;
 let objs=[], sel=-1;
 let scale=1;
 const cv=$('cv'), ctx=cv.getContext('2d');
@@ -2046,7 +2051,7 @@ document.addEventListener('paste', e=>{
 });
 
 /* ══════════════ 페이지 (여러 장의 설명서를 탭으로) ══════════════ */
-let pages=[{W:1600,H:1000,bgColor:'#f4f6f8',bgImg:null,objs:[]}], cp=0;
+let pages=[{W:1600,H:1000,bgColor:'#ffffff',bgImg:null,objs:[]}], cp=0;
 function saveCurPage(){ const p=pages[cp]; p.W=W; p.H=H; p.bgColor=bgColor; p.bgImg=bgImg; p.objs=objs; }
 function loadPage(i){
   cp=i; const p=pages[i];
@@ -2060,7 +2065,7 @@ function loadPage(i){
 function switchPage(i){ if(i===cp) return; saveCurPage(); loadPage(i); }
 function addPage(){
   saveCurPage();
-  pages.push({W,H,bgColor:'#f4f6f8',bgImg:null,objs:[]});   // 크기는 현재 페이지를 따라감
+  pages.push({W,H,bgColor:'#ffffff',bgImg:null,objs:[]});   // 크기는 현재 페이지를 따라감
   loadPage(pages.length-1);
   toast('페이지 '+pages.length+' 추가');
 }
