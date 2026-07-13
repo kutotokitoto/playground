@@ -54,9 +54,9 @@
   #stage{flex:1;overflow:auto;display:flex;position:relative}
   #stage-inner{margin:auto;padding:28px}
   #ruler-top,#ruler-left,#ruler-corner{position:absolute;z-index:6;pointer-events:none;background:#fbfcfd}
-  #ruler-top{top:0;left:0;height:20px}
-  #ruler-left{top:20px;left:0;width:20px}
-  #ruler-corner{top:0;left:0;width:20px;height:20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  #ruler-top{top:0;left:0;height:22px}
+  #ruler-left{top:22px;left:0;width:22px}
+  #ruler-corner{top:0;left:0;width:22px;height:22px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
   .info-i{position:relative;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#eef0f3;color:#7a828d;font-size:12px;font-style:normal;cursor:help;flex:none}
   .info-i:hover,.info-i:focus{background:#e2e5ea;color:#4a515b;outline:none}
   .info-tip{position:absolute;bottom:calc(100% + 8px);right:0;width:190px;background:#23262b;color:#f3f4f6;font-size:11px;line-height:1.5;font-weight:400;padding:9px 11px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.22);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .12s,transform .12s;z-index:20;pointer-events:none}
@@ -161,10 +161,10 @@
 
 <div id="main">
   <div id="rail">
+    <button class="rl" data-sec="paste" title="여러 장 통째로 붙여넣기 → 자동으로 N페이지"><span>📋</span>붙여넣기</button>
     <button class="rl on" data-sec="tpl" title="말풍선 템플릿"><span>💬</span>템플릿</button>
     <button class="rl" data-sec="el" title="도형·아이콘·클래식 말풍선"><span>🧩</span>요소</button>
     <button class="rl" data-sec="up" title="배경 이미지"><span>🖼️</span>업로드</button>
-    <button class="rl" data-sec="paste" title="여러 장 통째로 붙여넣기 → 자동으로 N페이지"><span>📋</span>붙여넣기</button>
     <button class="rl" id="rail-md" title="이 도구의 마크다운 작성법 문서(.md) 내려받기" style="margin-top:auto;margin-bottom:8px"><span>📖</span>가이드</button>
   </div>
   <div id="leftpanel">
@@ -303,7 +303,7 @@
 
 <script>
 "use strict";
-const BUILD_TS = 1783985191747;   // 마지막 수정 시각 — 커밋 전 갱신
+const BUILD_TS = 1783985784970;   // 마지막 수정 시각 — 커밋 전 갱신
 const $=id=>document.getElementById(id);
 const FONT='"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif';
 /* 임베딩 폰트(전부 OFL) — 회사 PC에 설치돼 있지 않아도 캡처 결과가 동일해진다 */
@@ -1296,7 +1296,7 @@ function applyScale(){
   render(); drawRulers();
 }
 /* ── 눈금자(포토샵식) — 상단·좌측, 줌/스크롤과 동기화 ── */
-const RS=20;   // 눈금자 두께
+const RS=22;   // 눈금자 두께
 let showRuler=true;
 function niceStep(target){ const p=Math.pow(10,Math.floor(Math.log10(target||1))); for(const m of [1,2,5,10]) if(p*m>=target) return p*m; return p*10; }
 function drawRulers(){
@@ -1310,19 +1310,19 @@ function drawRulers(){
   const gt=fit(rt,wTop,RS), gl=fit(rl,RS,hLeft);
   const originX=cr.left-sr.left, originY=(cr.top-sr.top)-RS;   // 콘텐츠 0의 눈금자 캔버스 내 좌표
   const step=niceStep(58/sc), minor=step/5;
-  gt.font=gl.font='9px ui-monospace,Consolas,monospace'; gt.textBaseline='alphabetic';
-  // 상단(가로)
+  gt.font=gl.font='9px ui-monospace,Consolas,monospace'; gt.textBaseline='top'; gl.textBaseline='top';
+  // 상단(가로) — 숫자는 위쪽(여백 3px), 눈금은 캔버스에 접한 아래쪽에서 걸림
   gt.strokeStyle='#c8cdd5'; gt.fillStyle='#8b93a1'; gt.beginPath();
   for(let v=0; v<=W+0.5; v+=minor){ const x=originX+v*sc; if(x<-1||x>wTop+1) continue;
     const major=Math.abs(v/step-Math.round(v/step))<1e-6; const xx=Math.round(x)+0.5;
-    gt.moveTo(xx, major?6:12); gt.lineTo(xx, RS); if(major) gt.fillText(String(Math.round(v)), xx+2, 8); }
+    gt.moveTo(xx, major?RS-7:RS-4); gt.lineTo(xx, RS); if(major) gt.fillText(String(Math.round(v)), xx+3, 3); }
   gt.stroke(); gt.strokeStyle='#c8cdd5'; gt.beginPath(); gt.moveTo(0,RS-0.5); gt.lineTo(wTop,RS-0.5); gt.stroke();
-  // 좌측(세로) — 라벨 90° 회전
+  // 좌측(세로) — 눈금은 캔버스에 접한 오른쪽, 숫자는 90° 회전해 눈금에 맞춰 세로 중앙
   gl.strokeStyle='#c8cdd5'; gl.fillStyle='#8b93a1'; gl.beginPath();
   for(let v=0; v<=H+0.5; v+=minor){ const y=originY+v*sc; if(y<-1||y>hLeft+1) continue;
     const major=Math.abs(v/step-Math.round(v/step))<1e-6; const yy=Math.round(y)+0.5;
-    gl.moveTo(major?6:12, yy); gl.lineTo(RS, yy);
-    if(major){ gl.save(); gl.translate(8, yy-2); gl.rotate(-Math.PI/2); gl.fillText(String(Math.round(v)),0,0); gl.restore(); } }
+    gl.moveTo(major?RS-7:RS-4, yy); gl.lineTo(RS, yy);
+    if(major){ const s=String(Math.round(v)); gl.save(); gl.translate(3, yy+gl.measureText(s).width/2); gl.rotate(-Math.PI/2); gl.fillText(s,0,0); gl.restore(); } }
   gl.stroke(); gl.beginPath(); gl.moveTo(RS-0.5,0); gl.lineTo(RS-0.5,hLeft); gl.stroke();
 }
 let rulerRAF=0;
