@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>불량률 분석 도구</title>
+<title>SUB-MAIN 공정 통합 시스템</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23107C41'/%3E%3Ctext x='16' y='23' font-size='20' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3EX%3C/text%3E%3C/svg%3E">
 <style>
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
@@ -55,8 +55,7 @@ body.admin #tb-admin{display:inline-block}
 /* 관리자 모드: 리본의 더미 기능 전부 숨김 (일반 모드는 그대로 → 비교용) */
 body.admin #ribbon .dummy{display:none!important}
 body.admin #ribbon .rgroup:not(:has(button:not(.dummy),select,input)){display:none}   /* 동작 버튼이 하나도 없는 그룹 통째로 */
-body.admin #menubar .rtab[data-tab="insert"],body.admin #menubar .rtab[data-tab="layout"],
-body.admin #menubar .rtab[data-tab="review"],body.admin #menubar .rtab[data-tab="help"]{display:none}   /* 전부 더미인 탭 */
+/* 리본 탭은 홈·도구·보기·도움말만 사용 */
 #tb-search{
   flex:1;max-width:560px;margin:0 auto;height:26px;background:rgba(255,255,255,.9);
   border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 12px;color:#444;
@@ -643,7 +642,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 
 <!-- 타이틀 바 -->
 <div id="titlebar">
-  <span id="tb-title">불량률 분석 도구</span><span id="tb-team">스마트폰기구개발2그룹 AX TF 정웅호</span><span id="tb-admin" title="관리자 모드 — 타이틀 더블클릭으로 끔">ADMIN</span>
+  <span id="tb-title">SUB-MAIN 공정 통합 시스템</span><span id="tb-team">스마트폰기구개발2그룹 AX TF 정웅호</span><span id="tb-admin" title="관리자 모드 — 타이틀 더블클릭으로 끔">ADMIN</span>
   <div id="tb-search" class="dummy">🔍 <span style="color:#666">검색</span></div>
   <div id="tb-right">
     <button class="win-btn dummy" title="최소화">🗕</button>
@@ -654,13 +653,8 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 
 <!-- 리본 탭 -->
 <div id="menubar">
-  <button id="file-tab">파일</button>
   <button class="rtab active" data-tab="home">홈</button>
-  <button class="rtab" data-tab="insert">삽입</button>
-  <button class="rtab" data-tab="layout">페이지 레이아웃</button>
-  <button class="rtab" data-tab="formulas">수식</button>
-  <button class="rtab" data-tab="data">데이터</button>
-  <button class="rtab" data-tab="review">검토</button>
+  <button class="rtab" data-tab="tools">도구</button>
   <button class="rtab" data-tab="view">보기</button>
   <button class="rtab" data-tab="help">도움말</button>
   <div id="menubar-right">
@@ -691,10 +685,9 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
         <div class="rcol">
           <button class="rsmall" id="rb-cut" title="잘라내기 (Ctrl+X)"><span class="ric">✂️</span>잘라내기</button>
           <button class="rsmall" id="rb-copy" title="복사 (Ctrl+C)"><span class="ric">📄</span>복사 <span class="arrow">▾</span></button>
-          <button class="rsmall dummy" title="서식 복사"><span class="ric">🖌️</span>서식 복사</button>
         </div>
       </div>
-      <div class="rgroup-label">클립보드 <span class="dlg-launch dummy">⤡</span></div>
+      <div class="rgroup-label">클립보드</div>
     </div>
 
     <div class="rgroup">
@@ -719,7 +712,6 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
             <button class="ribtn" id="rb-italic" title="기울임꼴 (Ctrl+I)"><span class="ga" style="font-style:italic">가</span></button>
             <button class="ribtn" id="rb-under" title="밑줄 (Ctrl+U)"><span class="ga" style="text-decoration:underline">가</span></button>
             <button class="ribtn" id="rb-strike" title="취소선"><span class="ga" style="text-decoration:line-through">가</span></button>
-            <button class="ribtn wide dummy" title="테두리">⊞ <span class="arrow" style="font-size:8px">▾</span></button>
             <div class="drop">
               <button class="ribtn wide" id="rb-fill" title="채우기 색">
                 <span class="colorbar"><span style="font-size:12px">🪣</span><span class="bar" id="fill-bar" style="background:#FFFF00"></span></span>
@@ -737,32 +729,23 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
           </div>
         </div>
       </div>
-      <div class="rgroup-label">글꼴 <span class="dlg-launch dummy">⤡</span></div>
+      <div class="rgroup-label">글꼴</div>
     </div>
 
     <div class="rgroup">
       <div class="rgroup-body">
         <div class="rcol">
           <div class="rrow">
-            <button class="ribtn dummy" title="위쪽 맞춤">⤒</button>
-            <button class="ribtn dummy" title="가운데 맞춤">↕</button>
-            <button class="ribtn dummy" title="아래쪽 맞춤">⤓</button>
-            <button class="ribtn dummy" title="방향">⤢</button>
-          </div>
-          <div class="rrow">
             <button class="ribtn" id="rb-left" title="왼쪽 맞춤">☰</button>
             <button class="ribtn" id="rb-center" title="가운데 맞춤" style="letter-spacing:-1px">≡</button>
             <button class="ribtn" id="rb-right" title="오른쪽 맞춤">☰</button>
-            <button class="ribtn dummy" title="내어쓰기">⇤</button>
-            <button class="ribtn dummy" title="들여쓰기">⇥</button>
           </div>
         </div>
         <div class="rcol">
           <button class="rsmall" id="rb-wrap" title="자동 줄 바꿈"><span class="ric">↩</span>자동 줄 바꿈</button>
-          <button class="rsmall dummy" title="병합하고 가운데 맞춤"><span class="ric">⧉</span>병합하고 가운데 맞춤 <span class="arrow">▾</span></button>
         </div>
       </div>
-      <div class="rgroup-label">맞춤 <span class="dlg-launch dummy">⤡</span></div>
+      <div class="rgroup-label">맞춤</div>
     </div>
 
     <div class="rgroup">
@@ -783,24 +766,13 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
           </div>
         </div>
       </div>
-      <div class="rgroup-label">표시 형식 <span class="dlg-launch dummy">⤡</span></div>
-    </div>
-
-    <div class="rgroup">
-      <div class="rgroup-body">
-        <button class="rbig dummy"><span class="ric">📊</span><span>조건부 서식<br><span class="arrow">▼</span></span></button>
-        <button class="rbig dummy"><span class="ric">🧾</span><span>표 서식<br><span class="arrow">▼</span></span></button>
-        <button class="rbig dummy"><span class="ric">🎨</span><span>셀 스타일<br><span class="arrow">▼</span></span></button>
-      </div>
-      <div class="rgroup-label">스타일</div>
+      <div class="rgroup-label">표시 형식</div>
     </div>
 
     <div class="rgroup">
       <div class="rgroup-body">
         <div class="rcol">
-          <button class="rsmall dummy"><span class="ric">🟩</span>삽입 <span class="arrow">▾</span></button>
           <button class="rsmall" id="rb-delete"><span class="ric">🟥</span>삭제 <span class="arrow">▾</span></button>
-          <button class="rsmall dummy"><span class="ric">🟨</span>서식 <span class="arrow">▾</span></button>
         </div>
       </div>
       <div class="rgroup-label">셀</div>
@@ -810,12 +782,10 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
       <div class="rgroup-body">
         <div class="rcol">
           <button class="rsmall" id="rb-autosum"><span class="ric" style="font-family:Georgia">Σ</span>자동 합계 <span class="arrow">▾</span></button>
-          <button class="rsmall dummy"><span class="ric">⬇️</span>채우기 <span class="arrow">▾</span></button>
           <button class="rsmall" id="rb-clear"><span class="ric">🧹</span>지우기 <span class="arrow">▾</span></button>
         </div>
         <div class="rcol">
           <button class="rsmall" id="rb-sort"><span class="ric">🔽</span>정렬 및 필터 <span class="arrow">▾</span></button>
-          <button class="rsmall dummy"><span class="ric">🔍</span>찾기 및 선택 <span class="arrow">▾</span></button>
         </div>
       </div>
       <div class="rgroup-label">편집</div>
@@ -979,7 +949,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
     <h1>홈</h1>
     <div class="bs-doc dummy">
       <div class="di">X</div>
-      <div><div class="dn">불량률 분석 도구</div><div class="dp">이 웹앱 &gt; 현재 세션</div></div>
+      <div><div class="dn">SUB-MAIN 공정 통합 시스템</div><div class="dp">이 웹앱 &gt; 현재 세션</div></div>
     </div>
     <div class="bs-doc dummy">
       <div class="di">X</div>
@@ -2159,49 +2129,15 @@ document.addEventListener('click', e=>{
 
 /* ══════════════ 리본 탭 전환 + 더미 패널 ══════════════ */
 const DUMMY_PANELS={
-  insert:[
-    {name:'표',items:[['📊','피벗 테이블',1],['🧾','표',1]]},
-    {name:'일러스트레이션',items:[['🖼️','그림',1],['🔷','도형',1],['🧊','아이콘',1]]},
-    {name:'차트',items:[['📈','추천 차트',1],['📊','세로 막대형',0],['📉','꺾은선형',0],['🥧','원형',0],['📶','가로 막대형',0]]},
-    {name:'스파크라인',items:[['〽️','꺾은선형',1],['▁▃▅','열',1]]},
-    {name:'링크',items:[['🔗','링크',1]]},
-    {name:'텍스트',items:[['🅰️','텍스트 상자',1],['📄','머리글/바닥글',1]]},
-    {name:'기호',items:[['π','수식',1],['Ω','기호',1]]},
-  ],
-  layout:[
-    {name:'테마',items:[['🎨','테마',1],['🌈','색',1],['🔤','글꼴',1]]},
-    {name:'페이지 설정',items:[['📏','여백',1],['🔄','용지 방향',1],['📐','크기',1],['🖨️','인쇄 영역',1],['✂️','나누기',1],['🖼️','배경',1]]},
-    {name:'크기 조정',items:[['↔️','너비',1],['↕️','높이',1],['🔍','배율',1]]},
-  ],
-  formulas:[
-    {name:'함수 라이브러리',items:[['fx','함수 삽입',1],['Σ','자동 합계',1,'autosum'],['🕘','최근 사용 항목',1],['💰','재무',1],['🔣','논리',1],['🔤','텍스트',1],['📅','날짜 및 시간',1]]},
-    {name:'정의된 이름',items:[['🏷️','이름 관리자',1],['📌','이름 정의',1]]},
-    {name:'수식 분석',items:[['⤴','참조되는 셀 추적',1],['⤵','참조하는 셀 추적',1],['🧮','수식 표시',1,'showformula']],},
-    {name:'계산',items:[['⚙️','계산 옵션',1],['🔁','지금 계산',1,'recalc']]},
-  ],
-  data:[
-    {name:'측정 데이터',items:[['📋','템플릿<br>받기',1,'template'],['📤','업로드',1,'upload'],['📥','측정 더미<br>불러오기',1,'loadqc']]},
-    {name:'데이터 가져오기 및 변환',items:[['🗄️','데이터 가져오기',1],['🌐','웹',1],['📃','텍스트/CSV',1,'importcsv']]},
-    {name:'분포 분석',items:[['🧙','분석<br>마법사',1,'wizard'],['📊','정규분포',1,'go-normal'],['⚬','산점도',1,'go-scatter'],['📦','박스플롯',1,'go-box']]},
-    {name:'쿼리 및 연결',items:[['🔄','모두 새로 고침',1,'refreshall'],['🔌','연결',1]]},
-    {name:'정렬 및 필터',items:[['🔼','텍스트 오름차순',0,'sortasc'],['🔽','텍스트 내림차순',0,'sortdesc'],['🗂️','정렬',1],['🫙','필터',1]]},
-    {name:'데이터 도구',items:[['🧱','텍스트 나누기',1,'text2col'],['🚫','중복된 항목 제거',1,'dedup'],['✅','데이터 유효성 검사',1]]},
-    {name:'예측',items:[['🔮','가상 분석',1],['📈','예측 시트',1]]},
-  ],
-  review:[
-    {name:'언어 교정',items:[['✔️','맞춤법 검사',1],['📖','동의어 사전',1]]},
-    {name:'접근성',items:[['♿','접근성 검사',1]]},
-    {name:'메모',items:[['🗨️','새 메모',1],['🗑️','삭제',1]]},
-    {name:'보호',items:[['🔒','시트 보호',1],['🔐','통합 문서 보호',1]]},
+  tools:[
+    {name:'공정 도구', note:'세부 도구는 이후 단계에서 추가됩니다.'},
   ],
   view:[
-    {name:'통합 문서 보기',items:[['▦','기본',1],['▥','페이지 나누기 미리 보기',1],['▤','페이지 레이아웃',1]]},
     {name:'표시',special:'viewchecks'},
-    {name:'확대/축소',items:[['🔍','확대/축소',1],['1:1','100%',1,'zoom100'],['🔲','선택 영역 확대',1]]},
-    {name:'창',items:[['🧊','틀 고정',1],['➗','나누기',1],['🪟','새 창',1]]},
+    {name:'확대/축소',items:[['1:1','100%',1,'zoom100']]},
   ],
   help:[
-    {name:'도움말',items:[['❓','도움말',1],['💬','지원 문의',1],['💡','피드백',1],['🎓','교육 표시',1]]},
+    {name:'도움말',items:[['ℹ️','정보',1,'about']]},
   ],
 };
 function buildDummyPanels(){
@@ -2212,7 +2148,7 @@ function buildDummyPanels(){
     let h='';
     for(const g of groups){
       h+='<div class="rgroup"><div class="rgroup-body">';
-      if(g.special==='viewchecks'){
+      if(g.note){ h+='<div style="padding:0 14px;display:flex;align-items:center;height:100%;color:#8a8f98;font-size:11.5px">'+g.note+'</div>'; } else if(g.special==='viewchecks'){
         h+='<div class="rcol" style="padding:2px 6px;gap:4px">';
         h+='<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer"><input type="checkbox" id="ck-grid" checked> 눈금선</label>';
         h+='<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer"><input type="checkbox" id="ck-fbar" checked> 수식 입력줄</label>';
@@ -2227,7 +2163,7 @@ function buildDummyPanels(){
           else h+='<button class="'+cls+'"'+actAttr+'><span class="ric">'+ic+'</span>'+label+'</button>';
         }
       }
-      h+='</div><div class="rgroup-label">'+g.name+' <span class="dlg-launch dummy">⤡</span></div></div>';
+      h+='</div><div class="rgroup-label">'+g.name+'</div></div>';
     }
     panel.innerHTML=h;
     ribbon.appendChild(panel);
@@ -2263,6 +2199,7 @@ $('ribbon').addEventListener('click', e=>{
   else if(act==='go-normal'){ gotoSheet('정규분포'); return; }
   else if(act==='go-scatter'){ gotoSheet('산점도'); return; }
   else if(act==='go-box'){ gotoSheet('박스플롯'); return; }
+  else if(act==='about'){ toast('SUB-MAIN 공정 통합 시스템 · 스마트폰기구개발2그룹 AX TF'); return; }
   focusGrid();
 });
 document.addEventListener('change', e=>{
@@ -2349,7 +2286,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1783747577126;   // 2026-07-11 14:26 KST
+const BUILD_TS = 1784694987500;   // 2026-07-22 04:36 UTC
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2414,7 +2351,7 @@ ctx.addEventListener('click', e=>{
 });
 
 /* ══════════════ 백스테이지 · 토스트 · 더미 ══════════════ */
-$('file-tab').addEventListener('click', ()=>$('backstage').classList.add('open'));
+/* 파일(백스테이지) 진입 제거됨 — 리본을 홈·도구·보기·도움말로 정리 */
 $('bs-back').addEventListener('click', ()=>{ $('backstage').classList.remove('open'); focusGrid(); });
 /* 새로 만들기 = 초기화 (자동 저장이 없으므로 새로고침이 곧 초기 상태) */
 $('bs-new').addEventListener('click', ()=>{
