@@ -1087,8 +1087,8 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 <script>
 "use strict";
 /* ══════════════ 기본 상태 ══════════════ */
-const COLS = 64, ROWS = 300, DEFW = 72, DEFH = 22;   // 측정 포인트 최대 60개 지원(라벨 열 + 여유)
-const MAX_POINTS = 60;
+const COLS = 40, ROWS = 60, DEFW = 72, DEFH = 22;   // 성능: 셀 수 대폭 축소(19200→2400). 공정 시트는 빈 그리드, 분석 더미는 소규모
+const MAX_POINTS = 36;
 const $ = id => document.getElementById(id);
 const tbl = $('tbl'), wrap = $('grid-wrap'), scroller = $('grid-scroll');
 const editor = $('cell-editor'), fInput = $('formula-input'), nameBox = $('namebox');
@@ -2399,7 +2399,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1784696644647;   // 2026-07-22 05:04 UTC
+const BUILD_TS = 1784697224632;   // 2026-07-22 05:13 UTC
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2656,7 +2656,7 @@ function buildQCSheet(name, pts, serials, meta){
 }
 /* 랜덤 더미 데이터 생성 → buildQCSheet */
 function genQCData(name){
-  const P=30, N=200;
+  const P=30, N=45;
   const r3=x=>Math.round(x*1000)/1000;
   const gauss=()=>{ let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
   const meta=[];
