@@ -653,6 +653,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 
 <!-- 리본 탭 -->
 <div id="menubar">
+  <button id="file-tab">파일</button>
   <button class="rtab active" data-tab="home">홈</button>
   <button class="rtab" data-tab="tools">도구</button>
   <button class="rtab" data-tab="view">보기</button>
@@ -667,6 +668,107 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
   <button id="rb-fold" title="리본 축소">▲</button>
   <!-- 홈 탭 -->
   <div class="rpanel active" data-tab="home">
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <button class="rbig" data-act="template"><span class="ric">📋</span><span>템플릿<br>받기</span></button>
+        <button class="rbig" data-act="upload"><span class="ric">📤</span><span>업로드</span></button>
+        <button class="rbig" data-act="save"><span class="ric">💾</span><span>저장하기</span></button>
+      </div>
+      <div class="rgroup-label">측정 데이터</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <button class="rbig" data-act="importcsv"><span class="ric">📃</span><span>텍스트/<br>CSV</span></button>
+      </div>
+      <div class="rgroup-label">데이터 변환</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <button class="rbig" data-act="wizard"><span class="ric">🧙</span><span>분석<br>마법사</span></button>
+        <button class="rbig" data-act="go-normal"><span class="ric">📊</span><span>정규분포</span></button>
+        <button class="rbig" data-act="go-scatter"><span class="ric">⚬</span><span>산점도</span></button>
+        <button class="rbig" data-act="go-box"><span class="ric">📦</span><span>박스플롯</span></button>
+      </div>
+      <div class="rgroup-label">분포 분석</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <button class="rbig" data-act="refreshall"><span class="ric">🔄</span><span>모두<br>새로 고침</span></button>
+      </div>
+      <div class="rgroup-label">쿼리 및 연결</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <div class="rcol">
+          <button class="rsmall" data-act="sortasc"><span class="ric">🔼</span>텍스트 오름차순</button>
+          <button class="rsmall" data-act="sortdesc"><span class="ric">🔽</span>텍스트 내림차순</button>
+        </div>
+      </div>
+      <div class="rgroup-label">정렬 및 필터</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <div class="rcol">
+          <button class="rsmall" data-act="text2col"><span class="ric">🧱</span>텍스트 나누기</button>
+          <button class="rsmall" data-act="dedup"><span class="ric">🚫</span>중복된 항목 제거</button>
+        </div>
+      </div>
+      <div class="rgroup-label">데이터 도구</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <button class="rbig"><span class="ric">🗺️</span><span>도면 좌표<br>불량률 시각화</span></button>
+      </div>
+      <div class="rgroup-label">측정 분석 도구</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <button class="rbig"><span class="ric">📐</span><span>CT 설계 단면<br>정렬 도구</span></button>
+      </div>
+      <div class="rgroup-label">설계 도구</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <button class="rbig"><span class="ric">🔗</span><span>MX 기구<br>포털</span></button>
+      </div>
+      <div class="rgroup-label">바로 가기</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <div class="rcol" style="padding:2px 6px;gap:4px">
+          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer"><input type="checkbox" id="ck-grid" checked> 눈금선</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer"><input type="checkbox" id="ck-fbar" checked> 수식 입력줄</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer"><input type="checkbox" id="ck-hdr" checked> 머리글</label>
+        </div>
+      </div>
+      <div class="rgroup-label">표시</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <button class="rbig" data-act="zoom100"><span class="ric">🔍</span><span>1:1</span></button>
+      </div>
+      <div class="rgroup-label">확대/축소</div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-body">
+        <button class="rbig" data-act="about"><span class="ric">ℹ️</span><span>버전 정보</span></button>
+      </div>
+      <div class="rgroup-label">정보</div>
+    </div>
+
+    <!-- 기존 서식 툴바 — 단축키/핸들러 유지 위해 숨김 보관 -->
+    <div style="display:none">
     <div class="rgroup">
       <div class="rgroup-body">
         <div class="rcol">
@@ -789,6 +891,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
         </div>
       </div>
       <div class="rgroup-label">편집</div>
+    </div>
     </div>
   </div>
   <!-- 나머지 탭 패널은 JS에서 생성 -->
@@ -2133,11 +2236,10 @@ const DUMMY_PANELS={
     {name:'공정 도구', note:'세부 도구는 이후 단계에서 추가됩니다.'},
   ],
   view:[
-    {name:'표시',special:'viewchecks'},
-    {name:'확대/축소',items:[['1:1','100%',1,'zoom100']]},
+    {name:'보기', note:'표시·확대/축소 옵션은 홈 탭에 있습니다.'},
   ],
   help:[
-    {name:'도움말',items:[['ℹ️','정보',1,'about']]},
+    {name:'도움말', note:'버전 정보는 홈 탭 오른쪽 끝에 있습니다.'},
   ],
 };
 function buildDummyPanels(){
@@ -2148,13 +2250,7 @@ function buildDummyPanels(){
     let h='';
     for(const g of groups){
       h+='<div class="rgroup"><div class="rgroup-body">';
-      if(g.note){ h+='<div style="padding:0 14px;display:flex;align-items:center;height:100%;color:#8a8f98;font-size:11.5px">'+g.note+'</div>'; } else if(g.special==='viewchecks'){
-        h+='<div class="rcol" style="padding:2px 6px;gap:4px">';
-        h+='<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer"><input type="checkbox" id="ck-grid" checked> 눈금선</label>';
-        h+='<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer"><input type="checkbox" id="ck-fbar" checked> 수식 입력줄</label>';
-        h+='<label style="display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer"><input type="checkbox" id="ck-hdr" checked> 머리글</label>';
-        h+='</div>';
-      } else {
+      if(g.note){ h+='<div style="padding:0 14px;display:flex;align-items:center;height:100%;color:#8a8f98;font-size:11.5px">'+g.note+'</div>'; } else {
         for(const it of g.items){
           const [ic,label,big,act]=it;
           const cls=(big?'rbig':'rsmall')+(act?'':' dummy');
@@ -2199,6 +2295,7 @@ $('ribbon').addEventListener('click', e=>{
   else if(act==='go-normal'){ gotoSheet('정규분포'); return; }
   else if(act==='go-scatter'){ gotoSheet('산점도'); return; }
   else if(act==='go-box'){ gotoSheet('박스플롯'); return; }
+  else if(act==='save'){ exportWorkbookXlsx(); return; }
   else if(act==='about'){ toast('SUB-MAIN 공정 통합 시스템 · 스마트폰기구개발2그룹 AX TF'); return; }
   focusGrid();
 });
@@ -2286,7 +2383,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1784694987500;   // 2026-07-22 04:36 UTC
+const BUILD_TS = 1784695815839;   // 2026-07-22 04:50 UTC
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2351,7 +2448,7 @@ ctx.addEventListener('click', e=>{
 });
 
 /* ══════════════ 백스테이지 · 토스트 · 더미 ══════════════ */
-/* 파일(백스테이지) 진입 제거됨 — 리본을 홈·도구·보기·도움말로 정리 */
+$('file-tab').addEventListener('click', ()=>$('backstage').classList.add('open'));
 $('bs-back').addEventListener('click', ()=>{ $('backstage').classList.remove('open'); focusGrid(); });
 /* 새로 만들기 = 초기화 (자동 저장이 없으므로 새로고침이 곧 초기 상태) */
 $('bs-new').addEventListener('click', ()=>{
