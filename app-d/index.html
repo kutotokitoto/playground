@@ -178,6 +178,12 @@ select.rsel:hover{border-color:var(--green)}
 #fb-btns button:hover{background:#eee;color:#333}
 #fb-btns button:disabled{color:#ccc;pointer-events:none}
 #fb-fx{font-style:italic;font-family:Georgia,serif;color:#666 !important;font-size:13px !important}
+#model-sel{width:160px;border:none;border-right:1px solid var(--line);padding:0 8px;font-size:12px;outline:none;background:#fff;font-family:"Segoe UI","Malgun Gothic";cursor:pointer;font-weight:600;color:#1f6f3f}
+#date-wrap{display:flex;align-items:center;gap:7px;padding:0 10px;border-right:1px solid var(--line);position:relative}
+#date-btn{width:22px;height:20px;font-size:13px;border-radius:3px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;background:transparent}
+#date-btn:hover{background:#e9eef7}
+#date-disp{font-size:12px;color:#333;font-family:"Segoe UI","Malgun Gothic";letter-spacing:.03em;min-width:82px}
+#date-input{position:absolute;left:2px;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none}
 #formula-input{
   flex:1;border:none;outline:none;padding:0 8px;font-size:12.5px;
   font-family:"Pretendard Variable","Pretendard","Malgun Gothic","Segoe UI";
@@ -899,13 +905,22 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 
 <!-- 수식 입력줄 -->
 <div id="formulabar">
-  <input id="namebox" value="A1" spellcheck="false">
-  <div id="fb-btns">
+  <select id="model-sel" title="모델명 선택">
+    <option>B8</option><option>Q8</option><option>Q8M</option><option>N3</option>
+  </select>
+  <div id="date-wrap">
+    <button id="date-btn" title="날짜 선택 (달력)">📅</button>
+    <span id="date-disp">2026-07-22</span>
+    <input type="date" id="date-input" value="2026-07-22">
+  </div>
+  <!-- 기존 그리드 수식줄 (셀 편집 로직 유지용, 숨김) -->
+  <input id="namebox" value="A1" spellcheck="false" style="display:none">
+  <div id="fb-btns" style="display:none">
     <button id="fb-cancel" title="취소" disabled>✕</button>
     <button id="fb-enter" title="입력" disabled>✓</button>
-    <button id="fb-fx" class="dummy" title="함수 삽입">fx</button>
+    <button id="fb-fx" title="함수 삽입">fx</button>
   </div>
-  <input id="formula-input" spellcheck="false" autocomplete="off">
+  <input id="formula-input" spellcheck="false" autocomplete="off" style="display:none">
 </div>
 
 <!-- 그리드 -->
@@ -2316,6 +2331,7 @@ function renderTabs(){
   const el=$('sheet-tabs');
   el.innerHTML='';
   sheets.forEach((s,i)=>{
+    if(s.admin && !adminMode) return;   // 관리자 전용 시트(측정데이터·정규분포·산점도·박스플롯)
     const t=document.createElement('div');
     t.className='stab'+(i===cur?' active':'');
     t.innerHTML='<span class="rn">'+s.name.replace(/</g,'&lt;')+'</span>';
@@ -2370,20 +2386,20 @@ let adminMode=false;
 function toggleAdmin(){
   adminMode=!adminMode;
   document.body.classList.toggle('admin', adminMode);
-  if(adminMode){   // 숨겨지는 탭(전부 더미)에 있었다면 홈으로
-    const t=document.querySelector('.rtab.active');
-    if(t && ['insert','layout','review','help'].indexOf(t.dataset.tab)>=0)
-      document.querySelector('.rtab[data-tab="home"]').click();
-  }
-  toast(adminMode?'🔧 관리자 모드 켜짐 — 리본에서 더미 기능을 숨겼습니다':'관리자 모드 꺼짐 — 전체 UI 표시');
+  if(!adminMode && sheet() && sheet().admin) switchSheet(0);   // 관리자 시트 보다가 끄면 대시보드로
+  renderTabs();   // 관리자 전용 시트 표시/숨김 갱신
+  toast(adminMode?'🔧 관리자 모드 켜짐 — 분석 시트(측정데이터·정규분포·산점도·박스플롯) 표시':'관리자 모드 꺼짐');
 }
 $('tb-title').addEventListener('dblclick', toggleAdmin);
+/* 모델명·날짜 컨텍스트 바 — 달력 아이콘으로 날짜 선택 다이얼로그 */
+$('date-btn').addEventListener('click', ()=>{ const di=$('date-input'); try{ di.showPicker(); }catch(e){ di.focus(); di.click(); } });
+$('date-input').addEventListener('change', e=>{ if(e.target.value) $('date-disp').textContent=e.target.value; });
 $('zoom-slider').addEventListener('input', e=>setZoom(+e.target.value));
 $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoom(100); });
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1784695815839;   // 2026-07-22 04:50 UTC
+const BUILD_TS = 1784696644647;   // 2026-07-22 05:04 UTC
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -4221,13 +4237,16 @@ $('wz-hint').addEventListener('click', startTutorial);
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $('wizard').style.display==='block') endTutorial(); });
 
 /* ══════════════ 초기화 ══════════════ */
-sheets.push(Object.assign(newSheet('메인페이지'), {kind:'data', landing:true}));   // 메인 페이지(측정데이터 왼쪽)
-const _qcSheet = genQCData('측정데이터');
+[ '종합 대시보드','Wing Plate 단차','CFRP Tilt','Open 각도 부착 전','Main UB Tilt',
+  'P-Cap Tilt','Sub Rear 단차','Main Rear 단차','Open 각도 부착 후' ]
+  .forEach((nm,i)=> sheets.push(i===0 ? Object.assign(newSheet(nm),{landing:true}) : newSheet(nm)));
+// 관리자 전용(기존 분석 시트) — 관리자 모드에서만 표시(너와 나만)
+const _qcSheet = genQCData('측정데이터'); _qcSheet.admin=true;
 sheets.push(_qcSheet); qcSource = _qcSheet;
-sheets.push(newChartSheet('정규분포','normal',true));
-sheets.push(newChartSheet('산점도','scatter',true));
-sheets.push(newChartSheet('박스플롯','box',true));
-cur = 0;   // 메인페이지부터 표시
+sheets.push(Object.assign(newChartSheet('정규분포','normal',true), {admin:true}));
+sheets.push(Object.assign(newChartSheet('산점도','scatter',true), {admin:true}));
+sheets.push(Object.assign(newChartSheet('박스플롯','box',true), {admin:true}));
+cur = 0;   // 종합 대시보드부터 표시
 renderTabs();
 renderSheetFull();
 setActive(0,0,false);
@@ -4246,7 +4265,7 @@ document.addEventListener('mouseup', ()=>{ setTimeout(()=>{ if(document.activeEl
 $('file-input').addEventListener('change', e=>{ const f=e.target.files[0]; e.target.value=''; if(f) processUpload(f, uploadMode); });
 // 최초 1회 튜토리얼
 let _tutDone=false; try{ _tutDone=localStorage.getItem('qc_tut_done')==='1'; }catch(e){}
-if(!_tutDone) setTimeout(startTutorial, 950);
+/* 자동 튜토리얼 비활성 (SUB-MAIN 개편) — 분석마법사 버튼으로 수동 실행 */
 </script>
 </body>
 </html>
