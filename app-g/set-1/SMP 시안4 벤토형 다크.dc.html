@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  a{color:oklch(0.72 0.15 300);text-decoration:none;}
+  a:hover{color:oklch(0.80 0.13 300);}
+  @keyframes smpPulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+</style>
+</helmet>
+<div style="width:1920px;height:1080px;overflow:hidden;background:oklch(0.155 0.012 285);color:oklch(0.96 0.006 285);font-family:'Space Grotesk',system-ui,sans-serif;display:flex;flex-direction:column;">
+
+  <header style="height:64px;flex:none;display:flex;align-items:center;gap:20px;padding:0 26px;border-bottom:1px solid oklch(0.28 0.02 285);">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:oklch(0.68 0.15 300);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:14px;color:oklch(0.16 0.03 300);letter-spacing:.5px;">SMP</div>
+      <div style="display:flex;flex-direction:column;line-height:1.15;">
+        <span style="font-size:16px;font-weight:700;letter-spacing:.2px;">검사 종합 대시보드</span>
+        <span style="font-size:10.5px;color:oklch(0.64 0.014 285);font-family:'JetBrains Mono',monospace;letter-spacing:.4px;">SMP · INSPECTION OVERVIEW</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:oklch(0.64 0.014 285);">
+      <span style="padding:5px 11px;border-radius:7px;background:oklch(0.26 0.04 300 / .5);color:oklch(0.82 0.1 300);font-weight:600;">B8 SM-XYZ982</span>
+      <span>PV2-4</span><span style="color:oklch(0.4 0.02 285);">·</span><span>SMP-#3</span><span style="color:oklch(0.4 0.02 285);">·</span><span>A조</span>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:18px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.70 0.19 22);animation:smpPulse 1.6s infinite;"></span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;color:oklch(0.82 0.12 25);">LIVE</span></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.2;"><span style="font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace;">2026-07-23</span><span style="font-size:11px;color:oklch(0.64 0.014 285);font-family:'JetBrains Mono',monospace;">09:42:31</span></div>
+    </div>
+  </header>
+
+  <div style="height:50px;flex:none;display:flex;align-items:center;gap:7px;padding:0 26px;border-bottom:1px solid oklch(0.24 0.018 285);overflow:hidden;">
+    <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="9">
+      <div style="display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:8px;font-size:12.5px;font-weight:{{ tab.w }};color:{{ tab.fg }};background:{{ tab.bg }};border:1px solid {{ tab.bd }};cursor:pointer;white-space:nowrap;flex:none;">
+        <span style="width:6px;height:6px;border-radius:50%;background:{{ tab.dot }};"></span>{{ tab.n }}
+      </div>
+    </sc-for>
+  </div>
+
+  <main style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:1.18fr 1fr 1fr;gap:16px;padding:18px 26px;overflow:hidden;">
+
+    <section style="grid-column:span 2;background:oklch(0.205 0.016 285);border:1px solid oklch(0.30 0.02 285);border-radius:18px;padding:20px 22px;display:flex;gap:22px;align-items:center;position:relative;overflow:hidden;">
+      <span style="position:absolute;top:16px;left:22px;font-size:11px;font-weight:600;letter-spacing:1.4px;font-family:'JetBrains Mono',monospace;color:oklch(0.62 0.014 285);">종합 상태 · OVERVIEW</span>
+      <div style="position:relative;width:172px;height:172px;flex:none;">
+        <svg width="172" height="172" viewBox="0 0 172 172">
+          <circle cx="86" cy="86" r="64" fill="none" stroke="oklch(0.28 0.02 285)" stroke-width="14"></circle>
+          <circle cx="86" cy="86" r="64" fill="none" stroke="oklch(0.68 0.15 300)" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{ ringDash }}" transform="rotate(-90 86 86)"></circle>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <span style="font-size:38px;font-weight:700;font-family:'JetBrains Mono',monospace;color:oklch(0.78 0.13 300);letter-spacing:-1px;">99.4</span>
+          <span style="font-size:11px;color:oklch(0.64 0.014 285);font-family:'JetBrains Mono',monospace;">양품률 FPY %</span>
+        </div>
+      </div>
+      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;padding-top:8px;">
+        <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:11.5px;color:oklch(0.64 0.014 285);">총 인풋</span><span style="font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;">12,480</span></div>
+        <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:11.5px;color:oklch(0.64 0.014 285);">총 NG · 율</span><span style="font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;">70 <span style="font-size:13px;color:oklch(0.82 0.13 82);font-weight:500;">0.56%</span></span></div>
+        <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:11.5px;color:oklch(0.64 0.014 285);">평균 Cpk</span><span style="font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;color:oklch(0.80 0.14 155);">1.33</span></div>
+        <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:11.5px;color:oklch(0.64 0.014 285);">양호 · 주의 · 불량</span><span style="font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;">4 · <span style="color:oklch(0.82 0.13 82);">3</span> · <span style="color:oklch(0.70 0.19 22);">1</span></span></div>
+      </div>
+    </section>
+
+    <section style="grid-column:span 2;background:oklch(0.205 0.016 285);border:1px solid oklch(0.30 0.02 285);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:12px;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:11px;font-weight:600;letter-spacing:1.4px;font-family:'JetBrains Mono',monospace;color:oklch(0.62 0.014 285);">공정 흐름 · 8 STAGES</span><span style="font-size:10.5px;color:oklch(0.5 0.014 285);font-family:'JetBrains Mono',monospace;margin-left:auto;">투입 → 출하</span></div>
+      <div style="flex:1;display:flex;align-items:center;min-height:0;">
+        <sc-for list="{{ pipe }}" as="p" hint-placeholder-count="8">
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:oklch(0.55 0.014 285);">{{ p.no }}</span>
+            <div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 4px;border-radius:10px;background:{{ p.tileBg }};border:1px solid {{ p.tileBd }};">
+              <span style="width:10px;height:10px;border-radius:50%;background:{{ p.color }};"></span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:oklch(0.9 0.006 285);">{{ p.code }}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;color:{{ p.color }};">{{ p.cpk }}</span>
+            </div>
+            <span style="font-size:9px;color:oklch(0.56 0.014 285);text-align:center;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">{{ p.short }}</span>
+          </div>
+          <sc-if value="{{ p.notLast }}" hint-placeholder-val="{{ true }}">
+            <span style="flex:none;color:oklch(0.4 0.02 285);font-size:13px;margin:0 1px;align-self:center;margin-bottom:18px;">›</span>
+          </sc-if>
+        </sc-for>
+      </div>
+    </section>
+
+    <sc-for list="{{ cards }}" as="c" hint-placeholder-count="8">
+      <div style="background:oklch(0.205 0.016 285);border:1px solid oklch(0.30 0.02 285);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;position:relative;overflow:hidden;">
+        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;left:0;bottom:0;width:100%;height:64%;opacity:.9;">
+          <polyline points="{{ c.area }}" fill="{{ c.fill }}" stroke="none"></polyline>
+          <polyline points="{{ c.spark }}" fill="none" stroke="{{ c.color }}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+        </svg>
+        <div style="position:relative;display:flex;flex-direction:column;height:100%;gap:8px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;color:oklch(0.58 0.014 285);">{{ c.no }} · {{ c.code }}</span>
+              <span style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.short }}</span>
+            </div>
+            <span style="display:flex;align-items:center;gap:5px;flex:none;padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:600;color:{{ c.color }};background:{{ c.chip }};"><span style="width:5px;height:5px;border-radius:50%;background:{{ c.color }};"></span>{{ c.stLabel }}</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:2px;">
+            <span style="font-size:38px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-1.5px;color:{{ c.color }};line-height:.95;">{{ c.cpk }}</span>
+            <div style="display:flex;flex-direction:column;line-height:1.15;"><span style="font-size:10px;color:oklch(0.6 0.014 285);font-family:'JetBrains Mono',monospace;">Cpk {{ c.arrow }}</span><span style="font-size:10px;color:oklch(0.55 0.014 285);font-family:'JetBrains Mono',monospace;">목표 1.33</span></div>
+          </div>
+          <div style="margin-top:auto;display:flex;gap:16px;font-family:'JetBrains Mono',monospace;">
+            <div style="display:flex;flex-direction:column;"><span style="font-size:9.5px;color:oklch(0.58 0.014 285);">인풋</span><span style="font-size:13px;font-weight:600;">{{ c.input }}</span></div>
+            <div style="display:flex;flex-direction:column;"><span style="font-size:9.5px;color:oklch(0.58 0.014 285);">NG · 율</span><span style="font-size:13px;font-weight:600;">{{ c.error }} <span style="color:oklch(0.6 0.014 285);font-weight:400;">{{ c.errRate }}%</span></span></div>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1920,&quot;height&quot;:1080}}">
+class Component extends DCLogic {
+  renderVals() {
+    const okC = 'oklch(0.80 0.14 155)', wnC = 'oklch(0.82 0.13 82)', ngC = 'oklch(0.70 0.19 22)', vi = 'oklch(0.68 0.15 300)';
+    const st = c => c >= 1.33 ? 'OK' : (c >= 1.0 ? 'WARN' : 'NG');
+    const lab = { OK: '양호', WARN: '주의', NG: '불량' };
+    const col = { OK: okC, WARN: wnC, NG: ngC };
+    const chip = { OK: 'oklch(0.30 0.05 155 / .5)', WARN: 'oklch(0.32 0.05 82 / .5)', NG: 'oklch(0.32 0.06 22 / .5)' };
+    const fill = { OK: 'oklch(0.80 0.14 155 / .16)', WARN: 'oklch(0.82 0.13 82 / .16)', NG: 'oklch(0.70 0.19 22 / .16)' };
+    const D = [
+      { code: 'WPS', short: '윙플레이트 단차', unit: 'µm', input: 12480, error: 8, cpk: 1.42, trend: [42,45,43,46,44,47,45,44,43,45,44,43] },
+      { code: 'CFT', short: 'CFRP 틸트', unit: '°', input: 12455, error: 12, cpk: 1.18, trend: [30,33,36,34,38,35,40,37,41,39,42,40] },
+      { code: 'OAF', short: '오픈각도(전)', unit: '°', input: 12470, error: 4, cpk: 1.67, trend: [60,58,61,59,62,60,63,61,60,62,61,62] },
+      { code: 'MUB', short: '메인UB 틸트', unit: '°', input: 12410, error: 18, cpk: 0.98, trend: [50,46,53,44,56,42,58,40,61,45,63,48] },
+      { code: 'PCT', short: '피캡 틸트', unit: '°', input: 12388, error: 7, cpk: 1.33, trend: [44,46,45,43,47,45,46,44,45,47,45,46] },
+      { code: 'SRS', short: '서브리어 단차', unit: 'µm', input: 12360, error: 9, cpk: 1.25, trend: [38,41,39,43,40,44,41,45,42,44,43,45] },
+      { code: 'MRS', short: '메인리어 단차', unit: 'µm', input: 12344, error: 5, cpk: 1.55, trend: [55,57,56,58,57,59,58,57,59,58,60,59] },
+      { code: 'OAB', short: '오픈각도(후)', unit: '°', input: 12300, error: 7, cpk: 1.29, trend: [48,50,47,51,49,52,48,50,49,51,50,49] },
+    ];
+    const cards = D.map((d, i) => {
+      const s = st(d.cpk), n = d.trend.length, mn = Math.min(...d.trend), mx = Math.max(...d.trend), r = (mx - mn) || 1;
+      const pts = d.trend.map((v, j) => `${(j / (n - 1) * 100).toFixed(1)},${((1 - (v - mn) / r) * 62 + 22).toFixed(1)}`).join(' ');
+      const arrow = d.trend[n - 1] > d.trend[0] ? '▲' : (d.trend[n - 1] < d.trend[0] ? '▼' : '▬');
+      return { no: String(i + 1).padStart(2, '0'), code: d.code, short: d.short, unit: d.unit, cpk: d.cpk.toFixed(2), input: d.input.toLocaleString(), error: d.error, errRate: (d.error / d.input * 100).toFixed(2), stLabel: lab[s], color: col[s], chip: chip[s], fill: fill[s], spark: pts, area: pts + ' 100,100 0,100', arrow };
+    });
+    const pipe = D.map((d, i) => { const s = st(d.cpk); return { no: String(i + 1).padStart(2, '0'), code: d.code, short: d.short, cpk: d.cpk.toFixed(2), color: col[s], tileBg: chip[s], tileBd: 'oklch(0.32 0.02 285)', notLast: i < D.length - 1 }; });
+    const tab = (n, a, dot) => ({ n, a, w: a ? 600 : 500, fg: a ? 'oklch(0.16 0.03 300)' : 'oklch(0.7 0.014 285)', bg: a ? 'oklch(0.68 0.15 300)' : 'transparent', bd: a ? 'oklch(0.68 0.15 300)' : 'oklch(0.30 0.02 285)', dot: a ? 'oklch(0.16 0.03 300)' : (dot || 'transparent') });
+    const tabs = [tab('종합 대시보드', true), ...D.map(d => tab(d.short, false, col[st(d.cpk)]))];
+    const rC = 2 * Math.PI * 64, pf = 0.9944;
+    return { cards, pipe, tabs, ringDash: `${(pf * rC).toFixed(1)} ${(rC - pf * rC).toFixed(1)}` };
+  }
+}
+</script>
+</body>
+</html>

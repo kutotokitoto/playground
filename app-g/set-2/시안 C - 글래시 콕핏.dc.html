@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  a { color: #b58cff; text-decoration: none; }
+  a:hover { color: #cbb2ff; }
+  @keyframes smpOrb { 0%,100% { transform: translate(0,0) scale(1);} 50% { transform: translate(20px,-16px) scale(1.08);} }
+  @keyframes smpRing { 0% { transform: scale(1); opacity:.7;} 100% { transform: scale(2.4); opacity:0;} }
+  @keyframes smpFloat { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-7px);} }
+</style>
+</helmet>
+<div style="min-height:100vh;position:relative;overflow:hidden;background:#09081a;font-family:'Sora',system-ui,sans-serif;color:#ece9fb;padding:26px">
+  <div style="position:absolute;width:620px;height:620px;left:-120px;top:-160px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,0.55),transparent 62%);filter:blur(30px);animation:smpOrb 14s ease-in-out infinite"></div>
+  <div style="position:absolute;width:560px;height:560px;right:-140px;top:60px;border-radius:50%;background:radial-gradient(circle,rgba(56,120,255,0.42),transparent 62%);filter:blur(30px);animation:smpOrb 17s ease-in-out infinite reverse"></div>
+  <div style="position:absolute;width:520px;height:520px;left:44%;bottom:-220px;border-radius:50%;background:radial-gradient(circle,rgba(217,70,239,0.34),transparent 62%);filter:blur(34px);animation:smpOrb 20s ease-in-out infinite"></div>
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.035) 1px,transparent 1px);background-size:46px 46px;mask-image:radial-gradient(circle at 50% 40%,#000,transparent 78%)"></div>
+
+  <div style="position:relative;width:1520px;margin:0 auto;display:flex;flex-direction:column;gap:20px">
+
+    <!-- NAV -->
+    <div style="display:flex;align-items:center;gap:20px;background:rgba(255,255,255,0.055);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,0.13);border-radius:22px;box-shadow:0 10px 40px rgba(6,4,20,0.5),inset 0 1px 0 rgba(255,255,255,0.16);padding:14px 20px">
+      <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,rgba(181,140,255,0.9),rgba(56,120,255,0.9));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#0b0820;box-shadow:0 6px 20px rgba(124,58,237,0.5)">SMP</div>
+      <div>
+        <div style="font:600 17px/1 'Sora'">종합 검사 대시보드</div>
+        <div style="margin-top:5px;font:400 10px/1 'Space Mono';letter-spacing:.14em;color:#a49fd0">SMART MANUFACTURING PORTAL</div>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
+        <div style="padding:8px 15px;border-radius:12px;background:linear-gradient(135deg,rgba(181,140,255,0.32),rgba(124,58,237,0.28));border:1px solid rgba(181,140,255,0.5);font:600 12px/1 'Sora';color:#efe9ff">종합</div>
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="8">
+          <div style="padding:8px 12px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);font:400 12px/1 'Space Mono';color:#b9b4e0;cursor:pointer" style-hover="background:rgba(255,255,255,0.09)">{{ t.idx }}</div>
+        </sc-for>
+      </div>
+      <div style="text-align:right"><div style="font:400 9px/1 'Space Mono';letter-spacing:.1em;color:#8f8ac0">B8 · PV2-4 · 2026.07.23</div><div style="margin-top:6px;font:600 13px/1 'Space Mono';color:#cbc4f0">SM-XYZ982</div></div>
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(52,211,153,0.14);border:1px solid rgba(52,211,153,0.4);border-radius:12px;padding:9px 13px"><div style="width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 10px #34d399"></div><div style="font:600 11px/1 'Space Mono';letter-spacing:.1em;color:#7ff0c0">RUNNING</div></div>
+    </div>
+
+    <!-- KPI -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <div style="background:rgba(255,255,255,0.05);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;box-shadow:0 8px 30px rgba(6,4,20,0.4),inset 0 1px 0 rgba(255,255,255,0.14);padding:18px 20px">
+        <div style="font:400 10px/1 'Space Mono';letter-spacing:.14em;color:#a49fd0">총 투입 · INPUT</div>
+        <div style="margin-top:12px;font:600 36px/1 'Sora'">12,480<span style="font:400 12px/1 'Space Mono';color:#a49fd0;margin-left:6px">EA</span></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;box-shadow:0 8px 30px rgba(6,4,20,0.4),inset 0 1px 0 rgba(255,255,255,0.14);padding:18px 20px">
+        <div style="font:400 10px/1 'Space Mono';letter-spacing:.14em;color:#a49fd0">누적 NG · ERROR</div>
+        <div style="margin-top:12px;font:600 36px/1 'Sora';color:#ff8aa2">470<span style="font:400 12px/1 'Space Mono';color:#a49fd0;margin-left:6px">3,766 PPM</span></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;box-shadow:0 8px 30px rgba(6,4,20,0.4),inset 0 1px 0 rgba(255,255,255,0.14);padding:18px 20px">
+        <div style="font:400 10px/1 'Space Mono';letter-spacing:.14em;color:#a49fd0">종합 수율 · YIELD</div>
+        <div style="margin-top:12px;font:600 36px/1 'Sora'">96.24<span style="font:600 18px/1 'Sora';color:#b58cff">%</span></div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(181,140,255,0.22),rgba(255,255,255,0.04));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(181,140,255,0.32);border-radius:20px;box-shadow:0 8px 30px rgba(6,4,20,0.4),inset 0 1px 0 rgba(255,255,255,0.14);padding:18px 20px">
+        <div style="font:400 10px/1 'Space Mono';letter-spacing:.14em;color:#c9bcff">평균 Cpk · CAPABILITY</div>
+        <div style="margin-top:12px;font:600 36px/1 'Sora'">1.30<span style="font:400 11px/1 'Space Mono';color:#c9bcff;margin-left:8px">목표 ≥1.33</span></div>
+      </div>
+    </div>
+
+    <!-- COCKPIT -->
+    <div style="display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:18px;align-items:stretch">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ itemsL }}" as="item" hint-placeholder-count="4">
+          <div style="flex:1;display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.05);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.11);border-radius:18px;box-shadow:0 8px 26px rgba(6,4,20,0.35),inset 0 1px 0 rgba(255,255,255,0.12);padding:14px 16px" style-hover="border-color:rgba(181,140,255,0.4)">
+            <div style="position:relative;width:56px;height:56px;flex:0 0 56px">
+              <svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="23" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="5"/><circle cx="28" cy="28" r="23" fill="none" stroke="{{ item.color }}" stroke-width="5" stroke-linecap="round" stroke-dasharray="{{ item.ring }}" transform="rotate(-90 28 28)" style="filter:drop-shadow(0 0 5px {{ item.color }})"/></svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 14px/1 'Sora'">{{ item.cpk }}</div>
+            </div>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;align-items:center;gap:7px"><span style="font:400 10px/1 'Space Mono';color:#8f8ac0">{{ item.idx }}</span><span style="width:6px;height:6px;border-radius:50%;background:{{ item.color }};box-shadow:0 0 8px {{ item.color }}"></span><span style="font:600 11px/1 'Space Mono';color:{{ item.color }}">{{ item.status }}</span></div>
+              <div style="margin-top:6px;font:600 15px/1.1 'Sora'">{{ item.kr }}</div>
+              <div style="margin-top:5px;font:400 10px/1 'Space Mono';color:#a49fd0">IN {{ item.input }} · NG {{ item.error }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="position:relative;background:rgba(255,255,255,0.04);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.12);border-radius:24px;box-shadow:0 12px 44px rgba(6,4,20,0.5),inset 0 1px 0 rgba(255,255,255,0.15);padding:22px;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:center"><div style="font:600 14px/1 'Sora'">검사 포인트 맵</div><div style="font:400 10px/1 'Space Mono';color:#a49fd0">B8 FOLDABLE · 8 PT</div></div>
+        <div style="flex:1;position:relative;min-height:420px;margin-top:12px">
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:210px;height:388px;border-radius:32px;background:linear-gradient(155deg,rgba(181,140,255,0.16),rgba(56,120,255,0.08));border:1px solid rgba(255,255,255,0.18);box-shadow:0 0 60px rgba(124,58,237,0.35),inset 0 0 50px rgba(181,140,255,0.12);animation:smpFloat 7s ease-in-out infinite">
+            <div style="position:absolute;left:50%;top:18px;bottom:18px;width:1px;background:repeating-linear-gradient(180deg,rgba(255,255,255,0.28) 0 6px,transparent 6px 13px)"></div>
+            <div style="position:absolute;left:50%;top:26px;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.4)"></div>
+            <div style="position:absolute;inset:18px;border-radius:22px;background:repeating-linear-gradient(135deg,rgba(255,255,255,0.04) 0 9px,transparent 9px 18px)"></div>
+          </div>
+          <sc-for list="{{ nodes }}" as="n" hint-placeholder-count="8">
+            <div style="position:absolute;left:{{ n.nx }}%;top:{{ n.ny }}%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:rgba(9,8,26,0.85);border:2px solid {{ n.color }};display:flex;align-items:center;justify-content:center;font:600 11px/1 'Space Mono';color:{{ n.color }};box-shadow:0 0 16px {{ n.color }}">{{ n.idx }}</div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ itemsR }}" as="item" hint-placeholder-count="4">
+          <div style="flex:1;display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.05);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.11);border-radius:18px;box-shadow:0 8px 26px rgba(6,4,20,0.35),inset 0 1px 0 rgba(255,255,255,0.12);padding:14px 16px" style-hover="border-color:rgba(181,140,255,0.4)">
+            <div style="position:relative;width:56px;height:56px;flex:0 0 56px">
+              <svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="23" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="5"/><circle cx="28" cy="28" r="23" fill="none" stroke="{{ item.color }}" stroke-width="5" stroke-linecap="round" stroke-dasharray="{{ item.ring }}" transform="rotate(-90 28 28)" style="filter:drop-shadow(0 0 5px {{ item.color }})"/></svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 14px/1 'Sora'">{{ item.cpk }}</div>
+            </div>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;align-items:center;gap:7px"><span style="font:400 10px/1 'Space Mono';color:#8f8ac0">{{ item.idx }}</span><span style="width:6px;height:6px;border-radius:50%;background:{{ item.color }};box-shadow:0 0 8px {{ item.color }}"></span><span style="font:600 11px/1 'Space Mono';color:{{ item.color }}">{{ item.status }}</span></div>
+              <div style="margin-top:6px;font:600 15px/1.1 'Sora'">{{ item.kr }}</div>
+              <div style="margin-top:5px;font:400 10px/1 'Space Mono';color:#a49fd0">IN {{ item.input }} · NG {{ item.error }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1580,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  renderVals(){
+    const C=144.5, nf=n=>n.toLocaleString('en-US');
+    const col=c=>c>=1.33?'#34d399':c>=1.0?'#fbbf24':'#fb7185';
+    const stt=c=>c>=1.33?'양호':c>=1.0?'주의':'위험';
+    const raw=[
+      {kr:'윙플레이트 단차',en:'Wing Plate Step',inp:12480,er:38,cpk:1.42,nx:50,ny:9},
+      {kr:'CFRP 틸트',en:'CFRP Tilt',inp:12455,er:27,cpk:1.61,nx:50,ny:25},
+      {kr:'오픈각도 (전)',en:'Open Angle · Pre',inp:12455,er:96,cpk:1.08,nx:14,ny:47},
+      {kr:'메인UB 틸트',en:'Main UB Tilt',inp:12402,er:51,cpk:1.33,nx:50,ny:43},
+      {kr:'피캡 틸트',en:'P-Cap Tilt',inp:12388,er:44,cpk:1.29,nx:50,ny:61},
+      {kr:'서브리어 단차',en:'Sub-Rear Step',inp:12377,er:62,cpk:1.18,nx:30,ny:82},
+      {kr:'메인리어 단차',en:'Main-Rear Step',inp:12377,er:33,cpk:1.55,nx:70,ny:82},
+      {kr:'오픈각도 (후)',en:'Open Angle · Post',inp:12340,er:119,cpk:0.94,nx:86,ny:47}
+    ];
+    const items=raw.map((r,i)=>{const f=Math.min(Math.max(r.cpk/2,0),1);const c=col(r.cpk);return{
+      idx:String(i+1).padStart(2,'0'),kr:r.kr,en:r.en,input:nf(r.inp),error:nf(r.er),
+      cpk:r.cpk.toFixed(2),ring:(f*C).toFixed(1)+' '+C.toFixed(1),color:c,status:stt(r.cpk),nx:r.nx,ny:r.ny
+    };});
+    const tabs=raw.map((r,i)=>({idx:String(i+1).padStart(2,'0')}));
+    const nodes=items.map(it=>({idx:it.idx,color:it.color,nx:it.nx,ny:it.ny}));
+    return {items,itemsL:items.slice(0,4),itemsR:items.slice(4,8),tabs,nodes};
+  }
+}
+</script>
+</body>
+</html>

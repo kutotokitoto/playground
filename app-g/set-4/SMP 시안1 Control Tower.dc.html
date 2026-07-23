@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:oklch(0.17 0.02 260);--panel:oklch(0.225 0.02 260);--panel2:oklch(0.285 0.022 260);
+  --line:oklch(0.34 0.02 262);--txt:oklch(0.96 0.006 260);--mut:oklch(0.70 0.02 262);--dim:oklch(0.56 0.02 262);
+  --accent:oklch(0.80 0.11 228);--good:oklch(0.80 0.14 160);--warn:oklch(0.84 0.13 85);--bad:oklch(0.70 0.19 25);
+  --mono:'IBM Plex Mono',ui-monospace,monospace;--sans:'IBM Plex Sans KR','IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+a{color:var(--accent);text-decoration:none;}a:hover{color:oklch(0.88 0.09 228);}
+::-webkit-scrollbar{height:8px;width:8px;}::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+@keyframes smpRise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(1100px 520px at 82% -12%, oklch(0.30 0.06 232 / .45), transparent 62%), var(--bg);">
+
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 28px;border-bottom:1px solid var(--line);background:oklch(0.205 0.02 260 / .8);backdrop-filter:blur(6px);">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="width:42px;height:42px;border:1.5px solid var(--accent);border-radius:10px;display:grid;place-items:center;font-family:var(--mono);font-weight:600;color:var(--accent);font-size:13px;letter-spacing:.04em;">SMP</div>
+      <div>
+        <div style="font-size:16px;font-weight:600;letter-spacing:.01em;">검사 종합 대시보드</div>
+        <div style="font-size:10.5px;color:var(--mut);font-family:var(--mono);letter-spacing:.16em;">SMART MANUFACTURING PORTAL</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end;">
+      <div style="display:flex;flex-direction:column;padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel);"><span style="font-size:9.5px;color:var(--mut);letter-spacing:.08em;">MODEL</span><span style="font-family:var(--mono);font-size:12.5px;font-weight:500;">B8 SM-XYZ982</span></div>
+      <div style="display:flex;flex-direction:column;padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel);"><span style="font-size:9.5px;color:var(--mut);letter-spacing:.08em;">STAGE</span><span style="font-family:var(--mono);font-size:12.5px;font-weight:500;">PV2-4</span></div>
+      <div style="display:flex;flex-direction:column;padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel);"><span style="font-size:9.5px;color:var(--mut);letter-spacing:.08em;">DATE</span><span style="font-family:var(--mono);font-size:12.5px;font-weight:500;">2026.07.23</span></div>
+      <div style="display:flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid oklch(0.5 0.1 160);border-radius:9px;background:oklch(0.28 0.05 160 / .5);"><span style="width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 8px var(--good);"></span><span style="font-size:12px;color:oklch(0.9 0.05 160);">LIVE · 주간조 L3</span></div>
+    </div>
+  </header>
+
+  <nav style="display:flex;gap:6px;padding:11px 22px;border-bottom:1px solid var(--line);background:oklch(0.195 0.02 260);overflow-x:auto;">
+    <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="9">
+      <button onClick="{{ tab.onSelect }}" style="{{ tab.style }}" style-hover="color:var(--txt);background:oklch(0.26 0.02 260);">{{ tab.label }}</button>
+    </sc-for>
+  </nav>
+
+  <main style="flex:1;padding:24px 28px 40px;">
+
+    <sc-if value="{{ isMain }}" hint-placeholder-val="{{ true }}">
+    <div style="animation:smpRise .45s ease both;">
+
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;">
+        <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;">
+          <div style="font-size:12px;color:var(--mut);">라인 투입</div>
+          <div style="font-family:var(--mono);font-size:33px;font-weight:600;margin-top:8px;letter-spacing:-.01em;">12,480<span style="font-size:14px;color:var(--dim);font-weight:400;margin-left:5px;">EA</span></div>
+          <div style="font-size:11px;color:var(--dim);margin-top:6px;">누적 검사 99,606회</div>
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;">
+          <div style="font-size:12px;color:var(--mut);">총 검출 에러</div>
+          <div style="font-family:var(--mono);font-size:33px;font-weight:600;margin-top:8px;letter-spacing:-.01em;">648<span style="font-size:14px;color:var(--dim);font-weight:400;margin-left:5px;">건</span></div>
+          <div style="font-size:11px;color:var(--dim);margin-top:6px;">8개 공정 합산 · 검출률 0.65%</div>
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;">
+          <div style="font-size:12px;color:var(--mut);">평균 Cpk</div>
+          <div style="font-family:var(--mono);font-size:33px;font-weight:600;margin-top:8px;letter-spacing:-.01em;color:var(--good);">1.36</div>
+          <div style="font-size:11px;color:var(--dim);margin-top:6px;">목표 ≥ 1.33 · <span style="color:var(--good);">▲ 달성</span></div>
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;">
+          <div style="font-size:12px;color:var(--mut);">종합 수율 (FTY)</div>
+          <div style="font-family:var(--mono);font-size:33px;font-weight:600;margin-top:8px;letter-spacing:-.01em;color:var(--accent);">94.9<span style="font-size:16px;">%</span></div>
+          <div style="font-size:11px;color:var(--dim);margin-top:6px;">전일 대비 <span style="color:var(--good);">▲ 0.3%p</span></div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:11px;background:oklch(0.28 0.055 27 / .55);border:1px solid oklch(0.5 0.12 27);border-radius:12px;padding:12px 16px;margin-top:16px;">
+        <span style="width:9px;height:9px;border-radius:50%;background:var(--bad);box-shadow:0 0 8px var(--bad);flex:none;"></span>
+        <span style="font-size:13px;color:oklch(0.93 0.03 30);"><b style="font-weight:600;">관리 필요</b> · 메인UB 틸트 Cpk 0.92 (목표 미달) · 서브리어 단차 · CFRP 틸트 주의 단계</span>
+        <button onClick="{{ open.i4 }}" style="margin-left:auto;flex:none;font-family:var(--sans);font-size:12px;font-weight:500;color:oklch(0.95 0.03 30);background:transparent;border:1px solid oklch(0.6 0.12 27);border-radius:8px;padding:5px 12px;cursor:pointer;" style-hover="background:oklch(0.4 0.1 27);">확인 →</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:28px 0 14px;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:14px;font-weight:600;">공정별 검사 현황 <span style="color:var(--dim);font-weight:400;">· 8개 공정</span></div>
+        <div style="display:flex;gap:16px;font-size:11px;color:var(--mut);flex-wrap:wrap;">
+          <span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--good);"></span>양호 Cpk ≥ 1.33</span>
+          <span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--warn);"></span>주의 1.00–1.33</span>
+          <span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--bad);"></span>관리필요 &lt; 1.00</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;">
+
+        <button onClick="{{ open.i1 }}" style="text-align:left;font-family:var(--sans);color:var(--txt);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--good);border-radius:14px;padding:17px 18px;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:border-color .15s,transform .15s;" style-hover="border-color:var(--accent);transform:translateY(-2px);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;"><span style="width:9px;height:9px;border-radius:50%;background:var(--good);flex:none;"></span><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">윙플레이트 단차</span></div>
+            <span style="flex:none;font-size:10px;font-family:var(--mono);color:var(--good);border:1px solid var(--good);padding:2px 7px;border-radius:6px;">양호</span>
+          </div>
+          <div style="display:flex;gap:18px;align-items:flex-start;">
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">INPUT</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">12,480</div></div>
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">ERROR</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">42<span style="font-size:12px;color:var(--dim);"> · 0.34%</span></div></div>
+            <div style="margin-left:auto;text-align:right;"><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">Cpk</div><div style="font-family:var(--mono);font-size:19px;font-weight:600;margin-top:2px;color:var(--good);">1.52</div></div>
+          </div>
+          <div>
+            <div style="position:relative;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:76%;background:var(--good);border-radius:5px;"></div><div style="position:absolute;left:66.5%;top:0;bottom:0;width:2px;background:oklch(0.9 0.01 262);opacity:.55;"></div></div>
+            <div style="position:relative;height:12px;margin-top:3px;"><span style="position:absolute;left:66.5%;transform:translateX(-50%);font-size:9px;color:var(--dim);font-family:var(--mono);">▲ 1.33</span></div>
+          </div>
+        </button>
+
+        <button onClick="{{ open.i2 }}" style="text-align:left;font-family:var(--sans);color:var(--txt);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:14px;padding:17px 18px;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:border-color .15s,transform .15s;" style-hover="border-color:var(--accent);transform:translateY(-2px);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;"><span style="width:9px;height:9px;border-radius:50%;background:var(--warn);flex:none;"></span><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">CFRP 틸트</span></div>
+            <span style="flex:none;font-size:10px;font-family:var(--mono);color:var(--warn);border:1px solid var(--warn);padding:2px 7px;border-radius:6px;">주의</span>
+          </div>
+          <div style="display:flex;gap:18px;align-items:flex-start;">
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">INPUT</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">12,480</div></div>
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">ERROR</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">118<span style="font-size:12px;color:var(--dim);"> · 0.95%</span></div></div>
+            <div style="margin-left:auto;text-align:right;"><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">Cpk</div><div style="font-family:var(--mono);font-size:19px;font-weight:600;margin-top:2px;color:var(--warn);">1.18</div></div>
+          </div>
+          <div>
+            <div style="position:relative;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:59%;background:var(--warn);border-radius:5px;"></div><div style="position:absolute;left:66.5%;top:0;bottom:0;width:2px;background:oklch(0.9 0.01 262);opacity:.55;"></div></div>
+            <div style="position:relative;height:12px;margin-top:3px;"><span style="position:absolute;left:66.5%;transform:translateX(-50%);font-size:9px;color:var(--dim);font-family:var(--mono);">▲ 1.33</span></div>
+          </div>
+        </button>
+
+        <button onClick="{{ open.i3 }}" style="text-align:left;font-family:var(--sans);color:var(--txt);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--good);border-radius:14px;padding:17px 18px;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:border-color .15s,transform .15s;" style-hover="border-color:var(--accent);transform:translateY(-2px);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;"><span style="width:9px;height:9px;border-radius:50%;background:var(--good);flex:none;"></span><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">오픈각도(전)</span></div>
+            <span style="flex:none;font-size:10px;font-family:var(--mono);color:var(--good);border:1px solid var(--good);padding:2px 7px;border-radius:6px;">양호</span>
+          </div>
+          <div style="display:flex;gap:18px;align-items:flex-start;">
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">INPUT</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">12,455</div></div>
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">ERROR</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">27<span style="font-size:12px;color:var(--dim);"> · 0.22%</span></div></div>
+            <div style="margin-left:auto;text-align:right;"><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">Cpk</div><div style="font-family:var(--mono);font-size:19px;font-weight:600;margin-top:2px;color:var(--good);">1.67</div></div>
+          </div>
+          <div>
+            <div style="position:relative;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:84%;background:var(--good);border-radius:5px;"></div><div style="position:absolute;left:66.5%;top:0;bottom:0;width:2px;background:oklch(0.9 0.01 262);opacity:.55;"></div></div>
+            <div style="position:relative;height:12px;margin-top:3px;"><span style="position:absolute;left:66.5%;transform:translateX(-50%);font-size:9px;color:var(--dim);font-family:var(--mono);">▲ 1.33</span></div>
+          </div>
+        </button>
+
+        <button onClick="{{ open.i4 }}" style="text-align:left;font-family:var(--sans);color:var(--txt);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:14px;padding:17px 18px;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:border-color .15s,transform .15s;box-shadow:0 0 0 1px oklch(0.5 0.12 27 / .4);" style-hover="border-color:var(--accent);transform:translateY(-2px);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;"><span style="width:9px;height:9px;border-radius:50%;background:var(--bad);flex:none;box-shadow:0 0 8px var(--bad);"></span><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">메인UB 틸트</span></div>
+            <span style="flex:none;font-size:10px;font-family:var(--mono);color:var(--bad);border:1px solid var(--bad);padding:2px 7px;border-radius:6px;">관리필요</span>
+          </div>
+          <div style="display:flex;gap:18px;align-items:flex-start;">
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">INPUT</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">12,455</div></div>
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">ERROR</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">203<span style="font-size:12px;color:var(--dim);"> · 1.63%</span></div></div>
+            <div style="margin-left:auto;text-align:right;"><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">Cpk</div><div style="font-family:var(--mono);font-size:19px;font-weight:600;margin-top:2px;color:var(--bad);">0.92</div></div>
+          </div>
+          <div>
+            <div style="position:relative;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:46%;background:var(--bad);border-radius:5px;"></div><div style="position:absolute;left:66.5%;top:0;bottom:0;width:2px;background:oklch(0.9 0.01 262);opacity:.55;"></div></div>
+            <div style="position:relative;height:12px;margin-top:3px;"><span style="position:absolute;left:66.5%;transform:translateX(-50%);font-size:9px;color:var(--dim);font-family:var(--mono);">▲ 1.33</span></div>
+          </div>
+        </button>
+
+        <button onClick="{{ open.i5 }}" style="text-align:left;font-family:var(--sans);color:var(--txt);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--good);border-radius:14px;padding:17px 18px;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:border-color .15s,transform .15s;" style-hover="border-color:var(--accent);transform:translateY(-2px);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;"><span style="width:9px;height:9px;border-radius:50%;background:var(--good);flex:none;"></span><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">피캡 틸트</span></div>
+            <span style="flex:none;font-size:10px;font-family:var(--mono);color:var(--good);border:1px solid var(--good);padding:2px 7px;border-radius:6px;">양호</span>
+          </div>
+          <div style="display:flex;gap:18px;align-items:flex-start;">
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">INPUT</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">12,440</div></div>
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">ERROR</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">61<span style="font-size:12px;color:var(--dim);"> · 0.49%</span></div></div>
+            <div style="margin-left:auto;text-align:right;"><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">Cpk</div><div style="font-family:var(--mono);font-size:19px;font-weight:600;margin-top:2px;color:var(--good);">1.41</div></div>
+          </div>
+          <div>
+            <div style="position:relative;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:71%;background:var(--good);border-radius:5px;"></div><div style="position:absolute;left:66.5%;top:0;bottom:0;width:2px;background:oklch(0.9 0.01 262);opacity:.55;"></div></div>
+            <div style="position:relative;height:12px;margin-top:3px;"><span style="position:absolute;left:66.5%;transform:translateX(-50%);font-size:9px;color:var(--dim);font-family:var(--mono);">▲ 1.33</span></div>
+          </div>
+        </button>
+
+        <button onClick="{{ open.i6 }}" style="text-align:left;font-family:var(--sans);color:var(--txt);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:14px;padding:17px 18px;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:border-color .15s,transform .15s;" style-hover="border-color:var(--accent);transform:translateY(-2px);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;"><span style="width:9px;height:9px;border-radius:50%;background:var(--warn);flex:none;"></span><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">서브리어 단차</span></div>
+            <span style="flex:none;font-size:10px;font-family:var(--mono);color:var(--warn);border:1px solid var(--warn);padding:2px 7px;border-radius:6px;">주의</span>
+          </div>
+          <div style="display:flex;gap:18px;align-items:flex-start;">
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">INPUT</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">12,440</div></div>
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">ERROR</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">88<span style="font-size:12px;color:var(--dim);"> · 0.71%</span></div></div>
+            <div style="margin-left:auto;text-align:right;"><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">Cpk</div><div style="font-family:var(--mono);font-size:19px;font-weight:600;margin-top:2px;color:var(--warn);">1.29</div></div>
+          </div>
+          <div>
+            <div style="position:relative;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:65%;background:var(--warn);border-radius:5px;"></div><div style="position:absolute;left:66.5%;top:0;bottom:0;width:2px;background:oklch(0.9 0.01 262);opacity:.55;"></div></div>
+            <div style="position:relative;height:12px;margin-top:3px;"><span style="position:absolute;left:66.5%;transform:translateX(-50%);font-size:9px;color:var(--dim);font-family:var(--mono);">▲ 1.33</span></div>
+          </div>
+        </button>
+
+        <button onClick="{{ open.i7 }}" style="text-align:left;font-family:var(--sans);color:var(--txt);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--good);border-radius:14px;padding:17px 18px;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:border-color .15s,transform .15s;" style-hover="border-color:var(--accent);transform:translateY(-2px);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;"><span style="width:9px;height:9px;border-radius:50%;background:var(--good);flex:none;"></span><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">메인리어 단차</span></div>
+            <span style="flex:none;font-size:10px;font-family:var(--mono);color:var(--good);border:1px solid var(--good);padding:2px 7px;border-radius:6px;">양호</span>
+          </div>
+          <div style="display:flex;gap:18px;align-items:flex-start;">
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">INPUT</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">12,428</div></div>
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">ERROR</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">35<span style="font-size:12px;color:var(--dim);"> · 0.28%</span></div></div>
+            <div style="margin-left:auto;text-align:right;"><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">Cpk</div><div style="font-family:var(--mono);font-size:19px;font-weight:600;margin-top:2px;color:var(--good);">1.58</div></div>
+          </div>
+          <div>
+            <div style="position:relative;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:79%;background:var(--good);border-radius:5px;"></div><div style="position:absolute;left:66.5%;top:0;bottom:0;width:2px;background:oklch(0.9 0.01 262);opacity:.55;"></div></div>
+            <div style="position:relative;height:12px;margin-top:3px;"><span style="position:absolute;left:66.5%;transform:translateX(-50%);font-size:9px;color:var(--dim);font-family:var(--mono);">▲ 1.33</span></div>
+          </div>
+        </button>
+
+        <button onClick="{{ open.i8 }}" style="text-align:left;font-family:var(--sans);color:var(--txt);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--good);border-radius:14px;padding:17px 18px;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:border-color .15s,transform .15s;" style-hover="border-color:var(--accent);transform:translateY(-2px);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;"><span style="width:9px;height:9px;border-radius:50%;background:var(--good);flex:none;"></span><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">오픈각도(후)</span></div>
+            <span style="flex:none;font-size:10px;font-family:var(--mono);color:var(--good);border:1px solid var(--good);padding:2px 7px;border-radius:6px;">양호</span>
+          </div>
+          <div style="display:flex;gap:18px;align-items:flex-start;">
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">INPUT</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">12,428</div></div>
+            <div><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">ERROR</div><div style="font-family:var(--mono);font-size:19px;font-weight:500;margin-top:2px;">74<span style="font-size:12px;color:var(--dim);"> · 0.60%</span></div></div>
+            <div style="margin-left:auto;text-align:right;"><div style="font-size:10px;color:var(--mut);letter-spacing:.08em;">Cpk</div><div style="font-family:var(--mono);font-size:19px;font-weight:600;margin-top:2px;color:var(--good);">1.34</div></div>
+          </div>
+          <div>
+            <div style="position:relative;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:67%;background:var(--good);border-radius:5px;"></div><div style="position:absolute;left:66.5%;top:0;bottom:0;width:2px;background:oklch(0.9 0.01 262);opacity:.55;"></div></div>
+            <div style="position:relative;height:12px;margin-top:3px;"><span style="position:absolute;left:66.5%;transform:translateX(-50%);font-size:9px;color:var(--dim);font-family:var(--mono);">▲ 1.33</span></div>
+          </div>
+        </button>
+
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isDetail }}">
+    <div style="max-width:980px;margin:0 auto;padding-top:24px;animation:smpRise .4s ease both;">
+      <div style="text-align:center;margin-bottom:26px;">
+        <span style="display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--accent);border:1px solid var(--line);background:var(--panel);padding:5px 12px;border-radius:20px;">{{ activeLabel }} 공정</span>
+        <h2 style="font-size:24px;font-weight:600;margin:16px 0 8px;">상세 대시보드 준비 중</h2>
+        <p style="color:var(--mut);font-size:14px;max-width:600px;margin:0 auto;line-height:1.6;text-wrap:pretty;">선택한 공정의 실시간 측정 트렌드, 로트별 Cpk, 불량 유형 분포(Pareto), 측정 산포 히스토그램이 이 화면에 구성됩니다.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="grid-column:1 / -1;border:1px dashed var(--line);border-radius:14px;min-height:170px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,oklch(0.225 0.02 260) 0 11px,oklch(0.205 0.02 260) 11px 22px);"><div style="text-align:center;"><div style="font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--mut);">TREND CHART</div><div style="font-size:11px;color:var(--dim);margin-top:5px;">일자별 Cpk · 불량률 추이</div></div></div>
+        <div style="border:1px dashed var(--line);border-radius:14px;min-height:150px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,oklch(0.225 0.02 260) 0 11px,oklch(0.205 0.02 260) 11px 22px);"><div style="text-align:center;"><div style="font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--mut);">LOT × Cpk</div><div style="font-size:11px;color:var(--dim);margin-top:5px;">로트별 공정능력</div></div></div>
+        <div style="border:1px dashed var(--line);border-radius:14px;min-height:150px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,oklch(0.225 0.02 260) 0 11px,oklch(0.205 0.02 260) 11px 22px);"><div style="text-align:center;"><div style="font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--mut);">DEFECT PARETO</div><div style="font-size:11px;color:var(--dim);margin-top:5px;">불량 유형 분포</div></div></div>
+        <div style="grid-column:1 / -1;border:1px dashed var(--line);border-radius:14px;min-height:150px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,oklch(0.225 0.02 260) 0 11px,oklch(0.205 0.02 260) 11px 22px);"><div style="text-align:center;"><div style="font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--mut);">MEASUREMENT HISTOGRAM</div><div style="font-size:11px;color:var(--dim);margin-top:5px;">측정 산포 · 규격 상·하한 대비</div></div></div>
+      </div>
+      <div style="text-align:center;margin-top:26px;"><button onClick="{{ open.main }}" style="font-family:var(--sans);font-size:13px;font-weight:500;color:var(--txt);background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:9px 18px;cursor:pointer;" style-hover="border-color:var(--accent);">← 종합 대시보드로</button></div>
+    </div>
+    </sc-if>
+
+  </main>
+
+  <footer style="padding:14px 28px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:11px;color:var(--dim);font-family:var(--mono);">
+    <span>SMP · Smart Manufacturing Portal</span>
+    <span>DATA REFRESH 30s · LAST 2026.07.23 14:22 KST</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab: 'main' };
+  renderVals() {
+    const defs = [
+      ['main','종합 대시보드'],['i1','윙플레이트 단차'],['i2','CFRP 틸트'],
+      ['i3','오픈각도(전)'],['i4','메인UB 틸트'],['i5','피캡 틸트'],
+      ['i6','서브리어 단차'],['i7','메인리어 단차'],['i8','오픈각도(후)'],
+    ];
+    const cur = this.state.tab;
+    const pick = (id) => () => this.setState({ tab: id });
+    const tabs = defs.map(([id, label]) => ({
+      id, label,
+      onSelect: pick(id),
+      style: {
+        padding: '9px 15px', borderRadius: '9px', fontSize: '13px',
+        fontFamily: "'IBM Plex Sans KR','IBM Plex Sans',sans-serif",
+        fontWeight: id === cur ? 600 : 500,
+        color: id === cur ? 'oklch(0.97 0.006 260)' : 'oklch(0.70 0.02 262)',
+        background: id === cur ? 'oklch(0.31 0.055 232)' : 'transparent',
+        border: id === cur ? '1px solid oklch(0.58 0.11 228)' : '1px solid transparent',
+        cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all .15s',
+      },
+    }));
+    const open = {};
+    defs.forEach(([id]) => { open[id] = pick(id); });
+    const activeLabel = (defs.find(([id]) => id === cur) || defs[0])[1];
+    return { tabs, open, activeLabel, isMain: cur === 'main', isDetail: cur !== 'main' };
+  }
+}
+</script>
+</body>
+</html>

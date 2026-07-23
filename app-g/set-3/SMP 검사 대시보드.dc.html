@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#e8ebf0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:#2a6fd6;text-decoration:none} a:hover{color:#1c4f9c}
+  .dv-intro{padding:46px 52px 6px;max-width:1180px}
+  .dv-turn{padding:34px 52px 52px}
+  .dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 26px}
+  .dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:4px 8px;background:#161a20;color:#fff;border-radius:5px;text-decoration:none}
+  .dv-tname{font:600 13px/1.2 'IBM Plex Sans KR',system-ui,sans-serif;color:#161a20}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start}
+  .dv-opt{flex:none;display:flex;flex-direction:column;gap:12px;scroll-margin-top:16px}
+  .dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:4px 8px;background:rgba(0,0,0,.09);color:#161a20;border-radius:6px;text-decoration:none}
+  .dv-olabel{display:flex;align-items:baseline;gap:9px;font:400 12.5px/1.3 'IBM Plex Sans KR',system-ui,sans-serif;color:rgba(0,0,0,.5)}
+  .dv-card{border-radius:14px;box-shadow:0 10px 40px rgba(20,30,55,.16);overflow:hidden}
+  .dv-opt:target .dv-oid{background:#2a6fd6;color:#fff}
+  .dv-next{margin:30px 0 0;font:13px/1.7 'IBM Plex Sans KR',system-ui,sans-serif;color:rgba(0,0,0,.5)}
+  @keyframes smp-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  @keyframes smp-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+</style>
+</helmet>
+
+<div class="dv-intro">
+  <div style="font:700 23px/1.25 'IBM Plex Sans KR';color:#10141b;letter-spacing:-.01em">SMP · 스마트폰 검사 종합 대시보드</div>
+  <div style="margin-top:9px;font:400 13.5px/1.7 'IBM Plex Sans KR';color:#48505d;max-width:940px">
+    같은 콘텐츠·구조를 3개 비주얼 방향으로 그린 <b>메인(종합) 대시보드</b> 시안입니다. 데이터는 전부 더미예요. 공통 골격 — 좌측 9개 탭(종합 + 검사 8종), 상단 컨텍스트/필터, 종합 KPI, 검사별 요약(Input · Error · Cpk · 추세 · 판정), 하단 추세/알림. 카드/행을 누르면 상세 화면으로 진입(추후 제작).
+  </div>
+  <div style="margin-top:15px;display:flex;flex-wrap:wrap;gap:7px">
+    <span style="font:500 11px/1 'IBM Plex Mono';color:#3a4apx;padding:6px 10px;background:#fff;border:1px solid #dde3ea;border-radius:6px;color:#37404d">모델 B8 SM-XYZ982</span>
+    <span style="font:500 11px/1 'IBM Plex Mono';padding:6px 10px;background:#fff;border:1px solid #dde3ea;border-radius:6px;color:#37404d">단계 PV2-4</span>
+    <span style="font:500 11px/1 'IBM Plex Mono';padding:6px 10px;background:#fff;border:1px solid #dde3ea;border-radius:6px;color:#37404d">2026.07.23</span>
+    <span style="font:500 11px/1 'IBM Plex Mono';padding:6px 10px;background:#fff;border:1px solid #dde3ea;border-radius:6px;color:#37404d">Cpk ≥1.33 양호 · 1.0–1.33 주의 · &lt;1.0 NG</span>
+    <span style="font:500 11px/1 'IBM Plex Mono';padding:6px 10px;background:#fff;border:1px solid #dde3ea;border-radius:6px;color:#37404d">표기 한국어(지표명 영문 병기)</span>
+  </div>
+</div>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">메인 대시보드 · 비주얼 방향 3종</span></div>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>라이트 엔터프라이즈 · 인더스트리얼 블루 · 카드 그리드</div>
+      <div class="dv-card" style="width:1280px;background:#f3f5f9">
+        <div style="display:flex;height:812px">
+
+          <div style="width:216px;flex:none;background:#0f1b2d;display:flex;flex-direction:column">
+            <div style="padding:19px 18px 17px;display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(255,255,255,.08)">
+              <div style="width:30px;height:30px;flex:none;border-radius:8px;background:#2a6fd6;display:flex;align-items:center;justify-content:center;font:700 14px/1 'IBM Plex Mono';color:#fff">S</div>
+              <div><div style="font:700 15px/1 'IBM Plex Sans KR';color:#fff;letter-spacing:.06em">SMP</div><div style="font:400 9.5px/1.3 'IBM Plex Sans KR';color:#7e8da0;margin-top:3px">스마트폰 검사 포털</div></div>
+            </div>
+            <div style="padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow:auto">
+              <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;background:rgba(42,111,214,.18);position:relative">
+                <div style="position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;background:#4d94ff"></div>
+                <span style="font:600 12.5px/1 'IBM Plex Sans KR';color:#fff">종합 대시보드</span>
+              </div>
+              <div style="padding:15px 12px 6px;font:600 9px/1 'IBM Plex Sans KR';letter-spacing:.16em;color:#586a83">검사 공정 · 8</div>
+              <sc-for list="{{ tabsRest }}" as="tab" hint-placeholder-count="8">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer" style-hover="background:rgba(255,255,255,.06)">
+                  <span style="font:500 9.5px/1 'IBM Plex Mono';color:#5f7characters;color:#586a83;width:14px">{{ tab.no }}</span>
+                  <span style="font:400 12px/1.2 'IBM Plex Sans KR';color:#b7c3d4">{{ tab.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:auto;padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:8px">
+              <div style="width:26px;height:26px;flex:none;border-radius:50%;background:#22304a;display:flex;align-items:center;justify-content:center;font:600 10px/1 'IBM Plex Mono';color:#9fb0c8">K</div>
+              <div><div style="font:500 10.5px/1.2 'IBM Plex Sans KR';color:#d5dde8">품질 검사팀</div><div style="font:400 9px/1.2 'IBM Plex Mono';color:#5c6c84">v2.4 · 실시간 연동</div></div>
+            </div>
+          </div>
+
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+            <div style="height:62px;flex:none;background:#fff;border-bottom:1px solid #e4e9f0;display:flex;align-items:center;gap:16px;padding:0 22px">
+              <div style="font:600 15px/1.2 'IBM Plex Sans KR';color:#12161d">종합 대시보드</div>
+              <div style="width:1px;height:24px;background:#e4e9f0"></div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <div style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:#f2f5fa;border:1px solid #e1e8f1;border-radius:7px;cursor:pointer">
+                  <span style="font:400 10px/1 'IBM Plex Sans KR';color:#8a95a5">모델</span>
+                  <span style="font:600 11.5px/1 'IBM Plex Mono';color:#1f2734">{{ ctx.model }}</span>
+                  <span style="font:400 9px/1;color:#aab4c2">▾</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;padding:6px 11px;background:#f2f5fa;border:1px solid #e1e8f1;border-radius:7px"><span style="font:400 10px/1 'IBM Plex Sans KR';color:#8a95a5">단계</span><span style="font:600 11.5px/1 'IBM Plex Mono';color:#1f2734">{{ ctx.stage }}</span></div>
+                <div style="display:flex;align-items:center;gap:6px;padding:6px 11px;background:#f2f5fa;border:1px solid #e1e8f1;border-radius:7px"><span style="font:400 10px/1 'IBM Plex Sans KR';color:#8a95a5">라인</span><span style="font:600 11.5px/1 'IBM Plex Sans KR';color:#1f2734">{{ ctx.line }}</span></div>
+              </div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:16px">
+                <div style="font:400 11px/1.3 'IBM Plex Sans KR';color:#8a95a5;text-align:right">{{ ctx.dateKr }}</div>
+                <div style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:#e9f6ef;border:1px solid #cdeadd;border-radius:20px">
+                  <span style="width:7px;height:7px;border-radius:50%;background:#0f9d63;animation:smp-pulse 1.6s ease-in-out infinite"></span>
+                  <span style="font:600 10.5px/1 'IBM Plex Sans KR';color:#0c7a4e">실시간</span>
+                  <span style="font:500 11.5px/1 'IBM Plex Mono';color:#0c7a4e">{{ ctx.time }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="flex:1;min-height:0;overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:15px">
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+                <sc-for list="{{ kpis }}" as="kpi" hint-placeholder-count="5">
+                  <div style="background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:13px 15px">
+                    <div style="font:500 11px/1 'IBM Plex Sans KR';color:#6b7686">{{ kpi.label }}</div>
+                    <div style="margin-top:10px;display:flex;align-items:baseline;gap:4px">
+                      <span style="font:600 25px/1 'IBM Plex Mono';color:#141b26">{{ kpi.value }}</span>
+                      <span style="font:500 12px/1 'IBM Plex Sans KR';color:#9aa6b4">{{ kpi.unit }}</span>
+                    </div>
+                    <div style="margin-top:8px;font:400 10px/1 'IBM Plex Sans KR';color:#9aa6b4">{{ kpi.sub }}</div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;align-items:baseline;gap:9px;margin-top:2px">
+                <span style="font:600 13px/1 'IBM Plex Sans KR';color:#2a3140">검사 공정 현황</span>
+                <span style="font:400 11px/1 'IBM Plex Sans KR';color:#98a2b1">8개 공정 · 카드 클릭 시 상세</span>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+                <sc-for list="{{ insp }}" as="insp" hint-placeholder-count="8">
+                  <div style="background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:13px 14px 12px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:box-shadow .15s,transform .15s,border-color .15s" style-hover="box-shadow:0 10px 26px rgba(20,40,80,.13);transform:translateY(-2px);border-color:#cdd8e6">
+                    <div style="display:flex;align-items:flex-start;gap:8px">
+                      <span style="font:600 10px/1 'IBM Plex Mono';color:#aab4c2;padding-top:3px">{{ insp.no }}</span>
+                      <div style="flex:1;min-width:0">
+                        <div style="font:600 13px/1.25 'IBM Plex Sans KR';color:#161d28">{{ insp.nameKr }}</div>
+                        <div style="font:400 9.5px/1.2 'IBM Plex Mono';color:#a2acbb;margin-top:3px">{{ insp.nameEn }}</div>
+                      </div>
+                      <span style="flex:none;font:600 10px/1 'IBM Plex Sans KR';padding:4px 8px;border-radius:6px;background:{{ insp.cAbg }};color:{{ insp.cA }}">{{ insp.statusText }}</span>
+                    </div>
+                    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px">
+                      <div>
+                        <div style="font:400 9px/1 'IBM Plex Sans KR';color:#98a2b1;letter-spacing:.08em;text-transform:uppercase">Cpk</div>
+                        <div style="font:600 25px/1 'IBM Plex Mono';margin-top:4px;color:{{ insp.cA }}">{{ insp.cpkFmt }}</div>
+                      </div>
+                      <svg viewBox="0 0 120 36" preserveAspectRatio="none" style="width:118px;height:34px">
+                        <polyline points="{{ insp.spark }}" fill="none" stroke="{{ insp.cA }}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+                      </svg>
+                    </div>
+                    <div style="display:flex;border-top:1px solid #eef1f5;padding-top:9px">
+                      <div style="flex:1"><div style="font:400 9px/1 'IBM Plex Sans KR';color:#a2acbb">Input</div><div style="font:500 12px/1 'IBM Plex Mono';color:#3b4552;margin-top:5px">{{ insp.inputFmt }}</div></div>
+                      <div style="flex:1"><div style="font:400 9px/1 'IBM Plex Sans KR';color:#a2acbb">Error</div><div style="font:500 12px/1 'IBM Plex Mono';color:#3b4552;margin-top:5px">{{ insp.errorsFmt }} · {{ insp.rate }}</div></div>
+                      <div style="flex:none"><div style="font:400 9px/1 'IBM Plex Sans KR';color:#a2acbb">규격</div><div style="font:500 10px/1 'IBM Plex Mono';color:#3b4552;margin-top:5px">{{ insp.spec }}</div></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;gap:12px;align-items:stretch">
+                <div style="flex:1.7;min-width:0;background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:14px 16px;display:flex;flex-direction:column">
+                  <div style="display:flex;align-items:baseline;gap:12px">
+                    <span style="font:600 12.5px/1 'IBM Plex Sans KR';color:#2a3140">종합 평균 Cpk 추세</span>
+                    <span style="font:400 10.5px/1 'IBM Plex Sans KR';color:#98a2b1">최근 24시간</span>
+                    <div style="margin-left:auto;display:flex;gap:12px;font:400 9.5px/1 'IBM Plex Sans KR'">
+                      <span style="display:flex;align-items:center;gap:5px;color:#5b6675"><span style="width:14px;height:2px;background:#2a6fd6"></span>평균 Cpk</span>
+                      <span style="display:flex;align-items:center;gap:5px;color:#5b6675"><span style="width:14px;height:0;border-top:2px dashed #0f9d63"></span>목표 1.33</span>
+                    </div>
+                  </div>
+                  <div style="flex:1;margin-top:12px">
+                    <svg viewBox="0 0 600 160" preserveAspectRatio="none" style="width:100%;height:150px;display:block">
+                      <line x1="8" x2="592" y1="{{ y133 }}" y2="{{ y133 }}" stroke="#0f9d63" stroke-width="1" stroke-dasharray="5 4" opacity=".55" vector-effect="non-scaling-stroke"></line>
+                      <line x1="8" x2="592" y1="{{ y100 }}" y2="{{ y100 }}" stroke="#d64545" stroke-width="1" stroke-dasharray="5 4" opacity=".5" vector-effect="non-scaling-stroke"></line>
+                      <polyline points="{{ trendArea }}" fill="#2a6fd6" opacity=".07" stroke="none"></polyline>
+                      <polyline points="{{ trendPts }}" fill="none" stroke="#2a6fd6" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+                    </svg>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;margin-top:6px">
+                    <sc-for list="{{ xlabels }}" as="xl" hint-placeholder-count="7"><span style="font:400 9px/1 'IBM Plex Mono';color:#aab4c2">{{ xl }}</span></sc-for>
+                  </div>
+                </div>
+
+                <div style="flex:1;min-width:0;background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:14px 16px;display:flex;flex-direction:column">
+                  <div style="display:flex;align-items:center;gap:8px"><span style="font:600 12.5px/1 'IBM Plex Sans KR';color:#2a3140">실시간 알림</span><span style="font:500 9px/1 'IBM Plex Mono';color:#d64545;background:#fbe4e4;padding:3px 6px;border-radius:5px">LIVE</span></div>
+                  <div style="margin-top:6px;display:flex;flex-direction:column">
+                    <sc-for list="{{ events }}" as="ev" hint-placeholder-count="5">
+                      <div style="display:flex;gap:9px;align-items:baseline;padding:9px 0;border-bottom:1px solid #f1f4f8">
+                        <span style="font:400 9.5px/1 'IBM Plex Mono';color:#aab4c2;flex:none">{{ ev.t }}</span>
+                        <span style="flex:none;font:600 8.5px/1 'IBM Plex Sans KR';padding:3px 6px;border-radius:5px;background:{{ ev.cAbg }};color:{{ ev.cA }}">{{ ev.lv }}</span>
+                        <span style="font:400 10.5px/1.35 'IBM Plex Sans KR';color:#49515f">{{ ev.msg }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>다크 관제실 · 틸 글로우 · 라이브 로그 (월보드)</div>
+      <div class="dv-card" style="width:1280px;background:#0a0f1a;box-shadow:0 12px 46px rgba(3,8,18,.5)">
+        <div style="display:flex;height:812px">
+
+          <div style="width:216px;flex:none;background:#070c15;border-right:1px solid #16202f;display:flex;flex-direction:column">
+            <div style="padding:19px 18px 17px;display:flex;align-items:center;gap:11px;border-bottom:1px solid #16202f">
+              <div style="width:30px;height:30px;flex:none;border-radius:8px;background:linear-gradient(135deg,#34e0b0,#1aa9d0);display:flex;align-items:center;justify-content:center;font:700 14px/1 'JetBrains Mono';color:#04121a">S</div>
+              <div><div style="font:700 15px/1 'IBM Plex Sans KR';color:#eaf1f8;letter-spacing:.06em">SMP</div><div style="font:400 9.5px/1.3 'IBM Plex Sans KR';color:#5d6b82;margin-top:3px">스마트폰 검사 포털</div></div>
+            </div>
+            <div style="padding:12px 10px;display:flex;flex-direction:column;gap:2px">
+              <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;background:rgba(52,224,176,.12);position:relative">
+                <div style="position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;background:#34e0b0;box-shadow:0 0 10px rgba(52,224,176,.7)"></div>
+                <span style="font:600 12.5px/1 'IBM Plex Sans KR';color:#eafff8">종합 대시보드</span>
+              </div>
+              <div style="padding:15px 12px 6px;font:600 9px/1 'IBM Plex Sans KR';letter-spacing:.16em;color:#46586f">검사 공정 · 8</div>
+              <sc-for list="{{ tabsRest }}" as="tab" hint-placeholder-count="8">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer" style-hover="background:rgba(255,255,255,.045)">
+                  <span style="font:500 9.5px/1 'JetBrains Mono';color:#3f4f66;width:14px">{{ tab.no }}</span>
+                  <span style="font:400 12px/1.2 'IBM Plex Sans KR';color:#93a3ba">{{ tab.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:auto;padding:14px 16px;border-top:1px solid #16202f;display:flex;align-items:center;gap:8px">
+              <div style="width:26px;height:26px;flex:none;border-radius:50%;background:#12203a;display:flex;align-items:center;justify-content:center;font:600 10px/1 'JetBrains Mono';color:#6fd9c0">K</div>
+              <div><div style="font:500 10.5px/1.2 'IBM Plex Sans KR';color:#c3d0e0">품질 검사팀</div><div style="font:400 9px/1.2 'JetBrains Mono';color:#46586f">v2.4 · online</div></div>
+            </div>
+          </div>
+
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#0a1019">
+            <div style="height:62px;flex:none;background:#0b1220;border-bottom:1px solid #16202f;display:flex;align-items:center;gap:16px;padding:0 22px">
+              <div style="font:600 15px/1.2 'IBM Plex Sans KR';color:#eaf1f8">종합 대시보드</div>
+              <div style="width:1px;height:24px;background:#1c283c"></div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <div style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:#111c2e;border:1px solid #1e2c42;border-radius:7px;cursor:pointer"><span style="font:400 10px/1 'IBM Plex Sans KR';color:#6a7c94">모델</span><span style="font:600 11.5px/1 'JetBrains Mono';color:#dbe6f2">{{ ctx.model }}</span><span style="font:400 9px/1;color:#4f6079">▾</span></div>
+                <div style="display:flex;align-items:center;gap:6px;padding:6px 11px;background:#111c2e;border:1px solid #1e2c42;border-radius:7px"><span style="font:400 10px/1 'IBM Plex Sans KR';color:#6a7c94">단계</span><span style="font:600 11.5px/1 'JetBrains Mono';color:#dbe6f2">{{ ctx.stage }}</span></div>
+                <div style="display:flex;align-items:center;gap:6px;padding:6px 11px;background:#111c2e;border:1px solid #1e2c42;border-radius:7px"><span style="font:400 10px/1 'IBM Plex Sans KR';color:#6a7c94">라인</span><span style="font:600 11.5px/1 'IBM Plex Sans KR';color:#dbe6f2">{{ ctx.line }}</span></div>
+              </div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:16px">
+                <div style="font:400 11px/1.3 'IBM Plex Sans KR';color:#6a7c94;text-align:right">{{ ctx.dateKr }}</div>
+                <div style="display:flex;align-items:center;gap:7px;padding:6px 12px;background:rgba(52,224,176,.1);border:1px solid rgba(52,224,176,.3);border-radius:20px">
+                  <span style="width:7px;height:7px;border-radius:50%;background:#34e0b0;box-shadow:0 0 8px #34e0b0;animation:smp-pulse 1.6s ease-in-out infinite"></span>
+                  <span style="font:600 10.5px/1 'IBM Plex Sans KR';color:#34e0b0">실시간</span>
+                  <span style="font:500 11.5px/1 'JetBrains Mono';color:#7defcf">{{ ctx.time }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="flex:1;min-height:0;overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:15px">
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+                <sc-for list="{{ kpis }}" as="kpi" hint-placeholder-count="5">
+                  <div style="background:#101a2b;border:1px solid #1c2b42;border-radius:11px;padding:13px 15px">
+                    <div style="font:500 11px/1 'IBM Plex Sans KR';color:#7286a0">{{ kpi.label }}</div>
+                    <div style="margin-top:10px;display:flex;align-items:baseline;gap:4px">
+                      <span style="font:600 25px/1 'JetBrains Mono';color:#eaf2fb;text-shadow:0 0 16px rgba(120,190,255,.18)">{{ kpi.value }}</span>
+                      <span style="font:500 12px/1 'IBM Plex Sans KR';color:#63768f">{{ kpi.unit }}</span>
+                    </div>
+                    <div style="margin-top:8px;font:400 10px/1 'IBM Plex Sans KR';color:#5b6d86">{{ kpi.sub }}</div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;align-items:baseline;gap:9px;margin-top:2px"><span style="font:600 13px/1 'IBM Plex Sans KR';color:#c8d5e6">검사 공정 현황</span><span style="font:400 11px/1 'IBM Plex Sans KR';color:#61748d">8개 공정 · 카드 클릭 시 상세</span></div>
+
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+                <sc-for list="{{ insp }}" as="insp" hint-placeholder-count="8">
+                  <div style="background:#101a2b;border:1px solid #1c2b42;border-radius:11px;padding:13px 14px 12px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:box-shadow .15s,transform .15s,border-color .15s" style-hover="box-shadow:0 0 0 1px rgba(52,224,176,.35),0 12px 28px rgba(0,0,0,.42);transform:translateY(-2px);border-color:#2a4a5f">
+                    <div style="display:flex;align-items:flex-start;gap:8px">
+                      <span style="font:600 10px/1 'JetBrains Mono';color:#4a5c74;padding-top:3px">{{ insp.no }}</span>
+                      <div style="flex:1;min-width:0"><div style="font:600 13px/1.25 'IBM Plex Sans KR';color:#e2ebf5">{{ insp.nameKr }}</div><div style="font:400 9.5px/1.2 'JetBrains Mono';color:#576982;margin-top:3px">{{ insp.nameEn }}</div></div>
+                      <span style="flex:none;font:600 10px/1 'IBM Plex Sans KR';padding:4px 8px;border-radius:6px;background:{{ insp.cBbg }};color:{{ insp.cB }}">{{ insp.statusText }}</span>
+                    </div>
+                    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px">
+                      <div>
+                        <div style="font:400 9px/1 'IBM Plex Sans KR';color:#61748d;letter-spacing:.1em">CPK</div>
+                        <div style="font:700 25px/1 'JetBrains Mono';margin-top:4px;color:{{ insp.cB }};text-shadow:0 0 14px {{ insp.cBbg }}">{{ insp.cpkFmt }}</div>
+                      </div>
+                      <svg viewBox="0 0 120 36" preserveAspectRatio="none" style="width:118px;height:34px">
+                        <polyline points="{{ insp.spark }}" fill="none" stroke="{{ insp.cB }}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+                      </svg>
+                    </div>
+                    <div style="display:flex;border-top:1px solid #1b2740;padding-top:9px">
+                      <div style="flex:1"><div style="font:400 9px/1 'IBM Plex Sans KR';color:#576982">Input</div><div style="font:500 12px/1 'JetBrains Mono';color:#b9c7da;margin-top:5px">{{ insp.inputFmt }}</div></div>
+                      <div style="flex:1"><div style="font:400 9px/1 'IBM Plex Sans KR';color:#576982">Error</div><div style="font:500 12px/1 'JetBrains Mono';color:#b9c7da;margin-top:5px">{{ insp.errorsFmt }} · {{ insp.rate }}</div></div>
+                      <div style="flex:none"><div style="font:400 9px/1 'IBM Plex Sans KR';color:#576982">규격</div><div style="font:500 10px/1 'JetBrains Mono';color:#b9c7da;margin-top:5px">{{ insp.spec }}</div></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;gap:12px;align-items:stretch">
+                <div style="flex:1.7;min-width:0;background:#101a2b;border:1px solid #1c2b42;border-radius:11px;padding:14px 16px;display:flex;flex-direction:column">
+                  <div style="display:flex;align-items:baseline;gap:12px">
+                    <span style="font:600 12.5px/1 'IBM Plex Sans KR';color:#c8d5e6">종합 평균 Cpk 추세</span>
+                    <span style="font:400 10.5px/1 'IBM Plex Sans KR';color:#61748d">최근 24시간</span>
+                    <div style="margin-left:auto;display:flex;gap:12px;font:400 9.5px/1 'IBM Plex Sans KR'">
+                      <span style="display:flex;align-items:center;gap:5px;color:#8aa0bf"><span style="width:14px;height:2px;background:#34e0b0"></span>평균 Cpk</span>
+                      <span style="display:flex;align-items:center;gap:5px;color:#8aa0bf"><span style="width:14px;height:0;border-top:2px dashed #f4c04e"></span>목표 1.33</span>
+                    </div>
+                  </div>
+                  <div style="flex:1;margin-top:12px">
+                    <svg viewBox="0 0 600 160" preserveAspectRatio="none" style="width:100%;height:150px;display:block">
+                      <line x1="8" x2="592" y1="{{ y133 }}" y2="{{ y133 }}" stroke="#f4c04e" stroke-width="1" stroke-dasharray="5 4" opacity=".55" vector-effect="non-scaling-stroke"></line>
+                      <line x1="8" x2="592" y1="{{ y100 }}" y2="{{ y100 }}" stroke="#ff5f6e" stroke-width="1" stroke-dasharray="5 4" opacity=".5" vector-effect="non-scaling-stroke"></line>
+                      <polyline points="{{ trendArea }}" fill="#34e0b0" opacity=".08" stroke="none"></polyline>
+                      <polyline points="{{ trendPts }}" fill="none" stroke="#34e0b0" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+                    </svg>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;margin-top:6px">
+                    <sc-for list="{{ xlabels }}" as="xl" hint-placeholder-count="7"><span style="font:400 9px/1 'JetBrains Mono';color:#4f6079">{{ xl }}</span></sc-for>
+                  </div>
+                </div>
+
+                <div style="flex:1;min-width:0;background:#0b1220;border:1px solid #1c2b42;border-radius:11px;padding:14px 16px;display:flex;flex-direction:column">
+                  <div style="display:flex;align-items:center;gap:8px"><span style="font:600 12.5px/1 'IBM Plex Sans KR';color:#c8d5e6">이벤트 로그</span><span style="font:600 8.5px/1 'JetBrains Mono';color:#ff5f6e;background:rgba(255,95,110,.14);padding:3px 6px;border-radius:5px">● LIVE</span></div>
+                  <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px;font-family:'JetBrains Mono',monospace">
+                    <sc-for list="{{ events }}" as="ev" hint-placeholder-count="5">
+                      <div style="display:flex;gap:8px;align-items:baseline">
+                        <span style="font:400 9.5px/1.4;color:#4f6079;flex:none">{{ ev.t }}</span>
+                        <span style="flex:none;font:700 9px/1.4;color:{{ ev.cB }};width:34px">{{ ev.lv }}</span>
+                        <span style="font:400 10px/1.45 'IBM Plex Sans KR';color:#9db0c8">{{ ev.msg }}</span>
+                      </div>
+                    </sc-for>
+                    <div style="display:flex;gap:8px;align-items:center;padding-top:3px"><span style="font:400 9.5px/1;color:#34e0b0">qms&gt;</span><span style="font:400 9.5px/1;color:#61748d">실시간 스트림 수신 중</span><span style="width:7px;height:13px;background:#34e0b0;animation:smp-blink 1.1s step-end infinite"></span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>에디토리얼 레저 · 모노 · 헤어라인 · Cpk 랭킹</div>
+      <div class="dv-card" style="width:1280px;background:#f4f2ec">
+        <div style="display:flex;height:812px">
+
+          <div style="width:198px;flex:none;background:#efece4;border-right:1px solid #ddd8cc;display:flex;flex-direction:column">
+            <div style="padding:22px 20px 18px;border-bottom:1px solid #ddd8cc">
+              <div style="font:700 17px/1 'Space Grotesk','IBM Plex Sans KR';color:#1c1915;letter-spacing:.14em">SMP</div>
+              <div style="font:400 9.5px/1.3 'IBM Plex Sans KR';color:#8a8272;margin-top:5px">스마트폰 검사 포털</div>
+            </div>
+            <div style="padding:14px 12px;display:flex;flex-direction:column;gap:1px">
+              <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;background:#e5dfd2">
+                <span style="width:6px;height:6px;border-radius:50%;background:#1c1915;flex:none"></span>
+                <span style="font:600 12.5px/1 'IBM Plex Sans KR';color:#1c1915">종합 대시보드</span>
+              </div>
+              <div style="padding:16px 10px 7px;font:600 9px/1 'IBM Plex Sans KR';letter-spacing:.18em;color:#a39a86">검사 공정</div>
+              <sc-for list="{{ tabsRest }}" as="tab" hint-placeholder-count="8">
+                <div style="display:flex;align-items:baseline;gap:10px;padding:7px 10px;border-radius:6px;cursor:pointer" style-hover="background:#e9e4d8">
+                  <span style="font:400 9.5px/1 'IBM Plex Mono';color:#b4ab97;width:14px">{{ tab.no }}</span>
+                  <span style="font:400 12px/1.3 'IBM Plex Sans KR';color:#5c5648">{{ tab.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:auto;padding:16px 20px;border-top:1px solid #ddd8cc"><div style="font:500 10.5px/1.3 'IBM Plex Sans KR';color:#5c5648">품질 검사팀</div><div style="font:400 9px/1.3 'IBM Plex Mono';color:#a39a86;margin-top:2px">v2.4 · 실시간</div></div>
+          </div>
+
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#f7f5f0">
+            <div style="height:62px;flex:none;border-bottom:1px solid #e2ddd1;display:flex;align-items:center;gap:16px;padding:0 28px">
+              <div style="font:600 17px/1.1 'Space Grotesk','IBM Plex Sans KR';color:#1c1915;letter-spacing:-.01em">종합 대시보드</div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:14px;font:400 11px/1 'IBM Plex Mono';color:#8a8272">
+                <span style="color:#4a4535">{{ ctx.model }}</span><span style="color:#ccc4b2">·</span><span>{{ ctx.stage }}</span><span style="color:#ccc4b2">·</span><span>{{ ctx.line }}</span><span style="color:#ccc4b2">·</span><span>{{ ctx.date }}</span>
+                <span style="display:flex;align-items:center;gap:6px;padding-left:6px"><span style="width:6px;height:6px;border-radius:50%;background:#3a7d44;animation:smp-pulse 1.6s ease-in-out infinite"></span><span style="color:#3a7d44;font:500 11px/1 'IBM Plex Mono'">{{ ctx.time }}</span></span>
+              </div>
+            </div>
+
+            <div style="flex:1;min-height:0;overflow:auto;padding:24px 28px;display:flex;flex-direction:column;gap:22px">
+              <div style="display:flex;border-top:1px solid #1c1915;border-bottom:1px solid #e2ddd1">
+                <sc-for list="{{ kpis }}" as="kpi" hint-placeholder-count="5">
+                  <div style="flex:1;display:flex">
+                    <sc-if value="{{ kpi.notFirst }}" hint-placeholder-val="{{ false }}"><div style="width:1px;background:#e2ddd1;margin:16px 0"></div></sc-if>
+                    <div style="flex:1;padding:16px 20px">
+                      <div style="font:500 9.5px/1 'IBM Plex Sans KR';letter-spacing:.06em;color:#8a8272">{{ kpi.label }}</div>
+                      <div style="margin-top:12px;display:flex;align-items:baseline;gap:4px">
+                        <span style="font:500 30px/1 'Space Grotesk';color:#1c1915;letter-spacing:-.02em">{{ kpi.value }}</span>
+                        <span style="font:400 12px/1 'IBM Plex Sans KR';color:#a39a86">{{ kpi.unit }}</span>
+                      </div>
+                      <div style="margin-top:9px;font:400 10px/1 'IBM Plex Mono';color:#a39a86">{{ kpi.sub }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div>
+                <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px">
+                  <span style="font:600 13px/1 'IBM Plex Sans KR';color:#2a251d">검사 공정 현황</span>
+                  <span style="font:400 10.5px/1 'IBM Plex Sans KR';color:#a39a86">Cpk 낮은 순 · 행 클릭 시 상세</span>
+                </div>
+                <div style="display:grid;grid-template-columns:34px minmax(0,1.7fr) 96px 96px 108px 152px 116px 128px;align-items:center;padding:9px 10px;border-bottom:1px solid #1c1915;font:600 9px/1 'IBM Plex Sans KR';letter-spacing:.1em;color:#8a8272">
+                  <span>#</span><span>검사 항목</span><span>판정</span><span>Cpk</span><span style="text-align:right">Input</span><span style="text-align:right">Error</span><span style="text-align:right">규격</span><span style="text-align:right">추세</span>
+                </div>
+                <sc-for list="{{ ranking }}" as="insp" hint-placeholder-count="8">
+                  <div style="display:grid;grid-template-columns:34px minmax(0,1.7fr) 96px 96px 108px 152px 116px 128px;align-items:center;padding:13px 10px;border-bottom:1px solid #e6e1d5;cursor:pointer" style-hover="background:#efeae0">
+                    <span style="font:400 11px/1 'IBM Plex Mono';color:#b4ab97">{{ insp.rank }}</span>
+                    <div style="min-width:0;padding-right:12px"><div style="font:600 13.5px/1.2 'IBM Plex Sans KR';color:#1c1915">{{ insp.nameKr }}</div><div style="font:400 9.5px/1.2 'IBM Plex Mono';color:#a39a86;margin-top:3px">{{ insp.nameEn }}</div></div>
+                    <div style="display:flex;align-items:center;gap:7px"><span style="width:8px;height:8px;border-radius:50%;background:{{ insp.cC }};flex:none"></span><span style="font:500 11px/1 'IBM Plex Sans KR';color:#5c5648">{{ insp.statusText }}</span></div>
+                    <span style="font:600 20px/1 'IBM Plex Mono';color:{{ insp.cC }}">{{ insp.cpkFmt }}</span>
+                    <span style="font:400 12.5px/1 'IBM Plex Mono';color:#3f3a2e;text-align:right">{{ insp.inputFmt }}</span>
+                    <span style="font:400 12px/1 'IBM Plex Mono';color:#3f3a2e;text-align:right">{{ insp.errorsFmt }} · {{ insp.rate }}</span>
+                    <span style="font:400 10.5px/1 'IBM Plex Mono';color:#8a8272;text-align:right">{{ insp.spec }}</span>
+                    <div style="display:flex;justify-content:flex-end"><svg viewBox="0 0 120 36" preserveAspectRatio="none" style="width:110px;height:30px"><polyline points="{{ insp.spark }}" fill="none" stroke="{{ insp.cC }}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg></div>
+                  </div>
+                </sc-for>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;padding:14px 10px 0;font:400 10.5px/1.5 'IBM Plex Sans KR';color:#8a8272">
+                  <span>판정 기준 — Cpk ≥1.33 양호 · 1.0–1.33 주의 · &lt;1.0 NG</span>
+                  <span style="color:#b23b3b">우선 점검 — 피캡 틸트(NG) · 오픈각도(전) · 메인리어 단차(주의)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!--dv-opts-end--></div>
+  <p class="dv-next">다음 시도: "<a class="dv-oid" href="#1b">1b</a>처럼 다크로" · "<a class="dv-oid" href="#1a">1a</a>에 관리도(control chart) 추가" · "카드에 USL/LSL 게이지 넣어줘" · "보라색 애널리틱스 방향도 하나 더"</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { sec: 14 * 3600 + 22 * 60 + 7 };
+  componentDidMount() { this._t = setInterval(() => this.setState(s => ({ sec: s.sec + 1 })), 1000); }
+  componentWillUnmount() { clearInterval(this._t); }
+
+  spark(base, W, H) {
+    const min = Math.min.apply(null, base), max = Math.max.apply(null, base), r = (max - min) || 1, n = base.length, p = 3;
+    return base.map((v, i) => {
+      const x = p + i * (W - 2 * p) / (n - 1);
+      const y = p + (1 - (v - min) / r) * (H - 2 * p);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+  }
+
+  renderVals() {
+    const two = n => String(n).padStart(2, '0');
+    const s = ((this.state.sec % 86400) + 86400) % 86400;
+    const time = two(Math.floor(s / 3600)) + ':' + two(Math.floor((s % 3600) / 60)) + ':' + two(s % 60);
+    const ctx = { model: 'B8 SM-XYZ982', stage: 'PV2-4', date: '2026.07.23', dateKr: '2026년 7월 23일 (목)', line: 'GJ-3 · A조', shift: 'A조', time };
+
+    const names = [
+      ['윙플레이트 단차', 'Wing Plate Step'], ['CFRP 틸트', 'CFRP Tilt'], ['오픈각도(전)', 'Open Angle (Front)'],
+      ['메인UB 틸트', 'Main UB Tilt'], ['피캡 틸트', 'P-Cap Tilt'], ['서브리어 단차', 'Sub-Rear Step'],
+      ['메인리어 단차', 'Main-Rear Step'], ['오픈각도(후)', 'Open Angle (Rear)']
+    ];
+    const tabsRest = names.map((n, i) => ({ no: two(i + 1), label: n[0] }));
+
+    const raw = [
+      { input: 12480, errors: 9, cpk: 1.62, spec: '0 ±30 μm', mean: '+2.4 μm', base: [1.55, 1.6, 1.58, 1.63, 1.6, 1.57, 1.64, 1.62, 1.59, 1.63, 1.61, 1.62] },
+      { input: 12360, errors: 15, cpk: 1.41, spec: '0 ±0.30°', mean: '+0.04°', base: [1.5, 1.45, 1.48, 1.42, 1.44, 1.4, 1.43, 1.41, 1.39, 1.42, 1.4, 1.41] },
+      { input: 12340, errors: 67, cpk: 1.18, spec: '118 ±2.0°', mean: '118.3°', base: [1.35, 1.3, 1.28, 1.24, 1.26, 1.2, 1.22, 1.19, 1.21, 1.18, 1.2, 1.18] },
+      { input: 12300, errors: 11, cpk: 1.55, spec: '0 ±0.25°', mean: '-0.03°', base: [1.5, 1.53, 1.51, 1.56, 1.54, 1.57, 1.55, 1.58, 1.54, 1.56, 1.55, 1.55] },
+      { input: 12280, errors: 174, cpk: 0.92, spec: '0 ±0.20°', mean: '+0.11°', base: [1.15, 1.1, 1.05, 1.0, 0.98, 0.95, 0.97, 0.93, 0.9, 0.94, 0.91, 0.92] },
+      { input: 12250, errors: 13, cpk: 1.37, spec: '0 ±25 μm', mean: '-3.1 μm', base: [1.42, 1.38, 1.4, 1.35, 1.37, 1.39, 1.36, 1.38, 1.37, 1.35, 1.38, 1.37] },
+      { input: 12210, errors: 39, cpk: 1.28, spec: '0 ±25 μm', mean: '+4.6 μm', base: [1.4, 1.35, 1.33, 1.3, 1.32, 1.28, 1.3, 1.27, 1.29, 1.26, 1.29, 1.28] },
+      { input: 12180, errors: 12, cpk: 1.49, spec: '119 ±2.0°', mean: '119.2°', base: [1.45, 1.48, 1.5, 1.47, 1.51, 1.49, 1.52, 1.48, 1.5, 1.47, 1.5, 1.49] }
+    ];
+    const pal = {
+      a: { OK: ['#0f9d63', '#e6f6ee'], '주의': ['#c9760a', '#fbefd9'], NG: ['#d64545', '#fbe4e4'] },
+      b: { OK: ['#34e0b0', 'rgba(52,224,176,.13)'], '주의': ['#f4c04e', 'rgba(244,192,78,.14)'], NG: ['#ff5f6e', 'rgba(255,95,110,.16)'] },
+      c: { OK: ['#3a7d44', '#e9efe7'], '주의': ['#b7791f', '#f4ecdb'], NG: ['#b23b3b', '#f2e4e2'] }
+    };
+    const fmt = n => n.toLocaleString('en-US');
+    const insp = raw.map((d, i) => {
+      const status = d.cpk >= 1.33 ? 'OK' : (d.cpk >= 1.0 ? '주의' : 'NG');
+      const statusText = status === 'OK' ? '양호' : status;
+      const rate = (d.errors / d.input * 100);
+      return {
+        no: two(i + 1), nameKr: names[i][0], nameEn: names[i][1],
+        input: d.input, inputFmt: fmt(d.input), errorsFmt: fmt(d.errors),
+        rate: rate.toFixed(2) + '%', cpk: d.cpk, cpkFmt: d.cpk.toFixed(2),
+        spec: d.spec, mean: d.mean, status, statusText,
+        cA: pal.a[status][0], cAbg: pal.a[status][1],
+        cB: pal.b[status][0], cBbg: pal.b[status][1],
+        cC: pal.c[status][0], cCbg: pal.c[status][1],
+        spark: this.spark(d.base, 120, 36)
+      };
+    });
+    const kpis = [
+      { label: '총 Input', value: '98,400', unit: 'ea', sub: '8개 검사 합계' },
+      { label: '종합 에러율', value: '0.35', unit: '%', sub: '누적 340 ea' },
+      { label: '평균 Cpk', value: '1.35', unit: '', sub: '목표 ≥ 1.33' },
+      { label: 'NG 항목', value: '1', unit: '건', sub: '주의 2 · 양호 5' },
+      { label: '설비 가동률', value: '99.1', unit: '%', sub: 'GJ-3 라인' }
+    ].map((k, i) => ({ ...k, notFirst: i > 0 }));
+    const tvals = [1.42, 1.4, 1.41, 1.38, 1.36, 1.39, 1.35, 1.33, 1.31, 1.34, 1.32, 1.3, 1.33, 1.36, 1.35, 1.35];
+    const W = 600, H = 160, p = 8, lo = 0.8, hi = 1.8;
+    const yOf = v => (p + (1 - (v - lo) / (hi - lo)) * (H - 2 * p));
+    const xOf = i => (p + i * (W - 2 * p) / (tvals.length - 1));
+    const trendPts = tvals.map((v, i) => xOf(i).toFixed(1) + ',' + yOf(v).toFixed(1)).join(' ');
+    const trendArea = xOf(0).toFixed(1) + ',' + (H - p) + ' ' + trendPts + ' ' + xOf(tvals.length - 1).toFixed(1) + ',' + (H - p);
+    const y133 = yOf(1.33).toFixed(1), y100 = yOf(1.0).toFixed(1);
+    const xlabels = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00'];
+
+    const evPal = {
+      a: { NG: ['#d64545', '#fbe4e4'], '주의': ['#c9760a', '#fbefd9'], OK: ['#0f9d63', '#e6f6ee'], '정보': ['#5b6675', '#eef1f5'] },
+      b: { NG: ['#ff5f6e', 'rgba(255,95,110,.16)'], '주의': ['#f4c04e', 'rgba(244,192,78,.14)'], OK: ['#34e0b0', 'rgba(52,224,176,.13)'], '정보': ['#8aa0bf', 'rgba(138,160,191,.13)'] }
+    };
+    const evRaw = [
+      { t: '14:19', lv: 'NG', msg: '피캡 틸트 Cpk 0.92 — 규격 초과 (설비 #5)' },
+      { t: '13:58', lv: '주의', msg: '오픈각도(전) Cpk 1.18 하향 추세 감지' },
+      { t: '13:40', lv: '주의', msg: '메인리어 단차 관리한계(1.33) 접근' },
+      { t: '13:12', lv: '정보', msg: 'GJ-3 라인 A조 검사 재개' },
+      { t: '12:47', lv: 'OK', msg: 'CFRP 틸트 재교정 완료 · 정상 복귀' }
+    ];
+    const events = evRaw.map(e => ({ ...e, cA: evPal.a[e.lv][0], cAbg: evPal.a[e.lv][1], cB: evPal.b[e.lv][0], cBbg: evPal.b[e.lv][1] }));
+    const ranking = insp.slice().sort((x, y) => x.cpk - y.cpk).map((it, i) => ({ ...it, rank: two(i + 1) }));
+
+    return { ctx, tabsRest, insp, kpis, trendPts, trendArea, y133, y100, xlabels, events, ranking };
+  }
+}
+</script>
+</body>
+</html>

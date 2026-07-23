@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:oklch(0.966 0.008 78);--card:oklch(0.995 0.005 85);--ink:oklch(0.235 0.012 62);
+  --txt:oklch(0.26 0.012 62);--mut:oklch(0.5 0.012 66);--dim:oklch(0.62 0.01 70);
+  --line:oklch(0.895 0.008 78);--accent:oklch(0.57 0.13 42);
+  --good:oklch(0.56 0.12 155);--warn:oklch(0.63 0.12 70);--bad:oklch(0.55 0.19 27);
+  --disp:'Space Grotesk','IBM Plex Sans KR',sans-serif;--serif:'Newsreader',serif;--kr:'IBM Plex Sans KR',sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;font-family:var(--kr);background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;}
+a{color:var(--accent);text-decoration:none;}a:hover{color:oklch(0.5 0.13 42);}
+::-webkit-scrollbar{width:10px;height:10px;}::-webkit-scrollbar-thumb{background:oklch(0.86 0.008 78);border-radius:5px;border:3px solid var(--bg);}
+@keyframes smpUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(900px 420px at 12% -6%, oklch(0.99 0.02 80 / .7), transparent 60%);">
+
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px 32px 16px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:baseline;gap:12px;">
+      <span style="font-family:var(--disp);font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--ink);">SMP</span>
+      <span style="font-family:var(--serif);font-style:italic;font-size:15px;color:var(--mut);">Smart Manufacturing Portal · 검사 종합</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:flex-end;">
+      <div style="text-align:right;"><div style="font-size:10px;color:var(--dim);letter-spacing:.06em;">MODEL</div><div style="font-family:var(--disp);font-size:14px;font-weight:600;color:var(--txt);">B8 SM-XYZ982</div></div>
+      <div style="width:1px;height:26px;background:var(--line);"></div>
+      <div style="text-align:right;"><div style="font-size:10px;color:var(--dim);letter-spacing:.06em;">개발단계</div><div style="font-family:var(--disp);font-size:14px;font-weight:600;color:var(--txt);">PV2-4</div></div>
+      <div style="width:1px;height:26px;background:var(--line);"></div>
+      <div style="text-align:right;"><div style="font-size:10px;color:var(--dim);letter-spacing:.06em;">일자</div><div style="font-family:var(--disp);font-size:14px;font-weight:600;color:var(--txt);">2026.07.23</div></div>
+    </div>
+  </header>
+
+  <nav style="display:flex;gap:7px;padding:0 32px 8px;overflow-x:auto;">
+    <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="9">
+      <button onClick="{{ tab.onSelect }}" style="{{ tab.style }}" style-hover="border-color:var(--ink);">{{ tab.label }}</button>
+    </sc-for>
+  </nav>
+
+  <main style="flex:1;padding:14px 32px 44px;">
+
+    <sc-if value="{{ isMain }}" hint-placeholder-val="{{ true }}">
+    <div style="animation:smpUp .45s ease both;">
+
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin:6px 2px 16px;flex-wrap:wrap;gap:8px;">
+        <h1 style="font-family:var(--disp);font-size:28px;font-weight:700;letter-spacing:-.02em;margin:0;color:var(--ink);">종합 대시보드</h1>
+        <div style="display:flex;gap:14px;font-size:11px;color:var(--mut);flex-wrap:wrap;">
+          <span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--good);"></span>양호 ≥ 1.33</span>
+          <span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--warn);"></span>주의 1.00–1.33</span>
+          <span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--bad);"></span>관리필요 &lt; 1.00</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(162px,auto));gap:14px;">
+
+        <div style="grid-column:1 / 3;grid-row:1 / 3;display:flex;flex-direction:column;justify-content:space-between;padding:26px;background:var(--ink);border-radius:20px;color:oklch(0.96 0.012 82);overflow:hidden;position:relative;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-family:var(--serif);font-style:italic;font-size:15px;color:oklch(0.74 0.1 48);">종합 요약 · Overall</span>
+            <span style="display:flex;align-items:center;gap:7px;font-size:11px;color:oklch(0.78 0.02 80);"><span style="width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 8px var(--good);"></span>LIVE · 주간조 L3</span>
+          </div>
+          <div>
+            <div style="font-family:var(--disp);font-size:64px;font-weight:700;line-height:.95;letter-spacing:-.03em;font-variant-numeric:tabular-nums;">94.9<span style="font-size:30px;">%</span></div>
+            <div style="font-size:13.5px;color:oklch(0.8 0.02 80);margin-top:6px;">종합 수율 (FTY) · 전일 대비 <span style="color:var(--good);font-weight:600;">▲ 0.3%p</span></div>
+          </div>
+          <div style="display:flex;gap:0;border-top:1px solid oklch(0.4 0.012 62);padding-top:16px;">
+            <div style="flex:1;"><div style="font-size:11px;color:oklch(0.72 0.02 78);">라인 투입</div><div style="font-family:var(--disp);font-size:22px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums;">12,480</div></div>
+            <div style="flex:1;border-left:1px solid oklch(0.4 0.012 62);padding-left:16px;"><div style="font-size:11px;color:oklch(0.72 0.02 78);">총 에러</div><div style="font-family:var(--disp);font-size:22px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums;">648</div></div>
+            <div style="flex:1;border-left:1px solid oklch(0.4 0.012 62);padding-left:16px;"><div style="font-size:11px;color:oklch(0.72 0.02 78);">평균 Cpk</div><div style="font-family:var(--disp);font-size:22px;font-weight:600;margin-top:3px;color:oklch(0.74 0.12 155);font-variant-numeric:tabular-nums;">1.36</div></div>
+          </div>
+        </div>
+
+        <button onClick="{{ open.i1 }}" style="grid-column:3;grid-row:1;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:18px;text-align:left;cursor:pointer;color:var(--txt);font-family:var(--kr);transition:transform .15s,box-shadow .15s,border-color .15s;" style-hover="transform:translateY(-3px);box-shadow:0 12px 28px oklch(0.4 0.03 60 / .12);border-color:var(--ink);">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:var(--serif);font-style:italic;font-size:13px;color:var(--dim);">공정 01</span><span style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--good);"></span><span style="font-size:10.5px;font-weight:600;color:var(--good);">양호</span></span></div>
+          <div><div style="font-size:15.5px;font-weight:600;">윙플레이트 단차</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:7px;"><span style="font-family:var(--disp);font-size:33px;font-weight:700;line-height:1;color:var(--good);font-variant-numeric:tabular-nums;">1.52</span><span style="font-size:11px;color:var(--mut);">Cpk</span></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:9px;"><span>투입 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">12,480</b></span><span>에러 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">42</b></span></div>
+        </button>
+
+        <button onClick="{{ open.i2 }}" style="grid-column:4;grid-row:1;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:18px;text-align:left;cursor:pointer;color:var(--txt);font-family:var(--kr);transition:transform .15s,box-shadow .15s,border-color .15s;" style-hover="transform:translateY(-3px);box-shadow:0 12px 28px oklch(0.4 0.03 60 / .12);border-color:var(--ink);">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:var(--serif);font-style:italic;font-size:13px;color:var(--dim);">공정 02</span><span style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--warn);"></span><span style="font-size:10.5px;font-weight:600;color:var(--warn);">주의</span></span></div>
+          <div><div style="font-size:15.5px;font-weight:600;">CFRP 틸트</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:7px;"><span style="font-family:var(--disp);font-size:33px;font-weight:700;line-height:1;color:var(--warn);font-variant-numeric:tabular-nums;">1.18</span><span style="font-size:11px;color:var(--mut);">Cpk</span></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:9px;"><span>투입 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">12,480</b></span><span>에러 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">118</b></span></div>
+        </button>
+
+        <button onClick="{{ open.i3 }}" style="grid-column:3;grid-row:2;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:18px;text-align:left;cursor:pointer;color:var(--txt);font-family:var(--kr);transition:transform .15s,box-shadow .15s,border-color .15s;" style-hover="transform:translateY(-3px);box-shadow:0 12px 28px oklch(0.4 0.03 60 / .12);border-color:var(--ink);">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:var(--serif);font-style:italic;font-size:13px;color:var(--dim);">공정 03</span><span style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--good);"></span><span style="font-size:10.5px;font-weight:600;color:var(--good);">양호</span></span></div>
+          <div><div style="font-size:15.5px;font-weight:600;">오픈각도(전)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:7px;"><span style="font-family:var(--disp);font-size:33px;font-weight:700;line-height:1;color:var(--good);font-variant-numeric:tabular-nums;">1.67</span><span style="font-size:11px;color:var(--mut);">Cpk</span></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:9px;"><span>투입 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">12,455</b></span><span>에러 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">27</b></span></div>
+        </button>
+
+        <button onClick="{{ open.i4 }}" style="grid-column:4;grid-row:2;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:18px;background:oklch(0.97 0.022 27);border:1px solid var(--bad);border-radius:18px;text-align:left;cursor:pointer;color:var(--txt);font-family:var(--kr);transition:transform .15s,box-shadow .15s;" style-hover="transform:translateY(-3px);box-shadow:0 12px 28px oklch(0.6 0.1 27 / .2);">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:var(--serif);font-style:italic;font-size:13px;color:var(--bad);">공정 04</span><span style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--bad);"></span><span style="font-size:10.5px;font-weight:700;color:var(--bad);">관리필요</span></span></div>
+          <div><div style="font-size:15.5px;font-weight:700;">메인UB 틸트</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:7px;"><span style="font-family:var(--disp);font-size:33px;font-weight:700;line-height:1;color:var(--bad);font-variant-numeric:tabular-nums;">0.92</span><span style="font-size:11px;color:var(--mut);">Cpk</span></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);border-top:1px solid oklch(0.85 0.04 27);padding-top:9px;"><span>투입 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">12,455</b></span><span>에러 <b style="font-family:var(--disp);color:var(--bad);font-weight:700;">203</b></span></div>
+        </button>
+
+        <button onClick="{{ open.i5 }}" style="grid-column:1;grid-row:3;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:18px;text-align:left;cursor:pointer;color:var(--txt);font-family:var(--kr);transition:transform .15s,box-shadow .15s,border-color .15s;" style-hover="transform:translateY(-3px);box-shadow:0 12px 28px oklch(0.4 0.03 60 / .12);border-color:var(--ink);">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:var(--serif);font-style:italic;font-size:13px;color:var(--dim);">공정 05</span><span style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--good);"></span><span style="font-size:10.5px;font-weight:600;color:var(--good);">양호</span></span></div>
+          <div><div style="font-size:15.5px;font-weight:600;">피캡 틸트</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:7px;"><span style="font-family:var(--disp);font-size:33px;font-weight:700;line-height:1;color:var(--good);font-variant-numeric:tabular-nums;">1.41</span><span style="font-size:11px;color:var(--mut);">Cpk</span></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:9px;"><span>투입 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">12,440</b></span><span>에러 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">61</b></span></div>
+        </button>
+
+        <button onClick="{{ open.i6 }}" style="grid-column:2;grid-row:3;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:18px;text-align:left;cursor:pointer;color:var(--txt);font-family:var(--kr);transition:transform .15s,box-shadow .15s,border-color .15s;" style-hover="transform:translateY(-3px);box-shadow:0 12px 28px oklch(0.4 0.03 60 / .12);border-color:var(--ink);">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:var(--serif);font-style:italic;font-size:13px;color:var(--dim);">공정 06</span><span style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--warn);"></span><span style="font-size:10.5px;font-weight:600;color:var(--warn);">주의</span></span></div>
+          <div><div style="font-size:15.5px;font-weight:600;">서브리어 단차</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:7px;"><span style="font-family:var(--disp);font-size:33px;font-weight:700;line-height:1;color:var(--warn);font-variant-numeric:tabular-nums;">1.29</span><span style="font-size:11px;color:var(--mut);">Cpk</span></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:9px;"><span>투입 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">12,440</b></span><span>에러 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">88</b></span></div>
+        </button>
+
+        <button onClick="{{ open.i7 }}" style="grid-column:3;grid-row:3;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:18px;text-align:left;cursor:pointer;color:var(--txt);font-family:var(--kr);transition:transform .15s,box-shadow .15s,border-color .15s;" style-hover="transform:translateY(-3px);box-shadow:0 12px 28px oklch(0.4 0.03 60 / .12);border-color:var(--ink);">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:var(--serif);font-style:italic;font-size:13px;color:var(--dim);">공정 07</span><span style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--good);"></span><span style="font-size:10.5px;font-weight:600;color:var(--good);">양호</span></span></div>
+          <div><div style="font-size:15.5px;font-weight:600;">메인리어 단차</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:7px;"><span style="font-family:var(--disp);font-size:33px;font-weight:700;line-height:1;color:var(--good);font-variant-numeric:tabular-nums;">1.58</span><span style="font-size:11px;color:var(--mut);">Cpk</span></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:9px;"><span>투입 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">12,428</b></span><span>에러 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">35</b></span></div>
+        </button>
+
+        <button onClick="{{ open.i8 }}" style="grid-column:4;grid-row:3;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:18px;text-align:left;cursor:pointer;color:var(--txt);font-family:var(--kr);transition:transform .15s,box-shadow .15s,border-color .15s;" style-hover="transform:translateY(-3px);box-shadow:0 12px 28px oklch(0.4 0.03 60 / .12);border-color:var(--ink);">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:var(--serif);font-style:italic;font-size:13px;color:var(--dim);">공정 08</span><span style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--good);"></span><span style="font-size:10.5px;font-weight:600;color:var(--good);">양호</span></span></div>
+          <div><div style="font-size:15.5px;font-weight:600;">오픈각도(후)</div><div style="display:flex;align-items:baseline;gap:6px;margin-top:7px;"><span style="font-family:var(--disp);font-size:33px;font-weight:700;line-height:1;color:var(--good);font-variant-numeric:tabular-nums;">1.34</span><span style="font-size:11px;color:var(--mut);">Cpk</span></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);border-top:1px solid var(--line);padding-top:9px;"><span>투입 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">12,428</b></span><span>에러 <b style="font-family:var(--disp);color:var(--txt);font-weight:600;">74</b></span></div>
+        </button>
+
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isDetail }}">
+    <div style="max-width:980px;margin:0 auto;padding-top:8px;animation:smpUp .4s ease both;">
+      <div style="margin-bottom:22px;">
+        <div style="font-family:var(--serif);font-style:italic;font-size:15px;color:var(--accent);">{{ activeLabel }} 공정</div>
+        <h2 style="font-family:var(--disp);font-size:26px;font-weight:700;letter-spacing:-.02em;margin:6px 0 8px;color:var(--ink);">상세 대시보드 준비 중</h2>
+        <p style="color:var(--mut);font-size:14px;max-width:600px;margin:0;line-height:1.6;text-wrap:pretty;">선택한 공정의 실시간 측정 트렌드, 로트별 Cpk, 불량 유형 분포(Pareto), 측정 산포 히스토그램이 이 화면에 구성됩니다.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div style="grid-column:1 / -1;border:1.5px dashed var(--line);border-radius:18px;min-height:168px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,oklch(0.98 0.006 80) 0 11px,oklch(0.955 0.008 80) 11px 22px);"><div style="text-align:center;"><div style="font-family:var(--disp);font-size:12px;letter-spacing:.12em;color:var(--mut);">TREND CHART</div><div style="font-size:11px;color:var(--dim);margin-top:5px;">일자별 Cpk · 불량률 추이</div></div></div>
+        <div style="border:1.5px dashed var(--line);border-radius:18px;min-height:150px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,oklch(0.98 0.006 80) 0 11px,oklch(0.955 0.008 80) 11px 22px);"><div style="text-align:center;"><div style="font-family:var(--disp);font-size:12px;letter-spacing:.12em;color:var(--mut);">LOT × Cpk</div><div style="font-size:11px;color:var(--dim);margin-top:5px;">로트별 공정능력</div></div></div>
+        <div style="border:1.5px dashed var(--line);border-radius:18px;min-height:150px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,oklch(0.98 0.006 80) 0 11px,oklch(0.955 0.008 80) 11px 22px);"><div style="text-align:center;"><div style="font-family:var(--disp);font-size:12px;letter-spacing:.12em;color:var(--mut);">DEFECT PARETO</div><div style="font-size:11px;color:var(--dim);margin-top:5px;">불량 유형 분포</div></div></div>
+        <div style="grid-column:1 / -1;border:1.5px dashed var(--line);border-radius:18px;min-height:150px;display:grid;place-items:center;background:repeating-linear-gradient(45deg,oklch(0.98 0.006 80) 0 11px,oklch(0.955 0.008 80) 11px 22px);"><div style="text-align:center;"><div style="font-family:var(--disp);font-size:12px;letter-spacing:.12em;color:var(--mut);">MEASUREMENT HISTOGRAM</div><div style="font-size:11px;color:var(--dim);margin-top:5px;">측정 산포 · 규격 상·하한 대비</div></div></div>
+      </div>
+      <div style="margin-top:24px;"><button onClick="{{ open.main }}" style="font-family:var(--disp);font-size:13px;font-weight:600;color:var(--ink);background:transparent;border:1px solid var(--ink);border-radius:999px;padding:9px 20px;cursor:pointer;" style-hover="background:var(--ink);color:oklch(0.96 0.012 82);">← 종합 대시보드로</button></div>
+    </div>
+    </sc-if>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab: 'main' };
+  renderVals() {
+    const defs = [
+      ['main','종합 대시보드'],['i1','윙플레이트 단차'],['i2','CFRP 틸트'],
+      ['i3','오픈각도(전)'],['i4','메인UB 틸트'],['i5','피캡 틸트'],
+      ['i6','서브리어 단차'],['i7','메인리어 단차'],['i8','오픈각도(후)'],
+    ];
+    const cur = this.state.tab;
+    const pick = (id) => () => this.setState({ tab: id });
+    const tabs = defs.map(([id, label]) => {
+      const active = id === cur;
+      return {
+        id, label, onSelect: pick(id),
+        style: {
+          padding: '8px 15px', borderRadius: '999px', fontSize: '13px',
+          fontFamily: "'Space Grotesk','IBM Plex Sans KR',sans-serif", fontWeight: active ? 600 : 500,
+          color: active ? 'oklch(0.965 0.012 82)' : 'oklch(0.42 0.012 62)',
+          background: active ? 'oklch(0.235 0.012 62)' : 'transparent',
+          border: active ? '1px solid transparent' : '1px solid oklch(0.895 0.008 78)',
+          cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all .13s',
+        },
+      };
+    });
+    const open = {};
+    defs.forEach(([id]) => { open[id] = pick(id); });
+    const activeLabel = (defs.find(([id]) => id === cur) || defs[0])[1];
+    return { tabs, open, activeLabel, isMain: cur === 'main', isDetail: cur !== 'main' };
+  }
+}
+</script>
+</body>
+</html>

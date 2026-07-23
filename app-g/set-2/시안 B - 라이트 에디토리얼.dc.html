@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Archivo:wght@400;500;600;700&family=Archivo+Expanded:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  a { color: #a6642a; text-decoration: none; }
+  a:hover { color: #7f4c1f; }
+</style>
+</helmet>
+<div style="min-height:100vh;background:#f2eee6;font-family:'Archivo',system-ui,sans-serif;color:#211d18;padding:34px 40px">
+  <div style="width:1520px;margin:0 auto">
+
+    <!-- HEADER -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px">
+      <div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:10px;background:#211d18;color:#f2eee6;display:flex;align-items:center;justify-content:center;font-family:'Archivo Expanded';font-weight:700;font-size:14px;letter-spacing:.02em">SMP</div>
+          <div style="font:600 10px/1.4 'Archivo';letter-spacing:.28em;text-transform:uppercase;color:#9a8f7e">Smart Manufacturing Portal<br>검사 종합 리포트</div>
+        </div>
+        <div style="margin-top:16px;font-family:'Newsreader',serif;font-weight:500;font-size:44px;line-height:1;letter-spacing:-0.01em">종합 검사 대시보드</div>
+      </div>
+      <div style="display:flex;gap:0;border:1px solid rgba(33,29,24,0.14);border-radius:12px;overflow:hidden;background:#fbfaf6">
+        <div style="padding:12px 18px;border-right:1px solid rgba(33,29,24,0.1)"><div style="font:600 9px/1 'Archivo';letter-spacing:.2em;color:#9a8f7e">MODEL</div><div style="margin-top:7px;font-family:'Newsreader',serif;font-size:16px">B8 SM-XYZ982</div></div>
+        <div style="padding:12px 18px;border-right:1px solid rgba(33,29,24,0.1)"><div style="font:600 9px/1 'Archivo';letter-spacing:.2em;color:#9a8f7e">STAGE</div><div style="margin-top:7px;font-family:'Newsreader',serif;font-size:16px;color:#a6642a">PV2-4</div></div>
+        <div style="padding:12px 18px;border-right:1px solid rgba(33,29,24,0.1)"><div style="font:600 9px/1 'Archivo';letter-spacing:.2em;color:#9a8f7e">DATE</div><div style="margin-top:7px;font-family:'Newsreader',serif;font-size:16px">2026.07.23</div></div>
+        <div style="padding:12px 18px"><div style="font:600 9px/1 'Archivo';letter-spacing:.2em;color:#9a8f7e">LINE · SHIFT</div><div style="margin-top:7px;font-family:'Newsreader',serif;font-size:16px">L3 · 주간 A</div></div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div style="display:flex;align-items:center;gap:26px;margin-top:26px;padding-bottom:0;border-bottom:1px solid rgba(33,29,24,0.16);overflow:hidden">
+      <div style="padding-bottom:14px;border-bottom:2px solid #211d18;font:600 14px/1 'Archivo';color:#211d18">종합</div>
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="8">
+        <div style="padding-bottom:14px;font:500 14px/1 'Archivo';color:#8a8175;white-space:nowrap;cursor:pointer" style-hover="color:#211d18"><span style="font-family:'Newsreader',serif;font-style:italic;color:#a6642a;margin-right:6px">{{ t.idx }}</span>{{ t.kr }}</div>
+      </sc-for>
+    </div>
+
+    <!-- HERO -->
+    <div style="display:grid;grid-template-columns:0.9fr 1.4fr;gap:34px;margin-top:36px;align-items:stretch">
+      <div style="display:flex;flex-direction:column;justify-content:center">
+        <div style="font:600 10px/1 'Archivo';letter-spacing:.24em;color:#9a8f7e;text-transform:uppercase">종합 수율 · Overall Yield</div>
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-top:14px"><div style="font-family:'Newsreader',serif;font-weight:500;font-size:104px;line-height:0.82;letter-spacing:-0.03em">96.24</div><div style="font-family:'Newsreader',serif;font-size:34px;color:#a6642a;margin-top:8px">%</div></div>
+        <div style="margin-top:10px;font-family:'Newsreader',serif;font-style:italic;font-size:17px;color:#6a6255">최근 6개 시프트 기준 +1.1%p 개선</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin-top:30px;border-top:1px solid rgba(33,29,24,0.16)">
+          <div style="padding:18px 16px 0 0;border-right:1px solid rgba(33,29,24,0.1)"><div style="font:600 9px/1 'Archivo';letter-spacing:.18em;color:#9a8f7e">총 투입</div><div style="margin-top:10px;font-family:'Newsreader',serif;font-size:30px">12,480</div><div style="font:500 11px/1 'Archivo';color:#8a8175;margin-top:4px">EA</div></div>
+          <div style="padding:18px 16px 0 16px;border-right:1px solid rgba(33,29,24,0.1)"><div style="font:600 9px/1 'Archivo';letter-spacing:.18em;color:#9a8f7e">누적 NG</div><div style="margin-top:10px;font-family:'Newsreader',serif;font-size:30px;color:#c0483f">470</div><div style="font:500 11px/1 'Archivo';color:#8a8175;margin-top:4px">3,766 PPM</div></div>
+          <div style="padding:18px 0 0 16px"><div style="font:600 9px/1 'Archivo';letter-spacing:.18em;color:#9a8f7e">평균 Cpk</div><div style="margin-top:10px;font-family:'Newsreader',serif;font-size:30px">1.30</div><div style="font:500 11px/1 'Archivo';color:#8a8175;margin-top:4px">목표 ≥ 1.33</div></div>
+        </div>
+      </div>
+      <div style="background:#fbfaf6;border:1px solid rgba(33,29,24,0.14);border-radius:16px;padding:24px 26px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-family:'Newsreader',serif;font-size:20px">평균 Cpk 추세</div><div style="font:500 11px/1 'Archivo';color:#8a8175;letter-spacing:.04em">09:00 → 14:00 · 시프트별</div></div>
+        <svg width="100%" height="230" viewBox="0 0 640 230" preserveAspectRatio="none" style="margin-top:18px;display:block">
+          <line x1="0" y1="26" x2="640" y2="26" stroke="rgba(33,29,24,0.08)" stroke-width="1"/>
+          <line x1="0" y1="94" x2="640" y2="94" stroke="rgba(166,100,42,0.55)" stroke-width="1.4" stroke-dasharray="5 5"/>
+          <line x1="0" y1="160" x2="640" y2="160" stroke="rgba(33,29,24,0.08)" stroke-width="1"/>
+          <polygon points="{{ heroArea }}" fill="rgba(166,100,42,0.10)"/>
+          <polyline points="{{ heroPts }}" fill="none" stroke="#a6642a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font:500 10px/1 'Archivo';color:#9a8f7e">
+          <span>09시</span><span>10시</span><span>11시</span><span>12시</span><span>13시</span><span>14시</span>
+        </div>
+        <div style="margin-top:10px;font-family:'Newsreader',serif;font-style:italic;font-size:13px;color:#a6642a">— — 목표선 Cpk 1.33</div>
+      </div>
+    </div>
+
+    <!-- LIST -->
+    <div style="margin-top:44px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+        <div style="font-family:'Newsreader',serif;font-size:22px">검사별 현황 <span style="color:#a6642a">· 8 PROCESS</span></div>
+        <div style="font:500 11px/1 'Archivo';color:#8a8175;letter-spacing:.04em">항목을 선택하면 상세 SPC로 이동</div>
+      </div>
+      <div style="display:grid;grid-template-columns:2.4fr 1fr 0.9fr 0.7fr 0.8fr 1.6fr 0.8fr;gap:20px;padding:14px 4px;border-bottom:1px solid rgba(33,29,24,0.16);font:600 9px/1 'Archivo';letter-spacing:.16em;color:#9a8f7e;text-transform:uppercase">
+        <div>검사 항목</div><div>SPEC</div><div style="text-align:right">INPUT</div><div style="text-align:right">NG</div><div style="text-align:right">불량률</div><div>Cpk</div><div style="text-align:right">상태</div>
+      </div>
+      <sc-for list="{{ items }}" as="item" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:2.4fr 1fr 0.9fr 0.7fr 0.8fr 1.6fr 0.8fr;gap:20px;padding:20px 4px;border-bottom:1px solid rgba(33,29,24,0.09);align-items:center" style-hover="background:rgba(166,100,42,0.05)">
+          <div style="display:flex;align-items:baseline;gap:14px;min-width:0">
+            <div style="font-family:'Newsreader',serif;font-style:italic;font-size:22px;color:#a6642a;width:34px;flex:0 0 34px">{{ item.idx }}</div>
+            <div style="min-width:0"><div style="font-family:'Newsreader',serif;font-size:21px;line-height:1.1">{{ item.kr }}</div><div style="margin-top:3px;font:500 10px/1 'Archivo';letter-spacing:.1em;color:#9a8f7e;text-transform:uppercase">{{ item.en }}</div></div>
+          </div>
+          <div style="font:500 13px/1.3 'Archivo';color:#6a6255">{{ item.spec }} {{ item.unit }}</div>
+          <div style="text-align:right;font-family:'Newsreader',serif;font-size:19px">{{ item.input }}</div>
+          <div style="text-align:right;font-family:'Newsreader',serif;font-size:19px;color:#c0483f">{{ item.error }}</div>
+          <div style="text-align:right;font-family:'Newsreader',serif;font-size:19px">{{ item.errPct }}%</div>
+          <div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="flex:1;position:relative;height:7px;border-radius:4px;background:rgba(33,29,24,0.09)">
+                <div style="position:absolute;left:0;top:0;bottom:0;width:{{ item.barPct }}%;border-radius:4px;background:{{ item.color }}"></div>
+                <div style="position:absolute;left:66.5%;top:-3px;bottom:-3px;width:2px;background:#211d18;opacity:.55"></div>
+              </div>
+              <div style="font-family:'Newsreader',serif;font-size:20px;width:44px;text-align:right;color:{{ item.color }}">{{ item.cpk }}</div>
+            </div>
+          </div>
+          <div style="text-align:right;font:600 12px/1 'Archivo';color:{{ item.color }}">{{ item.status }}</div>
+        </div>
+      </sc-for>
+      <div style="margin-top:18px;font:500 11px/1.5 'Archivo';color:#9a8f7e;text-align:right">━ 세로 눈금은 목표 Cpk 1.33 · 막대는 0 – 2.0 스케일</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  chart(v,w,h,mn,mx,close){const rg=(mx-mn)||1;const pts=v.map((n,i)=>{const x=(w*i/(v.length-1));const y=h-(n-mn)/rg*h;return x.toFixed(1)+','+y.toFixed(1);});if(close){return '0,'+h+' '+pts.join(' ')+' '+w+','+h;}return pts.join(' ');}
+  renderVals(){
+    const nf=n=>n.toLocaleString('en-US');
+    const col=c=>c>=1.33?'#2f8f6a':c>=1.0?'#c1873a':'#c0483f';
+    const stt=c=>c>=1.33?'양호':c>=1.0?'주의':'위험';
+    const raw=[
+      {kr:'윙플레이트 단차',en:'Wing Plate Step',u:'mm',sp:'0 ±0.05',inp:12480,er:38,cpk:1.42},
+      {kr:'CFRP 틸트',en:'CFRP Tilt',u:'°',sp:'0 ±0.10',inp:12455,er:27,cpk:1.61},
+      {kr:'오픈각도 (전)',en:'Open Angle · Pre',u:'°',sp:'180 ±0.5',inp:12455,er:96,cpk:1.08},
+      {kr:'메인UB 틸트',en:'Main UB Tilt',u:'°',sp:'0 ±0.10',inp:12402,er:51,cpk:1.33},
+      {kr:'피캡 틸트',en:'P-Cap Tilt',u:'°',sp:'0 ±0.12',inp:12388,er:44,cpk:1.29},
+      {kr:'서브리어 단차',en:'Sub-Rear Step',u:'mm',sp:'0 ±0.05',inp:12377,er:62,cpk:1.18},
+      {kr:'메인리어 단차',en:'Main-Rear Step',u:'mm',sp:'0 ±0.05',inp:12377,er:33,cpk:1.55},
+      {kr:'오픈각도 (후)',en:'Open Angle · Post',u:'°',sp:'180 ±0.5',inp:12340,er:119,cpk:0.94}
+    ];
+    const items=raw.map((r,i)=>({
+      idx:String(i+1).padStart(2,'0'),kr:r.kr,en:r.en,unit:r.u,spec:r.sp,
+      input:nf(r.inp),error:nf(r.er),errPct:(r.er/r.inp*100).toFixed(2),
+      cpk:r.cpk.toFixed(2),barPct:(Math.min(Math.max(r.cpk/2,0),1)*100).toFixed(1),
+      color:col(r.cpk),status:stt(r.cpk)
+    }));
+    const tabs=raw.map((r,i)=>({idx:String(i+1).padStart(2,'0'),kr:r.kr}));
+    return {items,tabs,
+      heroPts:this.chart([1.24,1.26,1.27,1.28,1.29,1.30],640,230,0.8,1.8,false),
+      heroArea:this.chart([1.24,1.26,1.27,1.28,1.29,1.30],640,230,0.8,1.8,true)};
+  }
+}
+</script>
+</body>
+</html>

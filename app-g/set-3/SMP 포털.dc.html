@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;background:#eef1f5;font-family:'IBM Plex Sans KR',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  *{box-sizing:border-box}
+  a{color:#2a6fd6;text-decoration:none} a:hover{color:#1c4f9c}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#cbd4df;border-radius:6px;border:2px solid transparent;background-clip:content-box}
+  @keyframes smp-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</helmet>
+
+<div style="height:100vh;min-height:720px;display:flex;background:#f3f5f9;color:#12161d">
+
+  <div style="width:222px;flex:none;background:#0f1b2d;display:flex;flex-direction:column">
+    <div style="padding:19px 18px 17px;display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(255,255,255,.08)">
+      <div style="width:31px;height:31px;flex:none;border-radius:8px;background:#2a6fd6;display:flex;align-items:center;justify-content:center;font:700 14px/1 'IBM Plex Mono';color:#fff">S</div>
+      <div><div style="font:700 15px/1 'IBM Plex Sans KR';color:#fff;letter-spacing:.06em">SMP</div><div style="font:400 9.5px/1.3 'IBM Plex Sans KR';color:#7e8da0;margin-top:3px">스마트폰 검사 포털</div></div>
+    </div>
+    <div style="padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow:auto;flex:1">
+      <sc-if value="{{ nav0.active }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;background:rgba(42,111,214,.18);position:relative;cursor:pointer" onClick="{{ nav0.go }}">
+          <div style="position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;background:#4d94ff"></div>
+          <span style="font:600 12.5px/1 'IBM Plex Sans KR';color:#fff">종합 대시보드</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ nav0.inactive }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;cursor:pointer" style-hover="background:rgba(255,255,255,.06)" onClick="{{ nav0.go }}">
+          <span style="font:500 12.5px/1 'IBM Plex Sans KR';color:#c3cede">종합 대시보드</span>
+        </div>
+      </sc-if>
+      <div style="padding:15px 12px 6px;font:600 9px/1 'IBM Plex Sans KR';letter-spacing:.16em;color:#586a83">검사 공정 · 8</div>
+      <sc-for list="{{ navRest }}" as="tab" hint-placeholder-count="8">
+        <sc-if value="{{ tab.active }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(42,111,214,.18);position:relative;cursor:pointer" onClick="{{ tab.go }}">
+            <div style="position:absolute;left:0;top:7px;bottom:7px;width:3px;border-radius:0 2px 2px 0;background:#4d94ff"></div>
+            <span style="font:600 9.5px/1 'IBM Plex Mono';color:#8fb4e8;width:14px">{{ tab.no }}</span>
+            <span style="font:600 12px/1.2 'IBM Plex Sans KR';color:#fff">{{ tab.label }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ tab.inactive }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer" style-hover="background:rgba(255,255,255,.06)" onClick="{{ tab.go }}">
+            <span style="font:500 9.5px/1 'IBM Plex Mono';color:#586a83;width:14px">{{ tab.no }}</span>
+            <span style="font:400 12px/1.2 'IBM Plex Sans KR';color:#b7c3d4">{{ tab.label }}</span>
+          </div>
+        </sc-if>
+      </sc-for>
+    </div>
+    <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:8px">
+      <div style="width:26px;height:26px;flex:none;border-radius:50%;background:#22304a;display:flex;align-items:center;justify-content:center;font:600 10px/1 'IBM Plex Mono';color:#9fb0c8">K</div>
+      <div><div style="font:500 10.5px/1.2 'IBM Plex Sans KR';color:#d5dde8">품질 검사팀</div><div style="font:400 9px/1.2 'IBM Plex Mono';color:#5c6c84">v2.4 · 실시간 연동</div></div>
+    </div>
+  </div>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <div style="height:60px;flex:none;background:#fff;border-bottom:1px solid #e4e9f0;display:flex;align-items:center;gap:16px;padding:0 24px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:#f2f5fa;border:1px solid #e1e8f1;border-radius:7px;cursor:pointer"><span style="font:400 10px/1 'IBM Plex Sans KR';color:#8a95a5">모델</span><span style="font:600 11.5px/1 'IBM Plex Mono';color:#1f2734">{{ ctx.model }}</span><span style="font:400 9px/1;color:#aab4c2">▾</span></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 11px;background:#f2f5fa;border:1px solid #e1e8f1;border-radius:7px"><span style="font:400 10px/1 'IBM Plex Sans KR';color:#8a95a5">단계</span><span style="font:600 11.5px/1 'IBM Plex Mono';color:#1f2734">{{ ctx.stage }}</span></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 11px;background:#f2f5fa;border:1px solid #e1e8f1;border-radius:7px"><span style="font:400 10px/1 'IBM Plex Sans KR';color:#8a95a5">라인</span><span style="font:600 11.5px/1 'IBM Plex Sans KR';color:#1f2734">{{ ctx.line }}</span></div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:16px">
+        <div style="font:400 11px/1.3 'IBM Plex Sans KR';color:#8a95a5;text-align:right">{{ ctx.dateKr }}</div>
+        <div style="display:flex;align-items:center;gap:7px;padding:6px 11px;background:#e9f6ef;border:1px solid #cdeadd;border-radius:20px">
+          <span style="width:7px;height:7px;border-radius:50%;background:#0f9d63;animation:smp-pulse 1.6s ease-in-out infinite"></span>
+          <span style="font:600 10.5px/1 'IBM Plex Sans KR';color:#0c7a4e">실시간</span>
+          <span style="font:500 11.5px/1 'IBM Plex Mono';color:#0c7a4e">{{ ctx.time }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;min-height:0;overflow:auto">
+
+      <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:20px 24px;display:flex;flex-direction:column;gap:15px">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <span style="font:700 18px/1.1 'IBM Plex Sans KR';color:#141b26">종합 대시보드</span>
+            <span style="font:400 12px/1 'IBM Plex Sans KR';color:#8a95a5">스마트폰 제조 검사 8개 공정 실시간 현황</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+            <sc-for list="{{ kpis }}" as="kpi" hint-placeholder-count="5">
+              <div style="background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:14px 16px">
+                <div style="font:500 11px/1 'IBM Plex Sans KR';color:#6b7686">{{ kpi.label }}</div>
+                <div style="margin-top:10px;display:flex;align-items:baseline;gap:4px"><span style="font:600 26px/1 'IBM Plex Mono';color:#141b26">{{ kpi.value }}</span><span style="font:500 12px/1 'IBM Plex Sans KR';color:#9aa6b4">{{ kpi.unit }}</span></div>
+                <div style="margin-top:8px;font:400 10px/1 'IBM Plex Sans KR';color:#9aa6b4">{{ kpi.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:9px;margin-top:2px"><span style="font:600 13px/1 'IBM Plex Sans KR';color:#2a3140">검사 공정 현황</span><span style="font:400 11px/1 'IBM Plex Sans KR';color:#98a2b1">카드를 클릭하면 상세 화면으로 이동합니다</span></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+            <sc-for list="{{ insp }}" as="insp" hint-placeholder-count="8">
+              <div style="background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:13px 14px 12px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:box-shadow .15s,transform .15s,border-color .15s" style-hover="box-shadow:0 10px 26px rgba(20,40,80,.13);transform:translateY(-2px);border-color:#cdd8e6" onClick="{{ insp.open }}">
+                <div style="display:flex;align-items:flex-start;gap:8px">
+                  <span style="font:600 10px/1 'IBM Plex Mono';color:#aab4c2;padding-top:3px">{{ insp.no }}</span>
+                  <div style="flex:1;min-width:0"><div style="font:600 13px/1.25 'IBM Plex Sans KR';color:#161d28">{{ insp.nameKr }}</div><div style="font:400 9.5px/1.2 'IBM Plex Mono';color:#a2acbb;margin-top:3px">{{ insp.nameEn }}</div></div>
+                  <span style="flex:none;font:600 10px/1 'IBM Plex Sans KR';padding:4px 8px;border-radius:6px;background:{{ insp.cAbg }};color:{{ insp.cA }}">{{ insp.statusText }}</span>
+                </div>
+                <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px">
+                  <div><div style="font:400 9px/1 'IBM Plex Sans KR';color:#98a2b1;letter-spacing:.08em">CPK</div><div style="font:600 25px/1 'IBM Plex Mono';margin-top:4px;color:{{ insp.cA }}">{{ insp.cpkFmt }}</div></div>
+                  <svg viewBox="0 0 120 36" preserveAspectRatio="none" style="width:118px;height:34px"><polyline points="{{ insp.spark }}" fill="none" stroke="{{ insp.cA }}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
+                </div>
+                <div style="display:flex;border-top:1px solid #eef1f5;padding-top:9px">
+                  <div style="flex:1"><div style="font:400 9px/1 'IBM Plex Sans KR';color:#a2acbb">Input</div><div style="font:500 12px/1 'IBM Plex Mono';color:#3b4552;margin-top:5px">{{ insp.inputFmt }}</div></div>
+                  <div style="flex:1"><div style="font:400 9px/1 'IBM Plex Sans KR';color:#a2acbb">Error</div><div style="font:500 12px/1 'IBM Plex Mono';color:#3b4552;margin-top:5px">{{ insp.errorsFmt }} · {{ insp.rate }}</div></div>
+                  <div style="flex:none"><div style="font:400 9px/1 'IBM Plex Sans KR';color:#a2acbb">규격</div><div style="font:500 10px/1 'IBM Plex Mono';color:#3b4552;margin-top:5px">{{ insp.spec }}</div></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:12px;align-items:stretch">
+            <div style="flex:1.7;min-width:0;background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:14px 16px;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12.5px/1 'IBM Plex Sans KR';color:#2a3140">종합 평균 Cpk 추세</span><span style="font:400 10.5px/1 'IBM Plex Sans KR';color:#98a2b1">최근 24시간</span><div style="margin-left:auto;display:flex;gap:12px;font:400 9.5px/1 'IBM Plex Sans KR'"><span style="display:flex;align-items:center;gap:5px;color:#5b6675"><span style="width:14px;height:2px;background:#2a6fd6"></span>평균 Cpk</span><span style="display:flex;align-items:center;gap:5px;color:#5b6675"><span style="width:14px;height:0;border-top:2px dashed #0f9d63"></span>목표 1.33</span></div></div>
+              <div style="height:150px;margin-top:12px"><svg viewBox="0 0 600 160" preserveAspectRatio="none" style="width:100%;height:150px;display:block"><line x1="8" x2="592" y1="{{ y133 }}" y2="{{ y133 }}" stroke="#0f9d63" stroke-width="1" stroke-dasharray="5 4" opacity=".55" vector-effect="non-scaling-stroke"></line><line x1="8" x2="592" y1="{{ y100 }}" y2="{{ y100 }}" stroke="#d64545" stroke-width="1" stroke-dasharray="5 4" opacity=".5" vector-effect="non-scaling-stroke"></line><polyline points="{{ trendArea }}" fill="#2a6fd6" opacity=".07" stroke="none"></polyline><polyline points="{{ trendPts }}" fill="none" stroke="#2a6fd6" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg></div>
+              <div style="display:flex;justify-content:space-between;margin-top:6px"><sc-for list="{{ xlabels }}" as="xl" hint-placeholder-count="7"><span style="font:400 9px/1 'IBM Plex Mono';color:#aab4c2">{{ xl }}</span></sc-for></div>
+            </div>
+            <div style="flex:1;min-width:0;background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:14px 16px;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;gap:8px"><span style="font:600 12.5px/1 'IBM Plex Sans KR';color:#2a3140">실시간 알림</span><span style="font:500 9px/1 'IBM Plex Mono';color:#d64545;background:#fbe4e4;padding:3px 6px;border-radius:5px">LIVE</span></div>
+              <div style="margin-top:6px;display:flex;flex-direction:column">
+                <sc-for list="{{ events }}" as="ev" hint-placeholder-count="5">
+                  <div style="display:flex;gap:9px;align-items:baseline;padding:9px 0;border-bottom:1px solid #f1f4f8"><span style="font:400 9.5px/1 'IBM Plex Mono';color:#aab4c2;flex:none">{{ ev.t }}</span><span style="flex:none;font:600 8.5px/1 'IBM Plex Sans KR';padding:3px 6px;border-radius:5px;background:{{ ev.cAbg }};color:{{ ev.cA }}">{{ ev.lv }}</span><span style="font:400 10.5px/1.35 'IBM Plex Sans KR';color:#49515f">{{ ev.msg }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:20px 24px 28px;display:flex;flex-direction:column;gap:16px">
+          <div>
+            <div style="display:flex;align-items:center;gap:7px;font:400 11px/1 'IBM Plex Sans KR';color:#8a95a5"><span style="cursor:pointer;color:#2a6fd6" onClick="{{ goDash }}">종합 대시보드</span><span>›</span><span style="color:#5b6675">{{ active.nameKr }}</span></div>
+            <div style="margin-top:11px;display:flex;align-items:center;gap:14px">
+              <span style="font:600 13px/1 'IBM Plex Mono';color:#aab4c2">{{ active.no }}</span>
+              <div><div style="display:flex;align-items:baseline;gap:10px"><span style="font:700 22px/1.05 'IBM Plex Sans KR';color:#12161d">{{ active.nameKr }}</span><span style="font:400 12px/1 'IBM Plex Mono';color:#9aa6b4">{{ active.nameEn }}</span></div></div>
+              <span style="font:600 11px/1 'IBM Plex Sans KR';padding:5px 10px;border-radius:7px;background:{{ active.cAbg }};color:{{ active.cA }}">{{ active.statusText }}</span>
+              <span style="font:500 10.5px/1 'IBM Plex Mono';color:#5b6675;background:#eef2f7;border:1px solid #e1e8f1;padding:5px 9px;border-radius:7px">규격 {{ active.spec }}</span>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+                <span style="font:400 10px/1 'IBM Plex Sans KR';color:#9aa6b4">최근 측정 {{ active.lastT }}</span>
+                <div style="display:flex;gap:6px">
+                  <div style="width:30px;height:30px;border:1px solid #dbe2ec;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#5b6675;font-size:13px" style-hover="background:#f2f5fa" onClick="{{ prevGo }}">‹</div>
+                  <div style="width:30px;height:30px;border:1px solid #dbe2ec;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#5b6675;font-size:13px" style-hover="background:#f2f5fa" onClick="{{ nextGo }}">›</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
+            <div style="background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:13px 15px"><div style="font:500 10.5px/1 'IBM Plex Sans KR';color:#6b7686">Input</div><div style="margin-top:9px;font:600 22px/1 'IBM Plex Mono';color:#141b26">{{ active.inputFmt }}</div><div style="margin-top:6px;font:400 9.5px/1 'IBM Plex Sans KR';color:#9aa6b4">ea</div></div>
+            <div style="background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:13px 15px"><div style="font:500 10.5px/1 'IBM Plex Sans KR';color:#6b7686">Error</div><div style="margin-top:9px;font:600 22px/1 'IBM Plex Mono';color:#141b26">{{ active.errorsFmt }}</div><div style="margin-top:6px;font:400 9.5px/1 'IBM Plex Sans KR';color:#9aa6b4">{{ active.rate }}</div></div>
+            <div style="background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:13px 15px"><div style="font:500 10.5px/1 'IBM Plex Sans KR';color:#6b7686">Cpk</div><div style="margin-top:9px;font:600 22px/1 'IBM Plex Mono';color:{{ active.cA }}">{{ active.cpkFmt }}</div><div style="margin-top:6px;font:400 9.5px/1 'IBM Plex Sans KR';color:#9aa6b4">목표 ≥ 1.33</div></div>
+            <div style="background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:13px 15px"><div style="font:500 10.5px/1 'IBM Plex Sans KR';color:#6b7686">평균 μ</div><div style="margin-top:9px;font:600 18px/1 'IBM Plex Mono';color:#141b26">{{ active.meanFmt }}</div><div style="margin-top:6px;font:400 9.5px/1 'IBM Plex Sans KR';color:#9aa6b4">중심 {{ active.centerFmt }}</div></div>
+            <div style="background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:13px 15px"><div style="font:500 10.5px/1 'IBM Plex Sans KR';color:#6b7686">표준편차 σ</div><div style="margin-top:9px;font:600 18px/1 'IBM Plex Mono';color:#141b26">{{ active.sigmaFmt }}</div><div style="margin-top:6px;font:400 9.5px/1 'IBM Plex Sans KR';color:#9aa6b4">3σ 관리</div></div>
+            <div style="background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:13px 15px"><div style="font:500 10.5px/1 'IBM Plex Sans KR';color:#6b7686">규격 상/하한</div><div style="margin-top:9px;font:600 13px/1.35 'IBM Plex Mono';color:#141b26">{{ active.uslFmt }}<br>{{ active.lslFmt }}</div></div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:stretch">
+            <div style="flex:1.65;min-width:0;background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:15px 17px;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 13px/1 'IBM Plex Sans KR';color:#2a3140">관리도 (I-Chart)</span><span style="font:400 10.5px/1 'IBM Plex Sans KR';color:#98a2b1">최근 30개 측정 샘플</span><div style="margin-left:auto;display:flex;gap:11px;font:400 9px/1 'IBM Plex Sans KR';color:#5b6675"><span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:2px;background:#8a95a5"></span>CL</span><span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:0;border-top:2px dashed #d64545"></span>UCL/LCL</span><span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:0;border-top:2px dashed #d9820a"></span>USL/LSL</span></div></div>
+              <div style="flex:1;margin-top:12px;min-height:250px"><svg viewBox="0 0 640 250" preserveAspectRatio="none" style="width:100%;height:250px;display:block">
+                <rect x="8" y="{{ active.specBandY }}" width="624" height="{{ active.specBandH }}" fill="#0f9d63" opacity=".05"></rect>
+                <line x1="8" x2="632" y1="{{ active.uslY }}" y2="{{ active.uslY }}" stroke="#d9820a" stroke-width="1.2" stroke-dasharray="6 4" vector-effect="non-scaling-stroke"></line>
+                <line x1="8" x2="632" y1="{{ active.lslY }}" y2="{{ active.lslY }}" stroke="#d9820a" stroke-width="1.2" stroke-dasharray="6 4" vector-effect="non-scaling-stroke"></line>
+                <line x1="8" x2="632" y1="{{ active.uclY }}" y2="{{ active.uclY }}" stroke="#d64545" stroke-width="1" stroke-dasharray="4 4" opacity=".7" vector-effect="non-scaling-stroke"></line>
+                <line x1="8" x2="632" y1="{{ active.lclY }}" y2="{{ active.lclY }}" stroke="#d64545" stroke-width="1" stroke-dasharray="4 4" opacity=".7" vector-effect="non-scaling-stroke"></line>
+                <line x1="8" x2="632" y1="{{ active.clY }}" y2="{{ active.clY }}" stroke="#8a95a5" stroke-width="1.2" vector-effect="non-scaling-stroke"></line>
+                <polyline points="{{ active.linePts }}" fill="none" stroke="#2a6fd6" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline>
+                <sc-for list="{{ active.pts }}" as="p" hint-placeholder-count="30"><circle cx="{{ p.x }}" cy="{{ p.y }}" r="{{ p.r }}" fill="{{ p.fill }}"></circle></sc-for>
+              </svg></div>
+              <div style="display:flex;justify-content:space-between;margin-top:8px;font:400 9px/1 'IBM Plex Mono';color:#aab4c2"><span>USL {{ active.uslFmt }}</span><span>CL(μ) {{ active.meanFmt }}</span><span>LSL {{ active.lslFmt }}</span></div>
+            </div>
+            <div style="flex:1;min-width:0;background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:15px 17px;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:baseline;gap:10px"><span style="font:600 13px/1 'IBM Plex Sans KR';color:#2a3140">측정 분포</span><span style="font:400 10.5px/1 'IBM Plex Sans KR';color:#98a2b1">Histogram</span></div>
+              <div style="flex:1;margin-top:12px;min-height:210px"><svg viewBox="0 0 300 210" preserveAspectRatio="none" style="width:100%;height:210px;display:block">
+                <sc-for list="{{ active.bars }}" as="b" hint-placeholder-count="15"><rect x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="{{ b.h }}" rx="1.5" fill="{{ b.fill }}"></rect></sc-for>
+                <line x1="{{ active.uslX }}" x2="{{ active.uslX }}" y1="6" y2="{{ active.histH }}" stroke="#d9820a" stroke-width="1.4" stroke-dasharray="5 3" vector-effect="non-scaling-stroke"></line>
+                <line x1="{{ active.lslX }}" x2="{{ active.lslX }}" y1="6" y2="{{ active.histH }}" stroke="#d9820a" stroke-width="1.4" stroke-dasharray="5 3" vector-effect="non-scaling-stroke"></line>
+                <line x1="{{ active.meanX }}" x2="{{ active.meanX }}" y1="6" y2="{{ active.histH }}" stroke="#2a6fd6" stroke-width="1.4" vector-effect="non-scaling-stroke"></line>
+              </svg></div>
+              <div style="display:flex;gap:14px;margin-top:8px;font:400 9px/1 'IBM Plex Sans KR';color:#5b6675"><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:2px;background:#2a6fd6"></span>평균 μ</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:0;border-top:2px dashed #d9820a"></span>규격 USL/LSL</span></div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:stretch">
+            <div style="flex:1.35;min-width:0;background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:15px 17px;display:flex;flex-direction:column">
+              <div style="font:600 13px/1 'IBM Plex Sans KR';color:#2a3140">최근 측정 이력</div>
+              <div style="display:grid;grid-template-columns:1.1fr 1fr 1fr 70px;padding:10px 4px 8px;border-bottom:1px solid #eef1f5;font:600 9px/1 'IBM Plex Sans KR';letter-spacing:.06em;color:#98a2b1;margin-top:8px"><span>샘플</span><span>측정 시각</span><span style="text-align:right">측정값</span><span style="text-align:right">판정</span></div>
+              <sc-for list="{{ active.recent }}" as="r" hint-placeholder-count="8">
+                <div style="display:grid;grid-template-columns:1.1fr 1fr 1fr 70px;align-items:center;padding:8px 4px;border-bottom:1px solid #f3f5f8"><span style="font:400 11px/1 'IBM Plex Mono';color:#5b6675">{{ r.sn }}</span><span style="font:400 11px/1 'IBM Plex Mono';color:#8a95a5">{{ r.t }}</span><span style="font:500 12px/1 'IBM Plex Mono';color:#2a3140;text-align:right">{{ r.val }}</span><span style="text-align:right"><span style="font:600 9px/1 'IBM Plex Sans KR';padding:3px 7px;border-radius:5px;background:{{ r.cbg }};color:{{ r.c }}">{{ r.tone }}</span></span></div>
+              </sc-for>
+            </div>
+            <div style="flex:1;min-width:0;background:#fff;border:1px solid #e7ecf2;border-radius:11px;padding:15px 17px;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:baseline;gap:10px"><span style="font:600 13px/1 'IBM Plex Sans KR';color:#2a3140">설비별 Cpk</span><span style="font:400 10.5px/1 'IBM Plex Sans KR';color:#98a2b1">동일 공정 6대</span></div>
+              <div style="margin-top:12px;display:flex;flex-direction:column;gap:11px">
+                <sc-for list="{{ active.equip }}" as="eq" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:10px"><span style="font:500 10.5px/1 'IBM Plex Sans KR';color:#5b6675;width:52px;flex:none">{{ eq.name }}</span><div style="flex:1;height:9px;background:#eef1f5;border-radius:5px;overflow:hidden"><div style="height:100%;width:{{ eq.pct }}%;background:{{ eq.c }};border-radius:5px"></div></div><span style="font:600 11px/1 'IBM Plex Mono';color:{{ eq.c }};width:34px;text-align:right;flex:none">{{ eq.cpk }}</span></div>
+                </sc-for>
+              </div>
+              <div style="margin-top:auto;padding-top:12px;font:400 9.5px/1.5 'IBM Plex Sans KR';color:#aab4c2">막대 = Cpk / 2.0 기준 · 색상은 판정 기준 적용</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab: 0, sec: 14 * 3600 + 22 * 60 + 7 };
+  componentDidMount() { this._t = setInterval(() => this.setState(s => ({ sec: s.sec + 1 })), 1000); }
+  componentWillUnmount() { clearInterval(this._t); }
+  setTab(i) { this.setState({ tab: i }); }
+
+  spark(base, W, H) {
+    const min = Math.min.apply(null, base), max = Math.max.apply(null, base), r = (max - min) || 1, n = base.length, p = 3;
+    return base.map((v, i) => (p + i * (W - 2 * p) / (n - 1)).toFixed(1) + ',' + (p + (1 - (v - min) / r) * (H - 2 * p)).toFixed(1)).join(' ');
+  }
+
+  detail(d, idx) {
+    const two = n => String(n).padStart(2, '0');
+    const c = d.c, h = d.h, u = d.u, cpk = d.cpk, off = d.off;
+    const mean = c + off, sigma = h / (3 * cpk);
+    const status = cpk >= 1.33 ? 'OK' : (cpk >= 1.0 ? '주의' : 'NG');
+    const dp = h >= 10 ? 1 : (h >= 1 ? 2 : 3);
+    const fmtV = v => (c === 0 ? ((v >= 0 ? '+' : '') + v.toFixed(dp)) : v.toFixed(dp));
+    let s = (idx * 2654435761 + 12345) >>> 0;
+    const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+    const z = () => (rnd() + rnd() + rnd() + rnd() - 2) * 1.732;
+
+    const N = 30, samples = [];
+    for (let i = 0; i < N; i++) samples.push(mean + sigma * z());
+    if (status === 'NG') { samples[10] = c + h * 1.06; samples[19] = c + h * 1.15; samples[25] = c - h * 1.03; }
+    else if (status === '주의') { samples[14] = c + h * 0.97; samples[22] = c + h * 1.0; }
+
+    const USL = c + h, LSL = c - h, UCL = mean + 3 * sigma, LCL = mean - 3 * sigma, CL = mean;
+    const dmax = Math.max(USL, UCL), dmin = Math.min(LSL, LCL), span = (dmax - dmin) || 1;
+    const lo = dmin - span * 0.14, hi = dmax + span * 0.14;
+    const CW = 640, CH = 250, cp = 14;
+    const yOf = v => (cp + (1 - (v - lo) / (hi - lo)) * (CH - 2 * cp));
+    const xOf = i => (cp + 8 + i * (CW - 2 * cp - 16) / (N - 1));
+    const linePts = samples.map((v, i) => xOf(i).toFixed(1) + ',' + yOf(v).toFixed(1)).join(' ');
+    const pts = samples.map((v, i) => { const ng = v > USL || v < LSL; return { x: xOf(i).toFixed(1), y: yOf(v).toFixed(1), r: ng ? '3.6' : '2.6', fill: ng ? '#d64545' : '#2a6fd6' }; });
+    const uslY = yOf(USL).toFixed(1), lslY = yOf(LSL).toFixed(1);
+    const specBandY = uslY, specBandH = (parseFloat(lslY) - parseFloat(uslY)).toFixed(1);
+
+    const HB = 15, hlo = c - h * 1.35, hhi = c + h * 1.35, bw = (hhi - hlo) / HB;
+    const HW = 300, HH = 210, hp = 10;
+    const rawc = []; let maxc = 0;
+    for (let i = 0; i < HB; i++) { const bc = hlo + (i + 0.5) * bw; const cnt = Math.exp(-0.5 * Math.pow((bc - mean) / sigma, 2)); rawc.push(cnt); if (cnt > maxc) maxc = cnt; }
+    const histH = HH - hp;
+    const bars = rawc.map((cnt, i) => {
+      const bc = hlo + (i + 0.5) * bw, hgt = (cnt / maxc) * (HH - 2 * hp - 12), over = bc > USL || bc < LSL;
+      return { x: (hp + i * (HW - 2 * hp) / HB).toFixed(1), w: ((HW - 2 * hp) / HB - 2).toFixed(1), h: hgt.toFixed(1), y: (HH - hp - hgt).toFixed(1), fill: over ? '#d64545' : '#9bb8e6' };
+    });
+    const hxOf = v => (hp + ((v - hlo) / (hhi - hlo)) * (HW - 2 * hp));
+    const uslX = hxOf(USL).toFixed(1), lslX = hxOf(LSL).toFixed(1), meanX = hxOf(mean).toFixed(1);
+
+    const recent = [];
+    const sec0 = this.state.sec;
+    for (let i = 0; i < 8; i++) { const v = mean + sigma * z() * 0.85; const pass = v <= USL && v >= LSL; const t = ((sec0 - i * 43) % 86400 + 86400) % 86400; recent.push({ sn: '#' + (48213 - i), t: two(Math.floor(t / 3600)) + ':' + two(Math.floor((t % 3600) / 60)) + ':' + two(t % 60), val: fmtV(v) + ' ' + u, pass, tone: pass ? 'OK' : 'NG', c: pass ? '#0f9d63' : '#d64545', cbg: pass ? '#e6f6ee' : '#fbe4e4' }); }
+
+    const edelta = [0.07, -0.04, 0.12, -0.09, status === 'NG' ? -0.24 : -0.06, 0.03];
+    const equip = ['#1', '#2', '#3', '#4', '#5', '#6'].map((n, i) => { const ec = Math.max(0.62, cpk + edelta[i]); const st = ec >= 1.33 ? 'OK' : (ec >= 1.0 ? '주의' : 'NG'); return { name: '설비 ' + n, cpk: ec.toFixed(2), pct: Math.min(100, ec / 2 * 100).toFixed(0), c: st === 'OK' ? '#0f9d63' : (st === '주의' ? '#c9760a' : '#d64545') }; });
+
+    return {
+      no: two(idx + 1), nameKr: d.nameKr, nameEn: d.nameEn, status, statusText: status === 'OK' ? '양호' : status,
+      cA: status === 'OK' ? '#0f9d63' : (status === '주의' ? '#c9760a' : '#d64545'),
+      cAbg: status === 'OK' ? '#e6f6ee' : (status === '주의' ? '#fbefd9' : '#fbe4e4'),
+      cpkFmt: cpk.toFixed(2), inputFmt: d.input.toLocaleString('en-US'), errorsFmt: d.errors.toLocaleString('en-US'),
+      rate: (d.errors / d.input * 100).toFixed(2) + '%', spec: d.spec,
+      meanFmt: fmtV(mean) + ' ' + u, sigmaFmt: sigma.toFixed(dp) + ' ' + u, centerFmt: (c === 0 ? '0' : c) + ' ' + u,
+      uslFmt: fmtV(USL) + ' ' + u, lslFmt: fmtV(LSL) + ' ' + u, lastT: recent[0].t,
+      linePts, pts, uslY, lslY, uclY: yOf(UCL).toFixed(1), lclY: yOf(LCL).toFixed(1), clY: yOf(CL).toFixed(1), specBandY, specBandH,
+      bars, uslX, lslX, meanX, histH: histH.toFixed(1), recent, equip
+    };
+  }
+
+  renderVals() {
+    const two = n => String(n).padStart(2, '0');
+    const t = ((this.state.sec % 86400) + 86400) % 86400;
+    const time = two(Math.floor(t / 3600)) + ':' + two(Math.floor((t % 3600) / 60)) + ':' + two(t % 60);
+    const ctx = { model: 'B8 SM-XYZ982', stage: 'PV2-4', date: '2026.07.23', dateKr: '2026년 7월 23일 (목)', line: 'GJ-3 · A조', time };
+
+    const raw = [
+      { nameKr: '윙플레이트 단차', nameEn: 'Wing Plate Step', c: 0, h: 30, u: 'μm', off: 2.4, spec: '0 ±30 μm', input: 12480, errors: 9, cpk: 1.62, base: [1.55, 1.6, 1.58, 1.63, 1.6, 1.57, 1.64, 1.62, 1.59, 1.63, 1.61, 1.62] },
+      { nameKr: 'CFRP 틸트', nameEn: 'CFRP Tilt', c: 0, h: 0.30, u: '°', off: 0.04, spec: '0 ±0.30°', input: 12360, errors: 15, cpk: 1.41, base: [1.5, 1.45, 1.48, 1.42, 1.44, 1.4, 1.43, 1.41, 1.39, 1.42, 1.4, 1.41] },
+      { nameKr: '오픈각도(전)', nameEn: 'Open Angle (Front)', c: 118, h: 2.0, u: '°', off: 0.3, spec: '118 ±2.0°', input: 12340, errors: 67, cpk: 1.18, base: [1.35, 1.3, 1.28, 1.24, 1.26, 1.2, 1.22, 1.19, 1.21, 1.18, 1.2, 1.18] },
+      { nameKr: '메인UB 틸트', nameEn: 'Main UB Tilt', c: 0, h: 0.25, u: '°', off: -0.03, spec: '0 ±0.25°', input: 12300, errors: 11, cpk: 1.55, base: [1.5, 1.53, 1.51, 1.56, 1.54, 1.57, 1.55, 1.58, 1.54, 1.56, 1.55, 1.55] },
+      { nameKr: '피캡 틸트', nameEn: 'P-Cap Tilt', c: 0, h: 0.20, u: '°', off: 0.11, spec: '0 ±0.20°', input: 12280, errors: 174, cpk: 0.92, base: [1.15, 1.1, 1.05, 1.0, 0.98, 0.95, 0.97, 0.93, 0.9, 0.94, 0.91, 0.92] },
+      { nameKr: '서브리어 단차', nameEn: 'Sub-Rear Step', c: 0, h: 25, u: 'μm', off: -3.1, spec: '0 ±25 μm', input: 12250, errors: 13, cpk: 1.37, base: [1.42, 1.38, 1.4, 1.35, 1.37, 1.39, 1.36, 1.38, 1.37, 1.35, 1.38, 1.37] },
+      { nameKr: '메인리어 단차', nameEn: 'Main-Rear Step', c: 0, h: 25, u: 'μm', off: 4.6, spec: '0 ±25 μm', input: 12210, errors: 39, cpk: 1.28, base: [1.4, 1.35, 1.33, 1.3, 1.32, 1.28, 1.3, 1.27, 1.29, 1.26, 1.29, 1.28] },
+      { nameKr: '오픈각도(후)', nameEn: 'Open Angle (Rear)', c: 119, h: 2.0, u: '°', off: 0.2, spec: '119 ±2.0°', input: 12180, errors: 12, cpk: 1.49, base: [1.45, 1.48, 1.5, 1.47, 1.51, 1.49, 1.52, 1.48, 1.5, 1.47, 1.5, 1.49] }
+    ];
+    const pal = { OK: ['#0f9d63', '#e6f6ee'], '주의': ['#c9760a', '#fbefd9'], NG: ['#d64545', '#fbe4e4'] };
+    const insp = raw.map((d, i) => {
+      const status = d.cpk >= 1.33 ? 'OK' : (d.cpk >= 1.0 ? '주의' : 'NG');
+      return { no: two(i + 1), nameKr: d.nameKr, nameEn: d.nameEn, inputFmt: d.input.toLocaleString('en-US'), errorsFmt: d.errors.toLocaleString('en-US'), rate: (d.errors / d.input * 100).toFixed(2) + '%', cpkFmt: d.cpk.toFixed(2), spec: d.spec, statusText: status === 'OK' ? '양호' : status, cA: pal[status][0], cAbg: pal[status][1], spark: this.spark(d.base, 120, 36), open: () => this.setTab(i + 1) };
+    });
+
+    const kpis = [
+      { label: '총 Input', value: '98,400', unit: 'ea', sub: '8개 검사 합계' },
+      { label: '종합 에러율', value: '0.35', unit: '%', sub: '누적 340 ea' },
+      { label: '평균 Cpk', value: '1.35', unit: '', sub: '목표 ≥ 1.33' },
+      { label: 'NG 항목', value: '1', unit: '건', sub: '주의 2 · 양호 5' },
+      { label: '설비 가동률', value: '99.1', unit: '%', sub: 'GJ-3 라인' }
+    ];
+    const tvals = [1.42, 1.4, 1.41, 1.38, 1.36, 1.39, 1.35, 1.33, 1.31, 1.34, 1.32, 1.3, 1.33, 1.36, 1.35, 1.35];
+    const W = 600, H = 160, p = 8, lo = 0.8, hi = 1.8;
+    const yOf = v => (p + (1 - (v - lo) / (hi - lo)) * (H - 2 * p));
+    const xOf = i => (p + i * (W - 2 * p) / (tvals.length - 1));
+    const trendPts = tvals.map((v, i) => xOf(i).toFixed(1) + ',' + yOf(v).toFixed(1)).join(' ');
+    const trendArea = xOf(0).toFixed(1) + ',' + (H - p) + ' ' + trendPts + ' ' + xOf(tvals.length - 1).toFixed(1) + ',' + (H - p);
+    const y133 = yOf(1.33).toFixed(1), y100 = yOf(1.0).toFixed(1);
+    const xlabels = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00'];
+    const evPal = { NG: ['#d64545', '#fbe4e4'], '주의': ['#c9760a', '#fbefd9'], OK: ['#0f9d63', '#e6f6ee'], '정보': ['#5b6675', '#eef1f5'] };
+    const events = [
+      { t: '14:19', lv: 'NG', msg: '피캡 틸트 Cpk 0.92 — 규격 초과 (설비 #5)' },
+      { t: '13:58', lv: '주의', msg: '오픈각도(전) Cpk 1.18 하향 추세 감지' },
+      { t: '13:40', lv: '주의', msg: '메인리어 단차 관리한계(1.33) 접근' },
+      { t: '13:12', lv: '정보', msg: 'GJ-3 라인 A조 검사 재개' },
+      { t: '12:47', lv: 'OK', msg: 'CFRP 틸트 재교정 완료 · 정상 복귀' }
+    ].map(e => ({ ...e, cA: evPal[e.lv][0], cAbg: evPal[e.lv][1] }));
+
+    const tab = this.state.tab;
+    const nav0 = { active: tab === 0, inactive: tab !== 0, go: () => this.setTab(0) };
+    const navRest = raw.map((d, i) => ({ no: two(i + 1), label: d.nameKr, active: tab === i + 1, inactive: tab !== i + 1, go: () => this.setTab(i + 1) }));
+    const isDash = tab === 0, isDetail = tab !== 0;
+    let active = null;
+    if (isDetail) active = this.detail(raw[tab - 1], tab - 1);
+    const goDash = () => this.setTab(0);
+    const prevGo = () => this.setTab(tab <= 1 ? 8 : tab - 1);
+    const nextGo = () => this.setTab(tab >= 8 ? 1 : tab + 1);
+
+    return { ctx, nav0, navRest, isDash, isDetail, active, goDash, prevGo, nextGo, insp, kpis, trendPts, trendArea, y133, y100, xlabels, events };
+  }
+}
+</script>
+</body>
+</html>

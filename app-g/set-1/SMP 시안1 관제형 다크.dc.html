@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  a{color:oklch(0.82 0.12 205);text-decoration:none;}
+  a:hover{color:oklch(0.90 0.10 205);}
+  @keyframes smpPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.82);}}
+</style>
+</helmet>
+<div style="width:1920px;height:1080px;overflow:hidden;background:oklch(0.165 0.012 245);color:oklch(0.96 0.005 230);font-family:'IBM Plex Sans',system-ui,sans-serif;display:flex;flex-direction:column;">
+
+  <header style="height:62px;flex:none;display:flex;align-items:center;gap:22px;padding:0 24px;border-bottom:1px solid oklch(0.31 0.015 245);background:oklch(0.205 0.014 245);">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:38px;height:38px;border-radius:9px;background:oklch(0.82 0.12 205);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;color:oklch(0.18 0.03 245);letter-spacing:.5px;">SMP</div>
+      <div style="display:flex;flex-direction:column;line-height:1.15;">
+        <span style="font-size:15px;font-weight:600;letter-spacing:.2px;">검사 종합 관제 포털</span>
+        <span style="font-size:11px;color:oklch(0.66 0.012 235);font-family:'IBM Plex Mono',monospace;letter-spacing:.4px;">Smartphone Mfg. Inspection · SMP</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-left:8px;">
+      <div style="display:flex;flex-direction:column;padding:5px 12px;border:1px solid oklch(0.34 0.02 205);border-radius:8px;background:oklch(0.24 0.02 205 / .35);">
+        <span style="font-size:9.5px;color:oklch(0.66 0.012 235);font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;">MODEL</span>
+        <span style="font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;">B8 SM-XYZ982</span>
+      </div>
+      <div style="display:flex;flex-direction:column;padding:5px 12px;border:1px solid oklch(0.31 0.015 245);border-radius:8px;">
+        <span style="font-size:9.5px;color:oklch(0.66 0.012 235);font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;">단계</span>
+        <span style="font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;">PV2-4</span>
+      </div>
+      <div style="display:flex;flex-direction:column;padding:5px 12px;border:1px solid oklch(0.31 0.015 245);border-radius:8px;">
+        <span style="font-size:9.5px;color:oklch(0.66 0.012 235);font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;">LINE</span>
+        <span style="font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;">SMP-#3</span>
+      </div>
+      <div style="display:flex;flex-direction:column;padding:5px 12px;border:1px solid oklch(0.31 0.015 245);border-radius:8px;">
+        <span style="font-size:9.5px;color:oklch(0.66 0.012 235);font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;">SHIFT</span>
+        <span style="font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;">A조</span>
+      </div>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:20px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;background:oklch(0.24 0.03 25 / .4);border:1px solid oklch(0.4 0.08 25);">
+        <span style="width:8px;height:8px;border-radius:50%;background:oklch(0.68 0.18 22);animation:smpPulse 1.6s infinite;"></span>
+        <span style="font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;color:oklch(0.82 0.1 25);">LIVE</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.2;">
+        <span style="font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;">2026-07-23</span>
+        <span style="font-size:11px;color:oklch(0.66 0.012 235);font-family:'IBM Plex Mono',monospace;">09:42:31 KST</span>
+      </div>
+    </div>
+  </header>
+
+  <div style="flex:1;display:flex;min-height:0;">
+
+    <nav style="width:230px;flex:none;border-right:1px solid oklch(0.31 0.015 245);background:oklch(0.195 0.013 245);display:flex;flex-direction:column;padding:16px 12px;gap:3px;">
+      <span style="font-size:10px;font-weight:600;letter-spacing:1.2px;color:oklch(0.6 0.012 235);font-family:'IBM Plex Mono',monospace;padding:2px 10px 8px;">검사 공정 · 8</span>
+      <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="9">
+        <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:8px;font-size:13.5px;font-weight:500;cursor:pointer;background:{{ tab.bg }};color:{{ tab.fg }};">
+          <span style="width:3px;height:17px;border-radius:2px;flex:none;background:{{ tab.bar }};"></span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:{{ tab.code }};width:30px;flex:none;">{{ tab.no }}</span>
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ tab.n }}</span>
+          <span style="margin-left:auto;width:7px;height:7px;border-radius:50%;flex:none;background:{{ tab.dot }};"></span>
+        </div>
+      </sc-for>
+      <div style="margin-top:auto;padding:12px 11px 4px;border-top:1px solid oklch(0.28 0.014 245);display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-family:'IBM Plex Mono',monospace;color:oklch(0.66 0.012 235);"><span>설비 가동</span><span style="color:oklch(0.80 0.13 155);">8 / 8</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-family:'IBM Plex Mono',monospace;color:oklch(0.66 0.012 235);"><span>데이터 동기화</span><span>2s 전</span></div>
+      </div>
+    </nav>
+
+    <main style="flex:1;min-width:0;display:flex;flex-direction:column;padding:18px 20px;gap:16px;overflow:hidden;">
+
+      <section style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;flex:none;">
+        <div style="background:oklch(0.205 0.014 245);border:1px solid oklch(0.31 0.015 245);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;">
+          <span style="font-size:11.5px;color:oklch(0.66 0.012 235);letter-spacing:.3px;">총 인풋 (누적 투입)</span>
+          <div style="display:flex;align-items:baseline;gap:7px;"><span style="font-size:29px;font-weight:600;font-family:'IBM Plex Mono',monospace;">12,480</span><span style="font-size:12px;color:oklch(0.66 0.012 235);font-family:'IBM Plex Mono',monospace;">EA</span></div>
+          <span style="font-size:11px;color:oklch(0.60 0.012 235);font-family:'IBM Plex Mono',monospace;">목표 12,500 · 달성 99.8%</span>
+        </div>
+        <div style="background:oklch(0.205 0.014 245);border:1px solid oklch(0.31 0.015 245);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;">
+          <span style="font-size:11.5px;color:oklch(0.66 0.012 235);letter-spacing:.3px;">총 NG (이상 검출)</span>
+          <div style="display:flex;align-items:baseline;gap:7px;"><span style="font-size:29px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:oklch(0.82 0.12 85);">70</span><span style="font-size:12px;color:oklch(0.66 0.012 235);font-family:'IBM Plex Mono',monospace;">EA</span></div>
+          <span style="font-size:11px;color:oklch(0.60 0.012 235);font-family:'IBM Plex Mono',monospace;">NG율 0.56% · 전일比 -0.08%p</span>
+        </div>
+        <div style="background:oklch(0.205 0.014 245);border:1px solid oklch(0.31 0.015 245);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;">
+          <span style="font-size:11.5px;color:oklch(0.66 0.012 235);letter-spacing:.3px;">평균 Cpk (공정능력)</span>
+          <div style="display:flex;align-items:baseline;gap:7px;"><span style="font-size:29px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:oklch(0.80 0.13 155);">1.33</span><span style="font-size:12px;color:oklch(0.66 0.012 235);font-family:'IBM Plex Mono',monospace;">≥1.33 목표</span></div>
+          <span style="font-size:11px;color:oklch(0.60 0.012 235);font-family:'IBM Plex Mono',monospace;">SPEC 이탈 1 · 주의 3</span>
+        </div>
+        <div style="background:oklch(0.205 0.014 245);border:1px solid oklch(0.31 0.015 245);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;">
+          <span style="font-size:11.5px;color:oklch(0.66 0.012 235);letter-spacing:.3px;">종합 양품률 (FPY)</span>
+          <div style="display:flex;align-items:baseline;gap:7px;"><span style="font-size:29px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:oklch(0.82 0.12 205);">99.44</span><span style="font-size:12px;color:oklch(0.66 0.012 235);font-family:'IBM Plex Mono',monospace;">%</span></div>
+          <span style="font-size:11px;color:oklch(0.60 0.012 235);font-family:'IBM Plex Mono',monospace;">8개 공정 직행률 종합</span>
+        </div>
+      </section>
+
+      <section style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,1fr);gap:14px;min-height:0;">
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="8">
+          <div style="background:oklch(0.205 0.014 245);border:1px solid oklch(0.31 0.015 245);border-radius:14px;padding:15px 16px 12px;display:flex;flex-direction:column;gap:11px;position:relative;overflow:hidden;">
+            <span style="position:absolute;top:0;left:0;width:3px;height:100%;background:{{ c.color }};opacity:.7;"></span>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+              <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:oklch(0.66 0.012 235);border:1px solid oklch(0.34 0.015 245);border-radius:4px;padding:1px 5px;">{{ c.code }}</span>
+                  <span style="font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.short }}</span>
+                </div>
+                <span style="font-size:10.5px;color:oklch(0.6 0.012 235);font-family:'IBM Plex Mono',monospace;">{{ c.en }} · {{ c.unit }}</span>
+              </div>
+              <span style="display:flex;align-items:center;gap:6px;flex:none;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;color:{{ c.color }};background:{{ c.chip }};border:1px solid {{ c.color }};"><span style="width:6px;height:6px;border-radius:50%;background:{{ c.color }};"></span>{{ c.stLabel }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <svg width="72" height="72" viewBox="0 0 72 72" style="flex:none;">
+                <circle cx="36" cy="36" r="26" fill="none" stroke="oklch(0.3 0.014 245)" stroke-width="6"></circle>
+                <circle cx="36" cy="36" r="26" fill="none" stroke="{{ c.color }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ c.dash }}" transform="rotate(-90 36 36)"></circle>
+                <text x="36" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="oklch(0.66 0.012 235)">Cpk</text>
+                <text x="36" y="47" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="17" font-weight="600" fill="{{ c.color }}">{{ c.cpk }}</text>
+              </svg>
+              <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;"><span style="color:oklch(0.66 0.012 235);">인풋</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13.5px;">{{ c.input }}</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;"><span style="color:oklch(0.66 0.012 235);">NG</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13.5px;">{{ c.error }} <span style="color:oklch(0.6 0.012 235);font-weight:400;font-size:11px;">· {{ c.errRate }}%</span></span></div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;"><span style="color:oklch(0.66 0.012 235);">목표</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(0.66 0.012 235);">Cpk ≥ 1.33</span></div>
+              </div>
+            </div>
+            <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:5px;justify-content:flex-end;">
+              <svg width="100%" height="100%" viewBox="0 0 120 40" preserveAspectRatio="none" style="display:block;min-height:0;">
+                <polyline points="{{ c.spark }}" fill="none" stroke="{{ c.color }}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+              </svg>
+              <span style="font-size:10px;color:oklch(0.55 0.012 235);font-family:'IBM Plex Mono',monospace;letter-spacing:.3px;">최근 12h · X̄-R 관리도 추세</span>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+    </main>
+
+    <aside style="width:326px;flex:none;border-left:1px solid oklch(0.31 0.015 245);background:oklch(0.195 0.013 245);display:flex;flex-direction:column;padding:18px 18px;gap:16px;overflow:hidden;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <span style="align-self:flex-start;font-size:11px;font-weight:600;letter-spacing:1.2px;color:oklch(0.6 0.012 235);font-family:'IBM Plex Mono',monospace;">종합 상태</span>
+        <div style="position:relative;width:150px;height:150px;">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle cx="75" cy="75" r="54" fill="none" stroke="oklch(0.28 0.014 245)" stroke-width="12"></circle>
+            <circle cx="75" cy="75" r="54" fill="none" stroke="oklch(0.82 0.12 205)" stroke-width="12" stroke-linecap="round" stroke-dasharray="{{ ringDash }}" transform="rotate(-90 75 75)"></circle>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <span style="font-size:32px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:oklch(0.82 0.12 205);">99.4</span>
+            <span style="font-size:11px;color:oklch(0.66 0.012 235);">양품률 %</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;">
+          <div style="text-align:center;padding:8px 4px;border-radius:9px;background:oklch(0.24 0.03 155 / .3);border:1px solid oklch(0.35 0.05 155);"><div style="font-size:19px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:oklch(0.80 0.13 155);">4</div><div style="font-size:10px;color:oklch(0.66 0.012 235);">양호</div></div>
+          <div style="text-align:center;padding:8px 4px;border-radius:9px;background:oklch(0.26 0.03 85 / .3);border:1px solid oklch(0.4 0.06 85);"><div style="font-size:19px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:oklch(0.82 0.12 85);">3</div><div style="font-size:10px;color:oklch(0.66 0.012 235);">주의</div></div>
+          <div style="text-align:center;padding:8px 4px;border-radius:9px;background:oklch(0.26 0.04 25 / .3);border:1px solid oklch(0.4 0.08 25);"><div style="font-size:19px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:oklch(0.70 0.18 22);">1</div><div style="font-size:10px;color:oklch(0.66 0.012 235);">불량</div></div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;border-top:1px solid oklch(0.28 0.014 245);">
+        <span style="font-size:13px;font-weight:600;">실시간 이상 알람</span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:oklch(0.82 0.1 25);"><span style="width:7px;height:7px;border-radius:50%;background:oklch(0.68 0.18 22);animation:smpPulse 1.6s infinite;"></span>LIVE</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;overflow:hidden;">
+        <sc-for list="{{ alarms }}" as="a" hint-placeholder-count="6">
+          <div style="display:flex;gap:10px;padding:10px 11px;border-radius:10px;background:oklch(0.22 0.014 245);border:1px solid oklch(0.29 0.014 245);border-left:3px solid {{ a.color }};">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.6 0.012 235);flex:none;padding-top:1px;">{{ a.t }}</span>
+            <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+              <span style="font-size:12.5px;font-weight:600;">{{ a.tgt }}</span>
+              <span style="font-size:11px;color:oklch(0.68 0.012 235);">{{ a.msg }}</span>
+            </div>
+            <span style="margin-left:auto;flex:none;align-self:center;font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:{{ a.color }};">{{ a.tag }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1920,&quot;height&quot;:1080}}">
+class Component extends DCLogic {
+  renderVals() {
+    const okC = 'oklch(0.80 0.13 155)', wnC = 'oklch(0.82 0.12 85)', ngC = 'oklch(0.70 0.18 22)', cyC = 'oklch(0.82 0.12 205)';
+    const st = c => c >= 1.33 ? 'OK' : (c >= 1.0 ? 'WARN' : 'NG');
+    const lab = { OK: '양호', WARN: '주의', NG: '불량' };
+    const col = { OK: okC, WARN: wnC, NG: ngC };
+    const chip = { OK: 'oklch(0.24 0.03 155 / .35)', WARN: 'oklch(0.26 0.03 85 / .35)', NG: 'oklch(0.26 0.04 25 / .35)' };
+    const D = [
+      { code: 'WPS', short: '윙플레이트 단차', en: 'Wing Plate Step', unit: 'µm', input: 12480, error: 8, cpk: 1.42, trend: [42,45,43,46,44,47,45,44,43,45,44,43] },
+      { code: 'CFT', short: 'CFRP 틸트', en: 'CFRP Tilt', unit: '°', input: 12455, error: 12, cpk: 1.18, trend: [30,33,36,34,38,35,40,37,41,39,42,40] },
+      { code: 'OAF', short: '오픈각도(전)', en: 'Open Angle · Front', unit: '°', input: 12470, error: 4, cpk: 1.67, trend: [60,58,61,59,62,60,63,61,60,62,61,62] },
+      { code: 'MUB', short: '메인UB 틸트', en: 'Main UB Tilt', unit: '°', input: 12410, error: 18, cpk: 0.98, trend: [50,46,53,44,56,42,58,40,61,45,63,48] },
+      { code: 'PCT', short: '피캡 틸트', en: 'P-Cap Tilt', unit: '°', input: 12388, error: 7, cpk: 1.33, trend: [44,46,45,43,47,45,46,44,45,47,45,46] },
+      { code: 'SRS', short: '서브리어 단차', en: 'Sub Rear Step', unit: 'µm', input: 12360, error: 9, cpk: 1.25, trend: [38,41,39,43,40,44,41,45,42,44,43,45] },
+      { code: 'MRS', short: '메인리어 단차', en: 'Main Rear Step', unit: 'µm', input: 12344, error: 5, cpk: 1.55, trend: [55,57,56,58,57,59,58,57,59,58,60,59] },
+      { code: 'OAB', short: '오픈각도(후)', en: 'Open Angle · Back', unit: '°', input: 12300, error: 7, cpk: 1.29, trend: [48,50,47,51,49,52,48,50,49,51,50,49] },
+    ];
+    const C = 2 * Math.PI * 26;
+    const cards = D.map(d => {
+      const s = st(d.cpk), n = d.trend.length, mn = Math.min(...d.trend), mx = Math.max(...d.trend), r = (mx - mn) || 1;
+      const pts = d.trend.map((v, i) => `${(i / (n - 1) * 116 + 2).toFixed(1)},${((1 - (v - mn) / r) * 32 + 4).toFixed(1)}`).join(' ');
+      const f = Math.min(d.cpk / 2, 1);
+      return { code: d.code, short: d.short, en: d.en, unit: d.unit, cpk: d.cpk.toFixed(2), input: d.input.toLocaleString(), error: d.error, errRate: (d.error / d.input * 100).toFixed(2), stLabel: lab[s], color: col[s], chip: chip[s], spark: pts, dash: `${(f * C).toFixed(1)} ${(C - f * C).toFixed(1)}` };
+    });
+    const dotOf = c => col[st(c)];
+    const tab = (no, n, cpk, a) => ({ no, n, cpk, a, dot: cpk == null ? 'transparent' : dotOf(cpk), bg: a ? 'oklch(0.30 0.055 205)' : 'transparent', fg: a ? 'oklch(0.97 0.01 205)' : 'oklch(0.72 0.012 235)', bar: a ? cyC : 'transparent', code: a ? 'oklch(0.82 0.12 205)' : 'oklch(0.55 0.012 235)' });
+    const tabs = [tab('◎', '종합 대시보드', null, true), ...D.map((d, i) => tab(String(i + 1).padStart(2, '0'), d.short, d.cpk, false))];
+    const alarms = [
+      { t: '09:42:17', tgt: '메인UB 틸트', msg: 'Cpk 0.98 · SPEC 하한 이탈', color: ngC, tag: 'NG' },
+      { t: '09:41:03', tgt: 'CFRP 틸트', msg: '관리상한(UCL) 근접', color: wnC, tag: '주의' },
+      { t: '09:38:55', tgt: '서브리어 단차', msg: '연속 3점 중심선 이탈', color: wnC, tag: '주의' },
+      { t: '09:35:12', tgt: '오픈각도(후)', msg: '분산 증가 감지', color: wnC, tag: '주의' },
+      { t: '09:31:48', tgt: '피캡 틸트', msg: '설비 재기동 완료', color: cyC, tag: '정보' },
+      { t: '09:24:30', tgt: '윙플레이트 단차', msg: '정상 범위 복귀', color: okC, tag: '정상' },
+    ];
+    const rC = 2 * Math.PI * 54, pf = 0.9944;
+    return { cards, tabs, alarms, ringDash: `${(pf * rC).toFixed(1)} ${(rC - pf * rC).toFixed(1)}` };
+  }
+}
+</script>
+</body>
+</html>

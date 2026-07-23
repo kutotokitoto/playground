@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  a { color: #38bdf8; text-decoration: none; }
+  a:hover { color: #7dd3fc; }
+  @keyframes smpPulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(37,224,200,0.5);} 50% { opacity: .55; box-shadow: 0 0 0 6px rgba(37,224,200,0);} }
+  @keyframes smpSweep { from { transform: translateX(-100%);} to { transform: translateX(300%);} }
+</style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(1200px 700px at 78% -8%,rgba(37,224,200,0.10),transparent 60%),radial-gradient(900px 600px at 8% 110%,rgba(56,189,248,0.10),transparent 55%),#070a0f;font-family:'Space Grotesk',system-ui,sans-serif;color:#e7eef7;padding:22px;background-attachment:fixed">
+  <div style="width:1520px;margin:0 auto;display:flex;gap:18px;align-items:stretch">
+
+    <!-- RAIL -->
+    <div style="width:86px;flex:0 0 86px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 0;background:linear-gradient(180deg,rgba(19,26,36,0.85),rgba(11,16,23,0.85));border:1px solid rgba(255,255,255,0.07);border-radius:20px">
+      <div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#25e0c8,#38bdf8);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#04141a;letter-spacing:.02em;box-shadow:0 6px 20px rgba(37,224,200,0.35)">SMP</div>
+      <div style="width:34px;height:1px;background:rgba(255,255,255,0.1);margin:4px 0"></div>
+      <div style="position:relative;width:54px;height:52px;border-radius:14px;background:rgba(37,224,200,0.12);border:1px solid rgba(37,224,200,0.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;box-shadow:0 0 18px rgba(37,224,200,0.2)">
+        <div style="position:absolute;left:-1px;top:12px;bottom:12px;width:3px;border-radius:3px;background:#25e0c8"></div>
+        <div style="font:600 10px/1 'IBM Plex Mono',monospace;color:#25e0c8">종합</div>
+        <div style="font:500 8px/1 'IBM Plex Mono',monospace;color:#6fe6d6;letter-spacing:.1em">DASH</div>
+      </div>
+      <sc-for list="{{ nodes }}" as="t" hint-placeholder-count="8">
+        <div style="width:54px;height:46px;border-radius:13px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer" style-hover="background:rgba(255,255,255,0.07)">
+          <div style="font:600 13px/1 'IBM Plex Mono',monospace;color:#c6d3e2">{{ t.idx }}</div>
+          <div style="width:16px;height:3px;border-radius:3px;background:{{ t.color }};opacity:.85"></div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- MAIN -->
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
+
+      <!-- TOPBAR -->
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;background:linear-gradient(180deg,rgba(19,26,36,0.85),rgba(11,16,23,0.85));border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:16px 22px">
+        <div style="min-width:0">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font:700 20px/1 'Space Grotesk';letter-spacing:.01em">종합 검사 대시보드</div>
+            <div style="font:500 10px/1 'IBM Plex Mono';letter-spacing:.16em;color:#25e0c8;border:1px solid rgba(37,224,200,0.4);border-radius:6px;padding:5px 8px">SMP · SMART&nbsp;MFG&nbsp;PORTAL</div>
+          </div>
+          <div style="margin-top:8px;font:500 12px/1 'IBM Plex Mono';color:#7f93a8;letter-spacing:.02em">Wing Plate · CFRP · Open Angle · Main UB · P-Cap · Sub/Main Rear</div>
+        </div>
+        <div style="flex:1"></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div style="text-align:right;padding-right:6px">
+            <div style="font:500 9px/1 'IBM Plex Mono';letter-spacing:.16em;color:#5f7185">MODEL</div>
+            <div style="margin-top:5px;font:600 14px/1 'Space Grotesk'">B8 · <span style="font-family:'IBM Plex Mono';color:#dbe6f2">SM-XYZ982</span></div>
+          </div>
+          <div style="width:1px;height:34px;background:rgba(255,255,255,0.1)"></div>
+          <div style="text-align:right;padding-right:6px">
+            <div style="font:500 9px/1 'IBM Plex Mono';letter-spacing:.16em;color:#5f7185">STAGE</div>
+            <div style="margin-top:5px;font:600 14px/1 'IBM Plex Mono';color:#38bdf8">PV2-4</div>
+          </div>
+          <div style="width:1px;height:34px;background:rgba(255,255,255,0.1)"></div>
+          <div style="text-align:right;padding-right:6px">
+            <div style="font:500 9px/1 'IBM Plex Mono';letter-spacing:.16em;color:#5f7185">DATE · LINE</div>
+            <div style="margin-top:5px;font:600 14px/1 'IBM Plex Mono';color:#dbe6f2">2026.07.23 · L3</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(37,224,200,0.1);border:1px solid rgba(37,224,200,0.35);border-radius:10px;padding:9px 13px">
+            <div style="width:9px;height:9px;border-radius:50%;background:#25e0c8;animation:smpPulse 1.8s infinite"></div>
+            <div style="font:600 11px/1 'IBM Plex Mono';letter-spacing:.12em;color:#25e0c8">RUNNING</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI ROW -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+        <div style="flex:1;min-width:200px;background:linear-gradient(180deg,rgba(19,26,36,0.85),rgba(11,16,23,0.85));border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:18px 20px;position:relative;overflow:hidden">
+          <div style="font:600 10px/1 'IBM Plex Mono';letter-spacing:.16em;color:#7f93a8">총 투입 · INPUT</div>
+          <div style="display:flex;align-items:flex-end;gap:7px;margin-top:14px"><div style="font:600 40px/0.85 'Space Grotesk';color:#eaf2fb">{{ kInput }}</div><div style="font:600 12px/1 'IBM Plex Mono';color:#7f93a8;padding-bottom:5px">EA</div></div>
+          <svg width="100%" height="30" viewBox="0 0 104 30" preserveAspectRatio="none" style="margin-top:14px;display:block"><polyline points="{{ kInSpark }}" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="flex:1;min-width:200px;background:linear-gradient(180deg,rgba(19,26,36,0.85),rgba(11,16,23,0.85));border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:18px 20px;position:relative;overflow:hidden">
+          <div style="font:600 10px/1 'IBM Plex Mono';letter-spacing:.16em;color:#7f93a8">누적 NG · ERROR</div>
+          <div style="display:flex;align-items:flex-end;gap:7px;margin-top:14px"><div style="font:600 40px/0.85 'Space Grotesk';color:#ff6b8a">{{ kErr }}</div><div style="font:600 12px/1 'IBM Plex Mono';color:#7f93a8;padding-bottom:5px">EA · {{ kPpm }} PPM</div></div>
+          <svg width="100%" height="30" viewBox="0 0 104 30" preserveAspectRatio="none" style="margin-top:14px;display:block"><polyline points="{{ kErrSpark }}" fill="none" stroke="#ff6b8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="flex:1;min-width:200px;background:linear-gradient(180deg,rgba(19,26,36,0.85),rgba(11,16,23,0.85));border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:18px 20px;position:relative;overflow:hidden">
+          <div style="font:600 10px/1 'IBM Plex Mono';letter-spacing:.16em;color:#7f93a8">종합 수율 · YIELD</div>
+          <div style="display:flex;align-items:flex-end;gap:5px;margin-top:14px"><div style="font:600 40px/0.85 'Space Grotesk';color:#eaf2fb">{{ kYield }}</div><div style="font:600 16px/1 'Space Grotesk';color:#25e0c8;padding-bottom:4px">%</div></div>
+          <svg width="100%" height="30" viewBox="0 0 104 30" preserveAspectRatio="none" style="margin-top:14px;display:block"><polyline points="{{ kYSpark }}" fill="none" stroke="#25e0c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="flex:1;min-width:200px;background:linear-gradient(180deg,rgba(37,224,200,0.14),rgba(11,16,23,0.7));border:1px solid rgba(37,224,200,0.28);border-radius:18px;padding:18px 20px;position:relative;overflow:hidden">
+          <div style="font:600 10px/1 'IBM Plex Mono';letter-spacing:.16em;color:#8fe9dc">평균 공정능력 · Cpk</div>
+          <div style="display:flex;align-items:flex-end;gap:8px;margin-top:14px"><div style="font:600 40px/0.85 'Space Grotesk';color:#eaf2fb">{{ kCpk }}</div><div style="font:600 11px/1 'IBM Plex Mono';color:#8fe9dc;padding-bottom:6px">목표 ≥1.33</div></div>
+          <svg width="100%" height="30" viewBox="0 0 104 30" preserveAspectRatio="none" style="margin-top:14px;display:block"><polyline points="{{ kCSpark }}" fill="none" stroke="#25e0c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <!-- CONTENT ROW -->
+      <div style="display:flex;gap:16px;align-items:stretch">
+
+        <!-- LEFT: device + feed -->
+        <div style="width:340px;flex:0 0 340px;display:flex;flex-direction:column;gap:16px">
+          <div style="flex:1;background:linear-gradient(180deg,rgba(19,26,36,0.85),rgba(11,16,23,0.85));border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:18px;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <div style="font:600 13px/1 'Space Grotesk';letter-spacing:.02em">검사 포인트 맵</div>
+              <div style="font:500 10px/1 'IBM Plex Mono';color:#7f93a8">B8 FOLDABLE · 8 PT</div>
+            </div>
+            <div style="flex:1;position:relative;margin-top:14px;min-height:330px">
+              <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:172px;height:296px;border-radius:26px;background:linear-gradient(150deg,rgba(56,189,248,0.09),rgba(37,224,200,0.05));border:1px solid rgba(255,255,255,0.12);box-shadow:inset 0 0 40px rgba(56,189,248,0.08)">
+                <div style="position:absolute;left:50%;top:14px;bottom:14px;width:1px;background:repeating-linear-gradient(180deg,rgba(255,255,255,0.22) 0 5px,transparent 5px 11px)"></div>
+                <div style="position:absolute;left:50%;top:20px;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.35)"></div>
+                <div style="position:absolute;inset:16px;border-radius:18px;background:repeating-linear-gradient(135deg,rgba(255,255,255,0.03) 0 8px,transparent 8px 16px)"></div>
+              </div>
+              <sc-for list="{{ nodes }}" as="n" hint-placeholder-count="8">
+                <div style="position:absolute;left:{{ n.nx }}%;top:{{ n.ny }}%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:#0b1017;border:2px solid {{ n.color }};display:flex;align-items:center;justify-content:center;font:600 10px/1 'IBM Plex Mono';color:{{ n.color }};box-shadow:0 0 12px {{ n.color }}">{{ n.idx }}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:14px;justify-content:center;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font:500 10px/1 'IBM Plex Mono';color:#7f93a8">
+              <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:#25e0c8"></div>양호</div>
+              <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:#f5c451"></div>주의</div>
+              <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:#ff6b8a"></div>위험</div>
+            </div>
+          </div>
+
+          <div style="background:linear-gradient(180deg,rgba(19,26,36,0.85),rgba(11,16,23,0.85));border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:16px 18px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <div style="font:600 13px/1 'Space Grotesk'">실시간 NG 피드</div>
+              <div style="font:500 9px/1 'IBM Plex Mono';color:#ff6b8a;border:1px solid rgba(255,107,138,0.4);border-radius:5px;padding:4px 7px">LIVE</div>
+            </div>
+            <sc-for list="{{ feed }}" as="f" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid rgba(255,255,255,0.05)">
+                <div style="font:500 10px/1 'IBM Plex Mono';color:#5f7185;width:38px">{{ f.time }}</div>
+                <div style="width:6px;height:6px;border-radius:50%;background:{{ f.color }};flex:0 0 6px"></div>
+                <div style="flex:1;min-width:0;font:500 11px/1.3 'Space Grotesk';color:#c6d3e2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</div>
+                <div style="font:600 10px/1 'IBM Plex Mono';color:{{ f.color }}">{{ f.val }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- RIGHT: inspection grid -->
+        <div style="flex:1;min-width:520px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-content:start">
+          <sc-for list="{{ items }}" as="item" hint-placeholder-count="8">
+            <div style="background:linear-gradient(180deg,rgba(19,26,36,0.9),rgba(11,16,23,0.92));border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:16px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:13px">
+              <div style="position:absolute;top:0;left:0;right:0;height:3px;background:{{ item.color }};opacity:.9"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font:600 12px/1 'IBM Plex Mono';color:#5f7185">{{ item.idx }}</div>
+                <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border-radius:20px;padding:4px 9px 4px 7px"><div style="width:7px;height:7px;border-radius:50%;background:{{ item.color }}"></div><div style="font:600 10px/1 'IBM Plex Mono';color:{{ item.color }}">{{ item.status }}</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px">
+                <div style="position:relative;width:66px;height:66px;flex:0 0 66px">
+                  <svg width="66" height="66" viewBox="0 0 66 66"><circle cx="33" cy="33" r="27" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="6"/><circle cx="33" cy="33" r="27" fill="none" stroke="{{ item.color }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ item.ring }}" transform="rotate(-90 33 33)"/></svg>
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font:600 17px/0.9 'Space Grotesk';color:#eaf2fb">{{ item.cpk }}</div><div style="font:500 7px/1 'IBM Plex Mono';color:#7f93a8;letter-spacing:.1em">Cpk</div></div>
+                </div>
+                <div style="min-width:0;flex:1">
+                  <div style="font:600 14px/1.15 'Space Grotesk';color:#eef4fb">{{ item.kr }}</div>
+                  <div style="margin-top:4px;font:500 10px/1.2 'IBM Plex Mono';color:#7f93a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ item.en }}</div>
+                  <div style="margin-top:7px;font:500 9px/1 'IBM Plex Mono';color:#5f7185">SPEC {{ item.spec }} {{ item.unit }}</div>
+                </div>
+              </div>
+              <svg width="100%" height="26" viewBox="0 0 104 30" preserveAspectRatio="none" style="display:block"><polyline points="{{ item.spark }}" fill="none" stroke="{{ item.color }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div style="display:flex;justify-content:space-between;padding-top:11px;border-top:1px solid rgba(255,255,255,0.06)">
+                <div><div style="font:500 8px/1 'IBM Plex Mono';color:#5f7185;letter-spacing:.1em">INPUT</div><div style="margin-top:4px;font:600 13px/1 'Space Grotesk';color:#dbe6f2">{{ item.input }}</div></div>
+                <div style="text-align:center"><div style="font:500 8px/1 'IBM Plex Mono';color:#5f7185;letter-spacing:.1em">NG</div><div style="margin-top:4px;font:600 13px/1 'Space Grotesk';color:#ff8fa6">{{ item.error }}</div></div>
+                <div style="text-align:right"><div style="font:500 8px/1 'IBM Plex Mono';color:#5f7185;letter-spacing:.1em">불량률</div><div style="margin-top:4px;font:600 13px/1 'Space Grotesk';color:#dbe6f2">{{ item.errPct }}%</div></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1560,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  spark(v){const W=104,H=30,p=4,mn=Math.min.apply(null,v),mx=Math.max.apply(null,v),rg=(mx-mn)||1;return v.map((n,i)=>{const x=p+(W-2*p)*i/(v.length-1);const y=H-p-(H-2*p)*(n-mn)/rg;return x.toFixed(1)+','+y.toFixed(1);}).join(' ');}
+  renderVals(){
+    const C=169.6, nf=n=>n.toLocaleString('en-US');
+    const col=c=>c>=1.33?'#25e0c8':c>=1.0?'#f5c451':'#ff6b8a';
+    const stt=c=>c>=1.33?'양호':c>=1.0?'주의':'위험';
+    const raw=[
+      {kr:'윙플레이트 단차',en:'Wing Plate Step',u:'mm',sp:'0 ±0.05',inp:12480,er:38,cpk:1.42,tr:[1.30,1.33,1.29,1.38,1.40,1.42],nx:50,ny:9},
+      {kr:'CFRP 틸트',en:'CFRP Tilt',u:'°',sp:'0 ±0.10',inp:12455,er:27,cpk:1.61,tr:[1.48,1.52,1.55,1.58,1.60,1.61],nx:50,ny:25},
+      {kr:'오픈각도 (전)',en:'Open Angle · Pre',u:'°',sp:'180 ±0.5',inp:12455,er:96,cpk:1.08,tr:[1.22,1.18,1.14,1.10,1.09,1.08],nx:15,ny:47},
+      {kr:'메인UB 틸트',en:'Main UB Tilt',u:'°',sp:'0 ±0.10',inp:12402,er:51,cpk:1.33,tr:[1.31,1.34,1.30,1.33,1.32,1.33],nx:50,ny:43},
+      {kr:'피캡 틸트',en:'P-Cap Tilt',u:'°',sp:'0 ±0.12',inp:12388,er:44,cpk:1.29,tr:[1.20,1.24,1.26,1.27,1.28,1.29],nx:50,ny:60},
+      {kr:'서브리어 단차',en:'Sub-Rear Step',u:'mm',sp:'0 ±0.05',inp:12377,er:62,cpk:1.18,tr:[1.28,1.25,1.22,1.20,1.19,1.18],nx:31,ny:80},
+      {kr:'메인리어 단차',en:'Main-Rear Step',u:'mm',sp:'0 ±0.05',inp:12377,er:33,cpk:1.55,tr:[1.44,1.48,1.50,1.52,1.54,1.55],nx:69,ny:80},
+      {kr:'오픈각도 (후)',en:'Open Angle · Post',u:'°',sp:'180 ±0.5',inp:12340,er:119,cpk:0.94,tr:[1.10,1.05,1.02,0.98,0.96,0.94],nx:85,ny:47}
+    ];
+    const items=raw.map((r,i)=>{const f=Math.min(Math.max(r.cpk/2,0),1);const c=col(r.cpk);return{
+      idx:String(i+1).padStart(2,'0'),kr:r.kr,en:r.en,unit:r.u,spec:r.sp,
+      input:nf(r.inp),error:nf(r.er),ppm:nf(Math.round(r.er/r.inp*1e6)),
+      errPct:(r.er/r.inp*100).toFixed(2),cpk:r.cpk.toFixed(2),
+      ring:(f*C).toFixed(1)+' '+C.toFixed(1),color:c,status:stt(r.cpk),
+      spark:this.spark(r.tr),nx:r.nx,ny:r.ny
+    };});
+    const nodes=items.map(it=>({idx:it.idx,color:it.color,nx:it.nx,ny:it.ny}));
+    const feed=[
+      {time:'14:26',name:'오픈각도(후) · Post',val:'181.1°',color:'#ff6b8a'},
+      {time:'14:24',name:'서브리어 단차 · Sub-Rear',val:'0.061mm',color:'#f5c451'},
+      {time:'14:21',name:'오픈각도(전) · Pre',val:'179.4°',color:'#f5c451'},
+      {time:'14:19',name:'오픈각도(후) · Post',val:'178.8°',color:'#ff6b8a'},
+      {time:'14:15',name:'윙플레이트 단차 · Wing',val:'0.052mm',color:'#f5c451'}
+    ];
+    return {items,nodes,feed,
+      kInput:'12,480',kErr:'470',kYield:'96.24',kCpk:'1.30',kPpm:'3,766',
+      kInSpark:this.spark([11900,12050,12210,12330,12410,12480]),
+      kErrSpark:this.spark([520,505,498,486,477,470]),
+      kYSpark:this.spark([95.1,95.6,95.9,96.0,96.1,96.24]),
+      kCSpark:this.spark([1.24,1.26,1.27,1.28,1.29,1.30])};
+  }
+}
+</script>
+</body>
+</html>
