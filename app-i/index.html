@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMP PORTAL — 공정 검사 대시보드 · 시안 I-1 (Clarity Light)</title>
+<style>
+  :root{
+    --bg:#f3f5f8; --card:#ffffff; --line:#e6e9ef; --line2:#eef1f6;
+    --txt:#171c26; --mut:#6a7382; --faint:#98a1b0;
+    --acc:#4f46e5; --acc-soft:#eef0fe; --sky:#0ea5e9;
+    --good:#059669; --good-bg:#e8f6f0; --warn:#d97706; --warn-bg:#fbf1e2; --bad:#dc2626; --bad-bg:#fdecec;
+    --r:14px; --sh:0 1px 2px rgba(23,28,38,.04);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg);color:var(--txt);
+    font-family:"Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5;
+  }
+  ::selection{background:var(--acc-soft)}
+
+  /* ── 상단 바 ── */
+  #topbar{
+    height:54px;background:#fff;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:14px;padding:0 22px;
+  }
+  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px;letter-spacing:.06em}
+  .logo .mark{
+    width:28px;height:28px;border-radius:8px;background:var(--acc);color:#fff;
+    display:grid;place-items:center;font-size:12px;font-weight:800;letter-spacing:0;
+  }
+  .logo b{color:var(--acc)}
+  #topbar .crumb{color:var(--mut);font-size:12.5px;border-left:1px solid var(--line);padding-left:14px}
+  #topbar .sp{flex:1}
+  .concept-pill{
+    font-size:11.5px;font-weight:700;color:var(--acc);background:var(--acc-soft);
+    border-radius:999px;padding:5px 12px;letter-spacing:.02em;
+  }
+  #upd{font-size:11.5px;color:var(--faint)}
+
+  /* ── 그리드 (와이어프레임 배치 그대로) ── */
+  #wrap{
+    max-width:1560px;margin:0 auto;padding:16px 22px 64px;
+    display:grid;gap:14px;
+    grid-template-columns:repeat(12,1fr);
+    grid-template-rows:auto 330px auto auto;
+    grid-template-areas:
+      "ctx ctx ctx err err err err rk rk cc cc cc"
+      "tr  tr  tr  tr  tr  tr  tr  rk rk cc cc cc"
+      "sum sum sum sum sum sum sum sum sum pr pr pr"
+      "pp  pp  pp  pp  pp  pp  pp  pp  pp  pr pr pr";
+  }
+  .a-ctx{grid-area:ctx;display:flex;flex-direction:column;gap:12px}
+  .a-err{grid-area:err}
+  .a-rk{grid-area:rk}
+  .a-cc{grid-area:cc;display:flex;flex-direction:column;gap:14px}
+  .a-tr{grid-area:tr}
+  .a-sum{grid-area:sum}
+  .a-pr{grid-area:pr}
+  .a-pp{grid-area:pp;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+  @media (max-width:1150px){
+    #wrap{
+      grid-template-columns:1fr 1fr;grid-template-rows:none;
+      grid-template-areas:
+        "ctx err" "rk cc" "tr tr" "sum sum" "pr pr" "pp pp";
+    }
+    .a-pp{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:640px){
+    #wrap{grid-template-columns:1fr;grid-template-areas:"ctx" "err" "rk" "cc" "tr" "sum" "pr" "pp"}
+    .a-pp{grid-template-columns:1fr}
+  }
+
+  /* ── 카드 공통 ── */
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:var(--sh);padding:16px 18px;display:flex;flex-direction:column;min-width:0;
+  }
+  .card>h3{
+    font-size:12.5px;font-weight:700;color:var(--mut);letter-spacing:.02em;
+    margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;
+  }
+  .card>h3 .meta{font-size:11px;font-weight:600;color:var(--faint)}
+  .legend{display:flex;gap:12px;align-items:center;font-size:11px;font-weight:600;color:var(--mut)}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+  /* ── 컨텍스트(모델·단계·날짜) ── */
+  .ctxcard{padding:11px 14px;gap:3px}
+  .ctxcard label{font-size:11px;font-weight:700;color:var(--faint);letter-spacing:.03em}
+  .ctxcard select,.ctxcard input{
+    border:none;outline:none;background:transparent;color:var(--txt);
+    font:700 15.5px/1.3 "Pretendard Variable",Pretendard,"Segoe UI","Malgun Gothic",sans-serif;
+    letter-spacing:-.01em;width:100%;padding:1px 0;cursor:pointer;
+  }
+  .ctxcard input[type=date]{font-variant-numeric:tabular-nums}
+  .ctxcard:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+
+  /* ── 당일 에러 요약 ── */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex:1;min-height:0}
+  .stat{border:1px solid var(--line2);background:#fbfcfe;border-radius:11px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;justify-content:center;min-width:0}
+  .stat .k{font-size:11.5px;color:var(--mut);font-weight:600}
+  .stat .v{font-size:clamp(19px,1.6vw,25px);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .stat .d{font-size:11px;font-weight:700}
+  .d.up{color:var(--bad)} .d.dn{color:var(--good)} .d.flat{color:var(--faint)}
+  @media (max-width:1400px){ .stats{grid-template-columns:repeat(2,1fr)} }
+
+  /* ── 데일리 순위 ── */
+  .rank-list{display:flex;flex-direction:column;gap:4px;flex:1;overflow:hidden}
+  .rrow{display:grid;grid-template-columns:26px 52px 1fr 52px;align-items:center;gap:8px;padding:6px 8px;border-radius:9px}
+  .rrow:hover{background:#f7f8fb}
+  .rrow .no{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:11.5px;font-weight:800;color:var(--mut);background:var(--line2)}
+  .rrow.top .no{background:var(--bad-bg);color:var(--bad)}
+  .rrow .dt{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+  .rrow .bar{height:7px;border-radius:99px;background:var(--line2);overflow:hidden}
+  .rrow .bar i{display:block;height:100%;border-radius:99px;background:var(--acc)}
+  .rrow.top .bar i{background:var(--bad)}
+  .rrow .pv{font-size:12px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+  .rrow.top .pv{color:var(--bad)}
+
+  /* ── 달력 히트맵 ── */
+  .cal{flex:1;display:flex;flex-direction:column}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;flex:1}
+  .cal-grid .wd{font-size:10px;font-weight:700;color:var(--faint);text-align:center;padding:2px 0}
+  .cal-grid .day{
+    border-radius:7px;display:grid;place-items:center;min-height:26px;
+    font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--txt);
+    background:#f4f6fa;position:relative;
+  }
+  .cal-grid .day.off{background:transparent}
+  .cal-grid .day.future{color:var(--faint);background:#f8f9fc}
+  .cal-grid .day.sel{outline:2px solid var(--acc);outline-offset:1px}
+  .cal-foot{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:10.5px;color:var(--faint);font-weight:600}
+  .cal-ramp{flex:1;height:7px;border-radius:99px;background:linear-gradient(90deg,rgba(220,38,38,.07),rgba(220,38,38,.9))}
+
+  /* ── 알림(여유 슬롯) ── */
+  .notes{display:flex;flex-direction:column;gap:9px;flex:1}
+  .note{display:flex;gap:9px;font-size:12px;color:var(--mut);line-height:1.45}
+  .note i{flex:none;width:7px;height:7px;border-radius:99px;margin-top:5.5px;background:var(--acc)}
+  .note.warn i{background:var(--warn)}
+  .note b{color:var(--txt);font-weight:700}
+
+  /* ── 30일 트렌드 ── */
+  .a-tr .chart{flex:1;min-height:250px;position:relative}   /* 모바일(행 높이 auto)에서도 0 높이 방지 */
+  .a-tr svg{position:absolute;inset:0}
+
+  /* ── 8공정 종합 요약 ── */
+  .sum-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .schip{border:1px solid var(--line2);background:#fbfcfe;border-radius:11px;padding:10px 14px}
+  .schip .k{font-size:11px;color:var(--mut);font-weight:600}
+  .schip .v{font-size:19px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .schip .v small{font-size:12px;font-weight:700;color:var(--faint)}
+  .ptable{width:100%;border-collapse:collapse}
+  .ptable th{
+    font-size:10.5px;font-weight:700;color:var(--faint);letter-spacing:.04em;text-align:right;
+    padding:4px 10px;border-bottom:1px solid var(--line);
+  }
+  .ptable th:first-child,.ptable td:first-child{text-align:left;padding-left:4px}
+  .ptable th.bar-h{text-align:left}
+  .ptable td{padding:7px 10px;border-bottom:1px solid var(--line2);font-size:12.5px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ptable tr:last-child td{border-bottom:none}
+  .ptable td.nm{font-weight:700;font-size:12.5px}
+  .ptable .btrack{width:100%;min-width:120px;height:8px;border-radius:99px;background:var(--line2);overflow:hidden}
+  .ptable .btrack i{display:block;height:100%;border-radius:99px}
+  .cpk-chip{display:inline-block;min-width:44px;text-align:center;font-size:11.5px;font-weight:800;border-radius:7px;padding:2px 7px}
+  .cpk-good{background:var(--good-bg);color:var(--good)}
+  .cpk-warn{background:var(--warn-bg);color:var(--warn)}
+  .cpk-bad{background:var(--bad-bg);color:var(--bad)}
+  .judge{display:inline-block;font-size:11px;font-weight:800;border-radius:99px;padding:2.5px 10px}
+
+  /* ── 우측: 8항목 순위 ── */
+  .prk-list{display:flex;flex-direction:column;flex:1;gap:2px}
+  .prow{display:grid;grid-template-columns:26px 1fr auto;gap:9px;align-items:center;padding:8px 8px;border-radius:10px}
+  .prow:hover{background:#f7f8fb}
+  .prow .no{width:22px;height:22px;border-radius:99px;display:grid;place-items:center;font-size:11.5px;font-weight:800;background:var(--line2);color:var(--mut)}
+  .prow.top1 .no{background:var(--bad);color:#fff}
+  .prow.top2 .no,.prow.top3 .no{background:var(--bad-bg);color:var(--bad)}
+  .prow .nm{font-size:12.5px;font-weight:700;line-height:1.25}
+  .prow .sub{font-size:10.5px;color:var(--faint);font-weight:600;font-variant-numeric:tabular-nums}
+  .prow .track{grid-column:2/4;height:6px;border-radius:99px;background:var(--line2);overflow:hidden;margin-top:-2px}
+  .prow .track i{display:block;height:100%;border-radius:99px;background:var(--acc)}
+  .prow.top1 .track i,.prow.top2 .track i,.prow.top3 .track i{background:var(--bad)}
+  .prow .rv{text-align:right;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+  .prow .arr{font-size:10px;font-weight:800;margin-left:4px}
+  .arr.worse{color:var(--bad)} .arr.better{color:var(--good)}
+  .prk-foot{margin-top:auto;padding-top:10px;border-top:1px solid var(--line2);font-size:10.5px;color:var(--faint);font-weight:600;line-height:1.6}
+
+  /* ── 하단 8개 공정 카드 ── */
+  .pcard{padding:14px 16px}
+  .pcard .head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+  .pcard .head .nm{font-size:12.5px;font-weight:700;letter-spacing:-.01em}
+  .dot{width:8px;height:8px;border-radius:99px;flex:none}
+  .dot.g{background:var(--good)} .dot.w{background:var(--warn)} .dot.b{background:var(--bad)}
+  .pcard .big{display:flex;align-items:baseline;gap:8px}
+  .pcard .big .v{font-size:25px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .pcard .big .d{font-size:11px;font-weight:700}
+  .pcard .spark{margin:8px 0 6px;height:34px}
+  .pcard .spark svg{width:100%;height:34px;display:block}
+  .pcard .foot{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);font-weight:600;font-variant-numeric:tabular-nums}
+
+  footer{max-width:1560px;margin:0 auto;padding:0 22px 40px;color:var(--faint);font-size:11.5px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div class="logo"><span class="mark">S</span>SMP <b>PORTAL</b></div>
+  <div class="crumb">스마트폰 제조 공정 · 검사 대시보드</div>
+  <span class="sp"></span>
+  <span class="concept-pill">시안 컨셉 1 — Clarity Light</span>
+  <span id="upd"></span>
+</header>
+
+<div id="wrap">
+
+  <!-- 좌상단: 모델명 / 단계 / 날짜 -->
+  <div class="a-ctx">
+    <div class="card ctxcard">
+      <label>모델명</label>
+      <select id="sel-model">
+        <option>B8 SM-XYZ982</option>
+        <option>Q8 SM-XYZ710</option>
+        <option>Q8M SM-XYZ550</option>
+        <option>N3 SM-XYZ301</option>
+      </select>
+    </div>
+    <div class="card ctxcard">
+      <label>단계</label>
+      <select id="sel-stage">
+        <option>PV1</option>
+        <option selected>PV2-1</option>
+        <option>PV2-2</option>
+        <option>MP</option>
+      </select>
+    </div>
+    <div class="card ctxcard">
+      <label>날짜</label>
+      <input type="date" id="sel-date" value="2026-07-23">
+    </div>
+  </div>
+
+  <!-- 당일 에러 요약 -->
+  <section class="card a-err">
+    <h3>당일 에러 요약 <span class="meta" id="err-date"></span></h3>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <!-- 최근 1달간 데일리 순위 -->
+  <section class="card a-rk">
+    <h3>최근 1달간 데일리 순위 <span class="meta">불량률 상위일</span></h3>
+    <div class="rank-list" id="rank-list"></div>
+  </section>
+
+  <!-- 달력 + 여유 슬롯 -->
+  <div class="a-cc">
+    <section class="card cal" style="flex:1.25">
+      <h3>달력 <span class="meta" id="cal-title"></span></h3>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-foot"><span>낮음</span><span class="cal-ramp"></span><span>높음</span></div>
+    </section>
+    <section class="card" style="flex:1">
+      <h3>알림</h3>
+      <div class="notes" id="notes"></div>
+    </section>
+  </div>
+
+  <!-- 지난 30일 불량률 그래프 -->
+  <section class="card a-tr">
+    <h3>지난 30일 간 불량률 · CPK
+      <span class="legend"><span><i style="background:var(--acc)"></i>불량률</span><span><i style="background:var(--sky)"></i>CPK</span></span>
+    </h3>
+    <div class="chart" id="trend"></div>
+  </section>
+
+  <!-- 8가지 항목 종합 요약 -->
+  <section class="card a-sum">
+    <h3>8가지 항목 종합 요약 <span class="meta">오차율 · CPK · 모수 · 불량수</span></h3>
+    <div class="sum-strip" id="sum-strip"></div>
+    <table class="ptable">
+      <thead>
+        <tr><th>공정</th><th class="bar-h">불량률</th><th></th><th>CPK</th><th>모수</th><th>불량수</th><th>판정</th></tr>
+      </thead>
+      <tbody id="sum-body"></tbody>
+    </table>
+  </section>
+
+  <!-- 8가지 항목 순위 및 요약 -->
+  <section class="card a-pr">
+    <h3>8가지 항목 순위 및 요약 <span class="meta">불량률 순</span></h3>
+    <div class="prk-list" id="prk-list"></div>
+    <div class="prk-foot">판정 기준 — CPK 1.33 이상 양호 · 1.00 이상 주의 · 미만 미달<br>▲ 전주 대비 악화 · ▼ 개선</div>
+  </section>
+
+  <!-- 하단: 각 항목 요약 카드 8개 -->
+  <div class="a-pp" id="pcards"></div>
+
+</div>
+
+<footer>
+  <span>SMP PORTAL 대시보드 디자인 시안 · 데이터는 모두 예시(더미)입니다 — 모델/단계/날짜를 바꾸면 예시 데이터가 함께 바뀝니다.</span>
+  <span id="build"></span>
+</footer>
+
+<script>
+/* ═══════════ 공통 유틸 ═══════════ */
+const $=id=>document.getElementById(id);
+const fmtN=n=>n.toLocaleString('ko-KR');
+const f1=n=>(Math.round(n*10)/10).toFixed(1);
+const f2=n=>(Math.round(n*100)/100).toFixed(2);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+
+/* ═══════════ 더미 데이터 (시드 고정 — 같은 조합이면 항상 같은 그림) ═══════════ */
+const PROC=['CFRP Tilt','Main UB Tilt','Main Rear 단차','Sub Rear 단차','Wing Plate 단차','Open 각도(부착 전)','Open 각도(부착 후)','P-Cap Tilt'];
+
+function buildData(model,stage,dateStr){
+  const rnd=mulberry32(hash(model+'|'+stage+'|'+dateStr));
+  const [Y,M,D]=dateStr.split('-').map(Number);
+  const end=new Date(Y,M-1,D);
+  /* 30일 시계열 */
+  const days=[];
+  for(let i=29;i>=0;i--){
+    const d=new Date(end); d.setDate(end.getDate()-i);
+    let rate=0.9+rnd()*1.9;
+    if(rnd()<0.10) rate=4+rnd()*8;          // 가끔 급등일
+    const input=900+Math.round(rnd()*550);
+    const cpk=clamp(1.72-rate*0.085+(rnd()-0.5)*0.16,0.62,1.9);
+    days.push({d,rate,input,cpk});
+  }
+  /* 와이어프레임 예시 재현: 기본 조합이면 15일에 12.9% 피크 */
+  if(model==='B8 SM-XYZ982'&&stage==='PV2-1'&&dateStr==='2026-07-23'){
+    for(const e of days) if(e.d.getDate()===15&&e.d.getMonth()===M-1){ e.rate=12.9; e.cpk=0.71; }
+  }
+  for(const e of days) e.err=Math.round(e.input*e.rate/100);
+  /* 8개 공정 */
+  const procs=PROC.map(name=>{
+    let rate=0.5+rnd()*2.4;
+    if(rnd()<0.22) rate+=1.8+rnd()*3.4;      // 한두 공정은 눈에 띄게 나쁘게
+    const pop=1050+Math.round(rnd()*420);
+    const ng=Math.round(pop*rate/100);
+    const cpk=clamp(1.68-rate*0.17+(rnd()-0.5)*0.14,0.66,1.82);
+    const spark=[]; for(let i=0;i<7;i++) spark.push(Math.max(0.1,rate*(0.6+rnd()*0.8)));
+    spark[6]=rate;
+    const delta=(rnd()-0.45)*0.8;            // 전일 대비 %p
+    return {name,rate,pop,ng,cpk,spark,delta};
+  });
+  return {days,procs,end};
+}
+
+/* ═══════════ 렌더 ═══════════ */
+function statusOf(cpk){ return cpk>=1.33?['양호','g','cpk-good']:cpk>=1.0?['주의','w','cpk-warn']:['미달','b','cpk-bad']; }
+const fmtMD=d=>(d.getMonth()+1)+'/'+d.getDate();
+
+function renderStats(D){
+  const t=D.days[29], y=D.days[28];
+  $('err-date').textContent=(t.d.getMonth()+1)+'월 '+t.d.getDate()+'일';
+  const items=[
+    {k:'불량률',v:f1(t.rate)+'%',d:t.rate-y.rate,unit:'%p'},
+    {k:'인풋(모수)',v:fmtN(t.input),d:t.input-y.input,unit:'대',inv:true},
+    {k:'에러(불량수)',v:fmtN(t.err),d:t.err-y.err,unit:'건'},
+    {k:'CPK',v:f2(t.cpk),d:t.cpk-y.cpk,unit:'',good:'up'},
+  ];
+  $('stats').innerHTML=items.map(it=>{
+    const up=it.d>0.0001, dn=it.d<-0.0001;
+    let cls='flat', sign=up?'▲':dn?'▼':'—';
+    if(up) cls=(it.good==='up'||it.inv)?'dn':'up';       // 상승이 좋은 지표는 초록
+    if(dn) cls=(it.good==='up'||it.inv)?'up':'dn';
+    const dv=Math.abs(it.unit==='%p'||it.unit===''?Math.round(it.d*100)/100:Math.round(it.d));
+    return '<div class="stat"><span class="k">'+it.k+'</span><span class="v">'+it.v+'</span>'
+      +'<span class="d '+cls+'">'+sign+' '+dv+(it.unit?' '+it.unit:'')+' <span style="color:var(--faint);font-weight:600">전일比</span></span></div>';
+  }).join('');
+}
+
+function renderRank(D){
+  const sorted=[...D.days].sort((a,b)=>b.rate-a.rate).slice(0,8);
+  const max=sorted[0].rate;
+  $('rank-list').innerHTML=sorted.map((e,i)=>
+    '<div class="rrow'+(i===0?' top':'')+'"><span class="no">'+(i+1)+'</span>'
+    +'<span class="dt">'+fmtMD(e.d)+'</span>'
+    +'<span class="bar"><i style="width:'+Math.max(6,e.rate/max*100)+'%"></i></span>'
+    +'<span class="pv">'+f1(e.rate)+'%</span></div>'
+  ).join('');
+}
+
+function renderCalendar(D){
+  const end=D.end, Y=end.getFullYear(), M=end.getMonth();
+  $('cal-title').textContent=Y+'년 '+(M+1)+'월';
+  const byKey={}; for(const e of D.days) byKey[e.d.getMonth()+'-'+e.d.getDate()]=e.rate;
+  const maxR=Math.max(...D.days.map(e=>e.rate));
+  const first=new Date(Y,M,1).getDay(), dim=new Date(Y,M+1,0).getDate();
+  let h='';
+  for(const w of ['일','월','화','수','목','금','토']) h+='<div class="wd">'+w+'</div>';
+  for(let i=0;i<first;i++) h+='<div class="day off"></div>';
+  for(let d=1;d<=dim;d++){
+    const key=M+'-'+d, rate=byKey[key];
+    const future=d>end.getDate();
+    let style='', cls='day', title='';
+    if(future) cls+=' future';
+    else if(rate!=null){
+      const a=0.07+0.83*(rate/maxR);
+      style='background:rgba(220,38,38,'+a.toFixed(2)+')'+(a>0.5?';color:#fff':'');
+      title=f1(rate)+'%';
+    }
+    if(d===end.getDate()) cls+=' sel';
+    h+='<div class="'+cls+'" style="'+style+'" title="'+title+'">'+d+'</div>';
+  }
+  $('cal-grid').innerHTML=h;
+}
+
+function renderNotes(D){
+  const worst=[...D.days].sort((a,b)=>b.rate-a.rate)[0];
+  const wp=[...D.procs].sort((a,b)=>b.rate-a.rate)[0];
+  $('notes').innerHTML=
+    '<div class="note warn"><i></i><span><b>'+fmtMD(worst.d)+'</b> 불량률 <b>'+f1(worst.rate)+'%</b> 급등 — 원인 분석 리포트 공유됨</span></div>'
+    +'<div class="note"><i></i><span>금주 최다 불량 공정: <b>'+wp.name+'</b> ('+f1(wp.rate)+'%)</span></div>'
+    +'<div class="note"><i></i><span>주간 품질 리포트는 <b>매주 금요일</b> 자동 발행됩니다</span></div>';
+}
+
+/* 30일 콤보 차트: 막대=불량률, 꺾은선=CPK */
+function renderTrend(D){
+  const box=$('trend'); box.innerHTML='';
+  const w=box.clientWidth||800, h=box.clientHeight||260;
+  const padL=42,padR=42,padT=12,padB=24;
+  const pw=w-padL-padR, ph=h-padT-padB;
+  const maxR=Math.max(4,Math.ceil(Math.max(...D.days.map(e=>e.rate))*1.12));
+  const yR=v=>padT+ph-(v/maxR)*ph;
+  const cpkMin=0.5,cpkMax=2.0;
+  const yC=v=>padT+ph-((clamp(v,cpkMin,cpkMax)-cpkMin)/(cpkMax-cpkMin))*ph;
+  const xAt=i=>padL+(i+0.5)*(pw/30);
+  const bw=Math.max(6,(pw/30)*0.58);
+  let s='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" font-family="inherit">';
+  /* 그리드 + 좌축(%) */
+  const ticks=4;
+  for(let i=0;i<=ticks;i++){
+    const v=maxR/ticks*i, y=yR(v);
+    s+='<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" stroke="#edf0f5" stroke-width="1"/>';
+    s+='<text x="'+(padL-7)+'" y="'+(y+3.5)+'" text-anchor="end" font-size="10" fill="#98a1b0">'+f1(v)+'%</text>';
+  }
+  /* 우축(CPK) */
+  for(const v of [0.5,1.0,1.5,2.0]){
+    s+='<text x="'+(w-padR+7)+'" y="'+(yC(v)+3.5)+'" font-size="10" fill="#7cc0e8">'+v.toFixed(1)+'</text>';
+  }
+  /* CPK 1.33 기준선 */
+  s+='<line x1="'+padL+'" y1="'+yC(1.33)+'" x2="'+(w-padR)+'" y2="'+yC(1.33)+'" stroke="#0ea5e9" stroke-width="1" stroke-dasharray="3 4" opacity=".45"/>';
+  /* 막대 */
+  D.days.forEach((e,i)=>{
+    const x=xAt(i)-bw/2, y=yR(e.rate), spike=e.rate>=4;
+    s+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+(padT+ph-y).toFixed(1)+'" rx="2.5" fill="'+(spike?'#dc2626':'#4f46e5')+'" opacity="'+(spike?0.9:0.62)+'"><title>'+fmtMD(e.d)+' · 불량률 '+f1(e.rate)+'% · '+e.err+'/'+fmtN(e.input)+'</title></rect>';
+  });
+  /* CPK 꺾은선 */
+  const pts=D.days.map((e,i)=>xAt(i).toFixed(1)+','+yC(e.cpk).toFixed(1)).join(' ');
+  s+='<polyline points="'+pts+'" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  D.days.forEach((e,i)=>{ if(i%5===2||i===29) s+='<circle cx="'+xAt(i).toFixed(1)+'" cy="'+yC(e.cpk).toFixed(1)+'" r="2.6" fill="#fff" stroke="#0ea5e9" stroke-width="1.6"><title>'+fmtMD(e.d)+' · CPK '+f2(e.cpk)+'</title></circle>'; });
+  /* x축 라벨 */
+  D.days.forEach((e,i)=>{ if(i%5===0||i===29) s+='<text x="'+xAt(i).toFixed(1)+'" y="'+(h-7)+'" text-anchor="middle" font-size="10" fill="#98a1b0">'+fmtMD(e.d)+'</text>'; });
+  s+='</svg>';
+  box.innerHTML=s;
+}
+
+function renderSummary(D){
+  const totPop=D.procs.reduce((a,p)=>a+p.pop,0), totNg=D.procs.reduce((a,p)=>a+p.ng,0);
+  const avgCpk=D.procs.reduce((a,p)=>a+p.cpk,0)/8;
+  const worst=[...D.procs].sort((a,b)=>b.rate-a.rate)[0];
+  $('sum-strip').innerHTML=
+    '<div class="schip"><div class="k">종합 불량률</div><div class="v">'+f1(totNg/totPop*100)+'<small>%</small></div></div>'
+    +'<div class="schip"><div class="k">평균 CPK</div><div class="v">'+f2(avgCpk)+'</div></div>'
+    +'<div class="schip"><div class="k">총 검사 모수</div><div class="v">'+fmtN(totPop)+'<small> 대</small></div></div>'
+    +'<div class="schip"><div class="k">최다 불량 공정</div><div class="v" style="font-size:15px;padding-top:3px">'+worst.name+'</div></div>';
+  const maxR=Math.max(...D.procs.map(p=>p.rate));
+  $('sum-body').innerHTML=D.procs.map(p=>{
+    const [jt,,jc]=statusOf(p.cpk);
+    const barColor=p.cpk<1.0?'var(--bad)':p.cpk<1.33?'var(--warn)':'var(--acc)';
+    return '<tr><td class="nm">'+p.name+'</td>'
+      +'<td style="width:34%"><div class="btrack"><i style="width:'+Math.max(4,p.rate/maxR*100)+'%;background:'+barColor+'"></i></div></td>'
+      +'<td>'+f1(p.rate)+'%</td>'
+      +'<td><span class="cpk-chip '+jc+'">'+f2(p.cpk)+'</span></td>'
+      +'<td>'+fmtN(p.pop)+'</td><td>'+fmtN(p.ng)+'</td>'
+      +'<td><span class="judge '+jc+'">'+jt+'</span></td></tr>';
+  }).join('');
+}
+
+function renderProcRank(D){
+  const sorted=[...D.procs].sort((a,b)=>b.rate-a.rate);
+  const maxR=sorted[0].rate;
+  $('prk-list').innerHTML=sorted.map((p,i)=>{
+    const worse=p.spark[6]>p.spark[0];
+    return '<div class="prow'+(i<3?' top'+(i+1):'')+'">'
+      +'<span class="no">'+(i+1)+'</span>'
+      +'<span><span class="nm">'+p.name+'</span><br><span class="sub">모수 '+fmtN(p.pop)+' · 불량 '+p.ng+'건 · CPK '+f2(p.cpk)+'</span></span>'
+      +'<span class="rv">'+f1(p.rate)+'%<span class="arr '+(worse?'worse':'better')+'">'+(worse?'▲':'▼')+'</span></span>'
+      +'<span class="track"><i style="width:'+Math.max(5,p.rate/maxR*100)+'%"></i></span>'
+      +'</div>';
+  }).join('');
+}
+
+function sparkSVG(vals,color){
+  const min=Math.min(...vals), max=Math.max(...vals), span=(max-min)||1;
+  const pts=vals.map((v,i)=>(i/(vals.length-1)*100).toFixed(1)+','+(26-((v-min)/span)*22+2).toFixed(1)).join(' ');
+  const last=pts.split(' ').pop().split(',');
+  return '<svg viewBox="0 0 100 30" preserveAspectRatio="none">'
+    +'<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>'
+    +'<circle cx="'+last[0]+'" cy="'+last[1]+'" r="2.4" fill="'+color+'" vector-effect="non-scaling-stroke"/></svg>';
+}
+
+function renderProcCards(D){
+  $('pcards').innerHTML=D.procs.map(p=>{
+    const [,dc]=statusOf(p.cpk);
+    const up=p.delta>0.0001, dn=p.delta<-0.0001;
+    const color=p.cpk<1.0?'#dc2626':p.cpk<1.33?'#d97706':'#4f46e5';
+    return '<section class="card pcard">'
+      +'<div class="head"><span class="nm">'+p.name+'</span><span class="dot '+dc+'"></span></div>'
+      +'<div class="big"><span class="v">'+f1(p.rate)+'%</span>'
+      +'<span class="d '+(up?'up':dn?'dn':'flat')+'">'+(up?'▲':dn?'▼':'—')+' '+f1(Math.abs(p.delta))+'%p</span></div>'
+      +'<div class="spark">'+sparkSVG(p.spark,color)+'</div>'
+      +'<div class="foot"><span>모수 '+fmtN(p.pop)+' · 불량 '+p.ng+'건</span><span>CPK '+f2(p.cpk)+'</span></div>'
+      +'</section>';
+  }).join('');
+}
+
+/* ═══════════ 조립 ═══════════ */
+let CUR=null;
+function renderAll(){
+  const model=$('sel-model').value, stage=$('sel-stage').value;
+  const dateStr=$('sel-date').value||'2026-07-23';
+  CUR=buildData(model,stage,dateStr);
+  renderStats(CUR); renderRank(CUR); renderCalendar(CUR); renderNotes(CUR);
+  renderTrend(CUR); renderSummary(CUR); renderProcRank(CUR); renderProcCards(CUR);
+}
+['sel-model','sel-stage','sel-date'].forEach(id=>$(id).addEventListener('change',renderAll));
+let _rz; window.addEventListener('resize',()=>{ clearTimeout(_rz); _rz=setTimeout(()=>{ if(CUR) renderTrend(CUR); },160); });
+renderAll();
+
+/* 배포 신선도 표시 */
+const BUILD_TS = 1785134822733;
+(function(){
+  const m=Math.max(1,Math.round((Date.now()-BUILD_TS)/60000));
+  const rel=m<60?m+'분 전 수정':m<1440?Math.round(m/60)+'시간 전 수정':Math.round(m/1440)+'일 전 수정';
+  $('build').textContent='SMP PORTAL 시안 I-1 · '+rel;
+  $('upd').textContent=rel;
+})();
+</script>
+</body>
+</html>
