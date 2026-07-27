@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f0efed;color:#111;font-family:'Archivo','Noto Sans KR','Apple SD Gothic Neo',sans-serif}
+a{color:#111;text-decoration:none}a:hover{color:#d61f2c}
+</style>
+</helmet>
+<div style="max-width:1720px;min-width:1320px;margin:0 auto;padding:26px 32px 56px;box-sizing:border-box">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+    <div style="display:flex;align-items:baseline;gap:14px">
+      <div style="font-size:22px;font-weight:800;letter-spacing:.1em">SMP PORTAL<span style="color:#d61f2c">.</span></div>
+      <div style="font-size:12px;color:#555;letter-spacing:.06em">스마트폰 제조공정 품질 대시보드</div>
+    </div>
+    <nav style="display:flex;background:#fff;border:2px solid #111">
+      <a href="SMP Portal A.dc.html" style="padding:8px 15px;font-size:12px;font-weight:700;letter-spacing:.04em;color:#555;border-right:2px solid #111">A · 라이트</a>
+      <a href="SMP Portal B.dc.html" style="padding:8px 15px;font-size:12px;font-weight:700;letter-spacing:.04em;color:#555;border-right:2px solid #111">B · 다크</a>
+      <a href="SMP Portal C.dc.html" style="padding:8px 15px;font-size:12px;font-weight:700;letter-spacing:.04em;color:#555;border-right:2px solid #111">C · 웜</a>
+      <a href="SMP Portal D.dc.html" style="padding:8px 15px;font-size:12px;font-weight:700;letter-spacing:.04em;background:#111;color:#fff">D · 그리드</a>
+    </nav>
+  </div>
+  <div style="display:grid;grid-template-columns:250px minmax(0,1fr) 320px 320px;grid-template-rows:264px 330px auto auto;grid-template-areas:'info err rank cal' 'chart chart rank note' 'sum sum sum side' 'small small small side';gap:12px">
+    <div style="grid-area:info;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#fff;border:2px solid #111;padding:14px 18px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px">
+        <div style="font-size:10px;font-weight:700;color:#555;letter-spacing:.14em;text-transform:uppercase">모델명 / MODEL</div>
+        <div style="font-size:17px;font-weight:700;font-family:'Space Mono',monospace">B8 SM-XYZ982</div>
+      </div>
+      <div style="background:#fff;border:2px solid #111;padding:14px 18px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px">
+        <div style="font-size:10px;font-weight:700;color:#555;letter-spacing:.14em;text-transform:uppercase">단계 / PHASE</div>
+        <div style="font-size:17px;font-weight:700;font-family:'Space Mono',monospace">PV2-1</div>
+      </div>
+      <div style="background:#fff;border:2px solid #111;padding:14px 18px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px">
+        <div style="font-size:10px;font-weight:700;color:#555;letter-spacing:.14em;text-transform:uppercase">날짜 / DATE</div>
+        <div style="font-size:17px;font-weight:700;font-family:'Space Mono',monospace">2026.07.27</div>
+      </div>
+    </div>
+    <div style="grid-area:err;background:#fff;border:2px solid #111;padding:18px 24px;display:flex;flex-direction:column">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #111;padding-bottom:10px">
+        <div style="font-size:13px;font-weight:800;letter-spacing:.08em">당일 에러 요약</div>
+        <div style="font-size:11px;color:#555;font-family:'Space Mono',monospace">07.27 06:00 갱신</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;flex:1;align-items:center">
+        <div style="border-right:1px solid #ddd;padding-right:16px">
+          <div style="font-size:11px;color:#555;margin-bottom:6px;letter-spacing:.06em">불량률</div>
+          <div style="font-size:30px;font-weight:700;font-family:'Space Mono',monospace;color:#d61f2c">2.42%</div>
+          <div style="font-size:11px;color:#111;margin-top:4px">▼ 0.31%p 전일 대비</div>
+        </div>
+        <div style="border-right:1px solid #ddd;padding:0 16px">
+          <div style="font-size:11px;color:#555;margin-bottom:6px;letter-spacing:.06em">인풋</div>
+          <div style="font-size:30px;font-weight:700;font-family:'Space Mono',monospace">1,240</div>
+          <div style="font-size:11px;color:#888;margin-top:4px">계획 1,250</div>
+        </div>
+        <div style="border-right:1px solid #ddd;padding:0 16px">
+          <div style="font-size:11px;color:#555;margin-bottom:6px;letter-spacing:.06em">에러</div>
+          <div style="font-size:30px;font-weight:700;font-family:'Space Mono',monospace">30</div>
+          <div style="font-size:11px;color:#888;margin-top:4px">전일 38</div>
+        </div>
+        <div style="padding-left:16px">
+          <div style="font-size:11px;color:#555;margin-bottom:6px;letter-spacing:.06em">CPK</div>
+          <div style="font-size:30px;font-weight:700;font-family:'Space Mono',monospace">1.31</div>
+          <div style="font-size:11px;color:#888;margin-top:4px">목표 1.33</div>
+        </div>
+      </div>
+    </div>
+    <div style="grid-area:rank;background:#fff;border:2px solid #111;padding:18px 20px;display:flex;flex-direction:column;min-height:0">
+      <div style="font-size:13px;font-weight:800;letter-spacing:.08em;border-bottom:2px solid #111;padding-bottom:10px">최근 1달 데일리 순위 <span style="font-weight:400;font-size:11px;color:#555">불량률 상위</span></div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px;flex:1">
+        <sc-for list="{{ rankDays }}" as="r" hint-placeholder-count="7">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:22px;height:22px;border:2px solid #111;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace">{{ r.no }}</div>
+            <div style="width:62px;font-size:12.5px;font-weight:500">{{ r.label }}</div>
+            <div style="flex:1;height:10px;background:#eee;border:1px solid #ccc;box-sizing:border-box"><div style="height:100%;width:{{ r.w }};background:{{ r.col }}"></div></div>
+            <div style="width:52px;text-align:right;font-family:'Space Mono',monospace;font-size:12.5px;font-weight:700;color:{{ r.col }}">{{ r.rate }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="border-top:2px solid #111;padding-top:12px;display:flex;justify-content:space-between;font-size:11.5px;color:#555">
+        <span>월 평균 <b style="font-family:'Space Mono',monospace;color:#111">{{ mAvg }}</b></span>
+        <span>최고 <b style="font-family:'Space Mono',monospace;color:#d61f2c">{{ mMax }}</b></span>
+        <span>최저 <b style="font-family:'Space Mono',monospace;color:#111">{{ mMin }}</b></span>
+      </div>
+    </div>
+    <div style="grid-area:cal;background:#fff;border:2px solid #111;padding:18px 20px;display:flex;flex-direction:column">
+      <div style="font-size:13px;font-weight:800;letter-spacing:.08em;border-bottom:2px solid #111;padding-bottom:10px">7월 불량률 캘린더</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-size:9.5px;color:#555;text-align:center;margin:12px 0 6px;font-weight:700">
+        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;gap:3px;flex:1">
+        <sc-for list="{{ calCells }}" as="c" hint-placeholder-count="35">
+          <div style="background:{{ c.bg }};color:{{ c.fg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-family:'Space Mono',monospace">{{ c.t }}</div>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#555;margin-top:10px;justify-content:flex-end">
+        낮음 <span style="width:10px;height:10px;background:rgba(214,31,44,.12)"></span><span style="width:10px;height:10px;background:rgba(214,31,44,.5)"></span><span style="width:10px;height:10px;background:rgba(214,31,44,.95)"></span> 높음
+      </div>
+    </div>
+    <div style="grid-area:note;background:#fff;border:2px solid #111;padding:18px 20px">
+      <div style="font-size:13px;font-weight:800;letter-spacing:.08em;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px">공정 알림</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="width:8px;height:8px;background:#d61f2c;margin-top:5px;flex-shrink:0"></span>
+          <div style="font-size:12.5px;line-height:1.5">07/15 피캡 틸트 불량률 12.9% 급증 — 3호기 지그 재캘리브레이션 완료</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="width:8px;height:8px;background:#111;margin-top:5px;flex-shrink:0"></span>
+          <div style="font-size:12.5px;line-height:1.5">07/21 메인 리어 단차 CPK 1.0 미만 진입 — 원인 분석 중</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="width:8px;height:8px;background:#888;margin-top:5px;flex-shrink:0"></span>
+          <div style="font-size:12.5px;line-height:1.5">07/24 PV2-1 측정 프로그램 v3.2 배포</div>
+        </div>
+      </div>
+    </div>
+    <div style="grid-area:chart;background:#fff;border:2px solid #111;padding:18px 24px;display:flex;flex-direction:column">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #111;padding-bottom:10px">
+        <div style="font-size:13px;font-weight:800;letter-spacing:.08em">지난 30일 불량률 · CPK 추이</div>
+        <div style="display:flex;gap:16px;font-size:11px;color:#555;align-items:center">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#c9c9c9"></span>불량률</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:2px;background:#111"></span>CPK</span>
+        </div>
+      </div>
+      <div style="flex:1;position:relative;margin-top:16px;min-height:0">
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between">
+          <div style="border-top:1px solid #e5e5e5"></div><div style="border-top:1px solid #e5e5e5"></div><div style="border-top:1px solid #e5e5e5"></div><div></div>
+        </div>
+        <div style="position:absolute;inset:0;display:flex;align-items:flex-end;gap:3px">
+          <sc-for list="{{ bars }}" as="b" hint-placeholder-count="30">
+            <div title="{{ b.tip }}" style="flex:1;height:{{ b.h }};background:{{ b.bg }}"></div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ showCpk }}" hint-placeholder-val="{{ true }}">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible">
+            <polyline points="{{ cpkPts }}" fill="none" stroke="#111" stroke-width="2" vector-effect="non-scaling-stroke"></polyline>
+          </svg>
+        </sc-if>
+      </div>
+      <div style="display:flex;gap:3px;margin-top:8px">
+        <sc-for list="{{ bars }}" as="b" hint-placeholder-count="30">
+          <div style="flex:1;font-size:9px;color:#888;text-align:center;font-family:'Space Mono',monospace;white-space:nowrap">{{ b.lab }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="grid-area:sum;background:#fff;border:2px solid #111;padding:18px 24px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #111;padding-bottom:10px">
+        <div style="font-size:13px;font-weight:800;letter-spacing:.08em">8개 항목 종합 요약</div>
+        <div style="font-size:11px;color:#555">오차율 · CPK · 모수 · 불량수</div>
+      </div>
+      <div style="display:grid;grid-template-columns:170px 1fr 90px 80px 90px 80px 80px;gap:12px;padding:10px 4px;font-size:10px;color:#555;border-bottom:1px solid #ccc;font-weight:700;letter-spacing:.08em">
+        <div>항목</div><div>불량률 분포</div><div style="text-align:right">불량률</div><div style="text-align:right">CPK</div><div style="text-align:right">모수</div><div style="text-align:right">불량수</div><div style="text-align:center">상태</div>
+      </div>
+      <sc-for list="{{ items }}" as="it" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:170px 1fr 90px 80px 90px 80px 80px;gap:12px;align-items:center;padding:12px 4px;border-bottom:1px solid #e5e5e5">
+          <div style="font-size:13px;font-weight:700">{{ it.name }}</div>
+          <div style="height:12px;background:#eee;border:1px solid #ccc;box-sizing:border-box"><div style="height:100%;width:{{ it.w }};background:{{ it.col }}"></div></div>
+          <div style="text-align:right;font-family:'Space Mono',monospace;font-size:12.5px;font-weight:700">{{ it.rate }}</div>
+          <div style="text-align:right;font-family:'Space Mono',monospace;font-size:12.5px;font-weight:700;color:{{ it.col }}">{{ it.cpk }}</div>
+          <div style="text-align:right;font-family:'Space Mono',monospace;font-size:12.5px;color:#555">{{ it.n }}</div>
+          <div style="text-align:right;font-family:'Space Mono',monospace;font-size:12.5px;color:#555">{{ it.ng }}</div>
+          <div style="text-align:center"><span style="display:inline-block;padding:2px 9px;font-size:10.5px;font-weight:700;border:2px solid {{ it.col }};color:{{ it.col }}">{{ it.chip }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="grid-area:side;background:#fff;border:2px solid #111;padding:18px 20px;display:flex;flex-direction:column">
+      <div style="font-size:13px;font-weight:800;letter-spacing:.08em;border-bottom:2px solid #111;padding-bottom:10px">8개 항목 순위 및 요약</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;margin-top:14px">
+        <sc-for list="{{ sorted }}" as="s" hint-placeholder-count="8">
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #ccc">
+            <div style="width:24px;height:24px;border:2px solid #111;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace">{{ s.no }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12.5px;font-weight:700">{{ s.name }}</div>
+              <div style="font-size:10.5px;color:#888">모수 {{ s.n }} · 불량 {{ s.ng }}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-family:'Space Mono',monospace;font-size:12.5px;font-weight:700;color:{{ s.col }}">{{ s.rate }}</div>
+              <div style="font-size:10.5px;color:#888;font-family:'Space Mono',monospace">CPK {{ s.cpk }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top:14px;padding:12px 14px;background:#111;font-size:12px;line-height:1.5;color:#fff">
+        관리 필요 · <b style="color:#ff8a93">{{ worst.name }}</b> — 불량률 {{ worst.rate }}, CPK {{ worst.cpk }}
+      </div>
+    </div>
+    <div style="grid-area:small;display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+      <sc-for list="{{ items }}" as="it" hint-placeholder-count="8">
+        <div style="background:#fff;border:2px solid #111;padding:15px 18px;display:flex;flex-direction:column;gap:9px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <div style="font-size:12.5px;font-weight:700">{{ it.name }}</div>
+            <span style="padding:1px 8px;font-size:10px;font-weight:700;border:2px solid {{ it.col }};color:{{ it.col }}">{{ it.chip }}</span>
+          </div>
+          <div style="font-size:26px;font-weight:700;font-family:'Space Mono',monospace;color:{{ it.col }}">{{ it.rate }}</div>
+          <div style="height:8px;background:#eee;border:1px solid #ccc;box-sizing:border-box"><div style="height:100%;width:{{ it.w }};background:{{ it.col }}"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#555;font-family:'Space Mono',monospace">
+            <span>CPK {{ it.cpk }}</span><span>모수 {{ it.n }}</span><span>불량 {{ it.ng }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showCpkLine&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;차트&quot;},&quot;highlightThreshold&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:6,&quot;min&quot;:2,&quot;max&quot;:13,&quot;step&quot;:0.5,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;차트&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const C = { bar:'#c9c9c9', hot:'#d61f2c', cal:'214,31,44', calFg:'#111', calMute:'#f4f4f4', calMuteFg:'#aaa', good:'#111', warn:'#8a6d1f', bad:'#d61f2c', rowFg:'#111', calHotFg:'#fff' };
+    const th = this.props.highlightThreshold ?? 6;
+    const showCpk = this.props.showCpkLine ?? true;
+    if (!this._d) {
+      let s = 42; const rnd = () => (s = s * 16807 % 2147483647) / 2147483647;
+      const days = [];
+      for (let i = 0; i < 30; i++) {
+        const dt = new Date(2026, 5, 28 + i);
+        let rate = +(1.2 + rnd() * 3.2 + (rnd() < .18 ? rnd() * 4.5 : 0)).toFixed(1);
+        if (i === 17) rate = 12.9; if (i === 8) rate = 9.4; if (i === 24) rate = 7.6;
+        const cpk = +Math.min(1.72, Math.max(.72, 1.68 - rate * .075 + (rnd() - .5) * .1)).toFixed(2);
+        days.push({ m: dt.getMonth() + 1, d: dt.getDate(), label: (dt.getMonth() + 1) + '/' + dt.getDate(), rate, cpk });
+      }
+      const raw = [['씨에프알피 틸트',1.77,1.42,1240,22],['메인유비 틸트',2.50,1.28,1240,31],['메인 리어 단차',4.69,0.98,1238,58],['서브 리어 단차',1.53,1.51,1238,19],['윙플레이트 단차',3.56,1.12,1235,44],['오픈각도(전)',0.97,1.63,1235,12],['오픈각도(후)',2.19,1.35,1235,27],['피캡 틸트',6.01,0.84,1232,74]];
+      this._d = { days, raw };
+    }
+    const { days, raw } = this._d;
+    const max = Math.max(...days.map(d => d.rate));
+    const bars = days.map((d, i) => ({
+      h: (d.rate / max * 100).toFixed(1) + '%',
+      bg: d.rate >= th ? C.hot : C.bar,
+      tip: d.label + ' · 불량률 ' + d.rate + '% · CPK ' + d.cpk.toFixed(2),
+      lab: i % 5 === 4 ? d.label : ''
+    }));
+    const cpkPts = days.map((d, i) => (i / 29 * 100).toFixed(1) + ',' + (38 - (d.cpk - .7) / 1.1 * 34).toFixed(1)).join(' ');
+    const rankDays = [...days].sort((a, b) => b.rate - a.rate).slice(0, 7).map((d, i) => ({
+      no: i + 1, label: d.m + '월 ' + d.d + '일', rate: d.rate.toFixed(1) + '%',
+      w: (d.rate / max * 100).toFixed(0) + '%', col: d.rate >= th ? C.hot : C.rowFg
+    }));
+    const first = new Date(2026, 6, 1).getDay();
+    const calCells = [];
+    for (let i = 0; i < first; i++) calCells.push({ t: '', bg: 'transparent', fg: 'transparent' });
+    for (let n = 1; n <= 31; n++) {
+      const src = days.find(d => d.m === 7 && d.d === n);
+      if (src) { const a = .1 + src.rate / max * .85; calCells.push({ t: '' + n, bg: 'rgba(' + C.cal + ',' + a.toFixed(2) + ')', fg: a > .5 ? C.calHotFg : C.calFg }); }
+      else calCells.push({ t: '' + n, bg: C.calMute, fg: C.calMuteFg });
+    }
+    const imax = Math.max(...raw.map(r => r[1]));
+    const items = raw.map(r => {
+      const st = r[2] >= 1.33 ? 0 : r[2] >= 1 ? 1 : 2;
+      return { name: r[0], rate: r[1].toFixed(2) + '%', cpk: r[2].toFixed(2), n: r[3].toLocaleString('en-US'), ng: '' + r[4],
+        w: (r[1] / imax * 100).toFixed(0) + '%',
+        col: [C.good, C.warn, C.bad][st], chip: ['양호', '주의', '관리'][st], _r: r[1] };
+    });
+    const sorted = items.slice().sort((a, b) => b._r - a._r).map((it, i) => Object.assign({}, it, { no: i + 1 }));
+    const rates = days.map(d => d.rate);
+    return { bars, cpkPts, showCpk, rankDays, calCells, items, sorted, worst: sorted[0],
+      mAvg: (rates.reduce((a, b) => a + b, 0) / rates.length).toFixed(1) + '%',
+      mMax: Math.max(...rates).toFixed(1) + '%', mMin: Math.min(...rates).toFixed(1) + '%' };
+  }
+}
+</script>
+</body>
+</html>

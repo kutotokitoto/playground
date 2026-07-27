@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMP 포탈 대시보드 — 시안 모음 2</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Pretendard","Segoe UI","Malgun Gothic",system-ui,sans-serif;
+    background:#f4f5f7;color:#1e2126;-webkit-font-smoothing:antialiased;line-height:1.5}
+  header{padding:40px 24px 24px;max-width:1120px;margin:0 auto}
+  h1{margin:0 0 6px;font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .sub{margin:0;color:#6b7280;font-size:14px}
+  .sub b{color:#374151}
+  main{max-width:1120px;margin:0 auto;padding:8px 24px 56px}
+  section{margin-top:30px}
+  h2{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;margin:0 0 3px}
+  .dot{width:11px;height:11px;border-radius:50%;flex:none}
+  .cnt{font-size:12px;font-weight:600;color:#8a90a0;background:#e9ebf0;border-radius:999px;padding:1px 9px}
+  .blurb{margin:0 0 13px;color:#8a90a0;font-size:12.5px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+  .card{position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:104px;
+    padding:15px 16px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;text-decoration:none;color:inherit;
+    overflow:hidden;transition:transform .12s,box-shadow .12s,border-color .12s}
+  .card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(30,33,38,.12);border-color:#d1d5db}
+  .bar{position:absolute;top:0;left:0;right:0;height:4px}
+  .ct{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+  .tt{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+  .fn{font-size:11px;color:#9aa0ad;font-family:ui-monospace,Consolas,monospace;word-break:break-all}
+  .go{align-self:flex-end;margin-top:10px;font-size:12px;font-weight:600;color:#6b7280}
+  .card:hover .go{color:#111}
+  footer{max-width:1120px;margin:0 auto;padding:0 24px 40px;color:#aab0bd;font-size:11.5px}
+  @media (prefers-color-scheme:dark){
+    body{background:#0f1216;color:#e6e8ec}
+    .sub{color:#9aa0ad}.sub b{color:#cbd0d8}
+    .card{background:#181c22;border-color:#262b33}
+    .card:hover{box-shadow:0 10px 26px rgba(0,0,0,.4);border-color:#39404a}
+    .cnt{background:#242932;color:#9aa0ad}
+    .go{color:#9aa0ad}.card:hover .go{color:#fff}
+    .fn{color:#6b7280}
+    footer{color:#5a616d}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>SMP 포탈 대시보드 — 시안 모음 2</h1>
+  <p class="sub">3개 세트 · 총 <b>12개</b> 시안. 카드를 누르면 새 탭에서 열립니다. (정적 시안 — 열람용)</p>
+</header>
+<main>
+  <section>
+    <h2><span class="dot" style="background:#6366f1"></span>SMP 포탈 대시보드 — 데이터 연동형 <span class="cnt">4</span></h2>
+    <p class="blurb">Portal A·B·C·D (공용 smp-data.js 데이터셋 사용)</p>
+    <div class="grid">
+      <a class="card" href="set-1/SMP%20Portal%20A.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#6366f1"></span>
+        <span class="ct"><span class="tt">SMP Portal A</span><span class="fn">SMP Portal A.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+      <a class="card" href="set-1/SMP%20Portal%20B.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#6366f1"></span>
+        <span class="ct"><span class="tt">SMP Portal B</span><span class="fn">SMP Portal B.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+      <a class="card" href="set-1/SMP%20Portal%20C.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#6366f1"></span>
+        <span class="ct"><span class="tt">SMP Portal C</span><span class="fn">SMP Portal C.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+      <a class="card" href="set-1/SMP%20Portal%20D.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#6366f1"></span>
+        <span class="ct"><span class="tt">SMP Portal D</span><span class="fn">SMP Portal D.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+    </div>
+  </section>
+  <section>
+    <h2><span class="dot" style="background:#0ea5e9"></span>SMP 포탈 대시보드 — 변형 2차 <span class="cnt">4</span></h2>
+    <p class="blurb">Portal A·B·C·D</p>
+    <div class="grid">
+      <a class="card" href="set-2/SMP%20Portal%20A.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#0ea5e9"></span>
+        <span class="ct"><span class="tt">SMP Portal A</span><span class="fn">SMP Portal A.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+      <a class="card" href="set-2/SMP%20Portal%20B.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#0ea5e9"></span>
+        <span class="ct"><span class="tt">SMP Portal B</span><span class="fn">SMP Portal B.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+      <a class="card" href="set-2/SMP%20Portal%20C.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#0ea5e9"></span>
+        <span class="ct"><span class="tt">SMP Portal C</span><span class="fn">SMP Portal C.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+      <a class="card" href="set-2/SMP%20Portal%20D.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#0ea5e9"></span>
+        <span class="ct"><span class="tt">SMP Portal D</span><span class="fn">SMP Portal D.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+    </div>
+  </section>
+  <section>
+    <h2><span class="dot" style="background:#f59e0b"></span>SMP 포탈 대시보드 — 네이밍 시안 <span class="cnt">4</span></h2>
+    <p class="blurb">Clarity · Control Room · Paper · Swiss</p>
+    <div class="grid">
+      <a class="card" href="set-3/SMP-Portal-A-Clarity.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#f59e0b"></span>
+        <span class="ct"><span class="tt">SMP-Portal-A-Clarity</span><span class="fn">SMP-Portal-A-Clarity.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+      <a class="card" href="set-3/SMP-Portal-B-Control-Room.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#f59e0b"></span>
+        <span class="ct"><span class="tt">SMP-Portal-B-Control-Room</span><span class="fn">SMP-Portal-B-Control-Room.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+      <a class="card" href="set-3/SMP-Portal-C-Paper.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#f59e0b"></span>
+        <span class="ct"><span class="tt">SMP-Portal-C-Paper</span><span class="fn">SMP-Portal-C-Paper.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+      <a class="card" href="set-3/SMP-Portal-D-Swiss.dc.html" target="_blank" rel="noopener">
+        <span class="bar" style="background:#f59e0b"></span>
+        <span class="ct"><span class="tt">SMP-Portal-D-Swiss</span><span class="fn">SMP-Portal-D-Swiss.dc.html</span></span>
+        <span class="go">열기 ↗</span>
+      </a>
+    </div>
+  </section>
+</main>
+<footer>각 시안은 원본 그대로 배치되었습니다(support.js 런타임·smp-data.js·uploads 포함). 폰트는 웹 CDN에서 로드됩니다.</footer>
+</body>
+</html>

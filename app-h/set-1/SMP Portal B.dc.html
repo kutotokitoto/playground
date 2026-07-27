@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0f16;-webkit-font-smoothing:antialiased}
+a{color:#3fd2e8}a:hover{color:#e6edf7}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#0a0f16;font-family:'IBM Plex Sans KR',Helvetica,sans-serif;color:#e6edf7">
+  <div style="display:flex;align-items:center;justify-content:space-between;height:58px;padding:0 24px;background:#101825;border-bottom:1px solid #1f2c3f;position:sticky;top:0;z-index:10">
+    <div style="display:flex;align-items:baseline;gap:12px">
+      <div style="font-family:'IBM Plex Sans KR',sans-serif;font-weight:700;font-size:17px;letter-spacing:0.08em">SMP PORTAL</div>
+      <div style="font-size:12px;color:#8fa1b8">스마트폰 제조 공정 품질 대시보드</div>
+    </div>
+    <div style="display:flex;gap:4px">
+      <a href="SMP Portal A.dc.html" style="display:flex;align-items:center;height:58px;padding:0 14px;font-size:13px;text-decoration:none;font-weight:500;color:#8fa1b8;border-bottom:2px solid transparent;box-sizing:border-box">A · 그라파이트</a>
+      <a href="SMP Portal B.dc.html" style="display:flex;align-items:center;height:58px;padding:0 14px;font-size:13px;text-decoration:none;font-weight:700;color:#e6edf7;border-bottom:2px solid #3fd2e8;box-sizing:border-box">B · 미드나이트</a>
+      <a href="SMP Portal C.dc.html" style="display:flex;align-items:center;height:58px;padding:0 14px;font-size:13px;text-decoration:none;font-weight:500;color:#8fa1b8;border-bottom:2px solid transparent;box-sizing:border-box">C · 아이보리</a>
+      <a href="SMP Portal D.dc.html" style="display:flex;align-items:center;height:58px;padding:0 14px;font-size:13px;text-decoration:none;font-weight:500;color:#8fa1b8;border-bottom:2px solid transparent;box-sizing:border-box">D · 스위스</a>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:280px minmax(0,1fr) 320px 320px;grid-template-rows:236px 336px auto 206px 206px;gap:16px;grid-template-areas:'info error daily cal' 'chart chart daily cal2' 'big big big rank' 'i1 i1 i1 rank' 'i2 i2 i2 .';padding:20px 24px 36px;min-width:1560px;max-width:1880px;margin:0 auto;box-sizing:border-box">
+
+    <div style="grid-area:info;display:grid;grid-template-rows:1fr 1fr 1fr;gap:16px">
+      <div style="background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:12px 16px;display:flex;flex-direction:column;justify-content:center;gap:3px">
+        <div style="font-size:11px;font-weight:500;color:#8fa1b8;letter-spacing:0.06em">모델명</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600">{{ model }}</div>
+      </div>
+      <div style="background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:12px 16px;display:flex;flex-direction:column;justify-content:center;gap:3px">
+        <div style="font-size:11px;font-weight:500;color:#8fa1b8;letter-spacing:0.06em">단계</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;color:#3fd2e8">{{ stage }}</div>
+      </div>
+      <div style="background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:12px 16px;display:flex;flex-direction:column;justify-content:center;gap:3px">
+        <div style="font-size:11px;font-weight:500;color:#8fa1b8;letter-spacing:0.06em">날짜</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600">2026.07.23 (목)</div>
+      </div>
+    </div>
+
+    <div style="grid-area:error;background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:16px 18px;display:flex;flex-direction:column;box-sizing:border-box">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.01em">당일 에러 요약</div>
+        <div style="font-size:11px;color:#5d7089">2026.07.23 기준</div>
+      </div>
+      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+        <div style="background:#0c1420;border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;justify-content:center;gap:2px">
+          <div style="font-size:11px;color:#8fa1b8">불량률</div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600">{{ today.rate }}</div>
+            <div style="font-size:11px;font-weight:700;color:{{ today.rateDC }}">{{ today.rateD }}</div>
+          </div>
+        </div>
+        <div style="background:#0c1420;border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;justify-content:center;gap:2px">
+          <div style="font-size:11px;color:#8fa1b8">인풋</div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600">{{ today.input }}</div>
+            <div style="font-size:11px;color:#5d7089">ea</div>
+          </div>
+        </div>
+        <div style="background:#0c1420;border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;justify-content:center;gap:2px">
+          <div style="font-size:11px;color:#8fa1b8">에러</div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600">{{ today.errors }}</div>
+            <div style="font-size:11px;font-weight:700;color:{{ today.errDC }}">{{ today.errD }}</div>
+          </div>
+        </div>
+        <div style="background:#0c1420;border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;justify-content:center;gap:2px">
+          <div style="font-size:11px;color:#8fa1b8">CPK</div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600">{{ today.cpk }}</div>
+            <div style="font-size:11px;font-weight:700;color:{{ today.cpkDC }}">{{ today.cpkD }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="grid-area:daily;background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:16px 18px;display:flex;flex-direction:column;box-sizing:border-box">
+      <div style="font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.01em">최근 1개월 데일리 순위</div>
+      <div style="font-size:11px;color:#5d7089;margin-top:2px">불량률 높은 날 기준 TOP 8</div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;margin-top:6px">
+        <sc-for list="{{ rank }}" as="rk" hint-placeholder-count="8">
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid #1a2536">
+            <div style="width:22px;height:22px;border-radius:999px;background:{{ rk.chipBg }};color:{{ rk.chipC }};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">{{ rk.no }}</div>
+            <div style="width:44px;font-family:'IBM Plex Mono',monospace;font-size:12px">{{ rk.date }}</div>
+            <div style="flex:1;height:6px;background:#1a2536;border-radius:999px;overflow:hidden"><div style="height:100%;width:{{ rk.w }};background:{{ rk.bar }};border-radius:999px"></div></div>
+            <div style="width:48px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600">{{ rk.rate }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="grid-area:cal;background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:16px 18px;display:flex;flex-direction:column;box-sizing:border-box">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.01em">7월 불량률 달력</div>
+        <div style="display:flex;align-items:center;gap:3px;font-size:10px;color:#5d7089">
+          <span>낮음</span>
+          <span style="width:10px;height:10px;border-radius:2px;background:rgba(255,96,114,.15)"></span>
+          <span style="width:10px;height:10px;border-radius:2px;background:rgba(255,96,114,.4)"></span>
+          <span style="width:10px;height:10px;border-radius:2px;background:rgba(255,96,114,.65)"></span>
+          <span style="width:10px;height:10px;border-radius:2px;background:rgba(255,96,114,.9)"></span>
+          <span>높음</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px;font-size:10px;color:#5d7089;text-align:center">
+        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+      </div>
+      <div style="flex:1;display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;gap:4px;margin-top:6px">
+        <sc-for list="{{ calCells }}" as="c" hint-placeholder-count="35">
+          <div style="border-radius:6px;background:{{ c.bg }};color:{{ c.fg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;box-shadow:inset 0 0 0 1.5px {{ c.b }}">{{ c.t }}</div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="grid-area:cal2;background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:16px 18px;display:flex;flex-direction:column;box-sizing:border-box">
+      <div style="font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.01em">공정 알림</div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;margin-top:6px">
+        <sc-for list="{{ notices }}" as="nt" hint-placeholder-count="4">
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid #1a2536">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3fd2e8;font-weight:600;white-space:nowrap;background:rgba(63,210,232,.13);border-radius:4px;padding:2px 6px">{{ nt.d }}</div>
+            <div style="font-size:12px;line-height:1.5">{{ nt.t }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="grid-area:chart;background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:18px 20px;display:flex;flex-direction:column;box-sizing:border-box">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.01em">지난 30일 불량률 · CPK 추이</div>
+          <div style="font-size:11px;color:#5d7089;margin-top:2px">2026.06.24 – 07.23 · 일별 집계</div>
+        </div>
+        <div style="display:flex;gap:14px;font-size:11px;color:#8fa1b8;align-items:center">
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#3fd2e8"></span>불량률 (막대)</div>
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:0;border-top:2px solid #b7c6da"></span>CPK (선)</div>
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:0;border-top:2px dashed #f2b04e"></span>{{ targetLabel }}</div>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;gap:10px;margin-top:14px">
+        <div style="display:flex;flex-direction:column;justify-content:space-between;font-size:10px;color:#5d7089;text-align:right;width:30px;padding-bottom:20px;font-family:'IBM Plex Mono',monospace">
+          <div>14%</div><div>10.5%</div><div>7%</div><div>3.5%</div><div>0%</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="position:relative;flex:1;border-bottom:1px solid #1f2c3f">
+            <div style="position:absolute;left:0;right:0;top:0;border-top:1px dashed #1a2536"></div>
+            <div style="position:absolute;left:0;right:0;top:25%;border-top:1px dashed #1a2536"></div>
+            <div style="position:absolute;left:0;right:0;top:50%;border-top:1px dashed #1a2536"></div>
+            <div style="position:absolute;left:0;right:0;top:75%;border-top:1px dashed #1a2536"></div>
+            <div style="position:absolute;inset:0;display:flex;align-items:flex-end;gap:3px">
+              <sc-for list="{{ days }}" as="dy" hint-placeholder-count="30">
+                <div title="{{ dy.tip }}" style="flex:1;height:{{ dy.h }}%;background:{{ dy.bg }};border-radius:2px"></div>
+              </sc-for>
+            </div>
+            <svg viewBox="0 0 300 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none">
+              <line x1="0" y1="{{ targetY }}" x2="300" y2="{{ targetY }}" stroke="#f2b04e" stroke-width="1" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"></line>
+              <polyline points="{{ cpkPts }}" fill="none" stroke="#b7c6da" stroke-width="1.8" vector-effect="non-scaling-stroke"></polyline>
+            </svg>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:#5d7089;margin-top:6px;font-family:'IBM Plex Mono',monospace">
+            <sc-for list="{{ xlabels }}" as="xl" hint-placeholder-count="7"><div>{{ xl }}</div></sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="grid-area:big;background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:18px 20px;display:flex;flex-direction:column;box-sizing:border-box">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.01em">8개 측정 항목 종합 요약</div>
+          <div style="font-size:11px;color:#5d7089;margin-top:2px">오차 분포 · CPK · 모수 · 불량수 (공차 ±0.100)</div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#f2b04e;background:rgba(242,176,78,.14);border-radius:999px;padding:4px 12px">{{ targetLabel }}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1.3fr 1.9fr 0.6fr 0.8fr 0.7fr 0.8fr 0.7fr;gap:0 14px;align-items:center;margin-top:14px;padding:0 4px 8px;font-size:11px;color:#8fa1b8">
+        <div>항목</div><div>오차 분포 (공차 대비)</div><div style="text-align:right">CPK</div><div style="text-align:right">모수</div><div style="text-align:right">불량수</div><div style="text-align:right">불량률</div><div style="text-align:center">판정</div>
+      </div>
+      <sc-for list="{{ rows }}" as="rw" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:1.3fr 1.9fr 0.6fr 0.8fr 0.7fr 0.8fr 0.7fr;gap:0 14px;align-items:center;padding:10px 4px;border-top:1px solid #1a2536">
+          <div style="font-size:13px;font-weight:600">{{ rw.name }}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="position:relative;flex:1;height:10px;background:#0c1420;border-radius:999px">
+              <div style="position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:#1f2c3f"></div>
+              <div style="position:absolute;top:0;bottom:0;left:{{ rw.devLeft }};width:{{ rw.devW }};background:{{ rw.devC }};border-radius:2px"></div>
+            </div>
+            <div style="width:52px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8fa1b8">{{ rw.dev }}</div>
+          </div>
+          <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:{{ rw.cpkC }}">{{ rw.cpk }}</div>
+          <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8fa1b8">{{ rw.n }}</div>
+          <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px">{{ rw.def }}</div>
+          <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">{{ rw.rate }}</div>
+          <div style="display:flex;justify-content:center"><span style="font-size:11px;font-weight:700;color:{{ rw.jc }};background:{{ rw.jbg }};border-radius:999px;padding:3px 10px">{{ rw.jt }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="grid-area:rank;background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:16px 18px;display:flex;flex-direction:column;box-sizing:border-box">
+      <div style="font-family:'IBM Plex Sans KR',sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.01em">8개 항목 순위 및 요약</div>
+      <div style="font-size:11px;color:#5d7089;margin-top:2px">불량률 높은 순 · CPK 병기</div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;margin-top:6px">
+        <sc-for list="{{ itemRank }}" as="ir" hint-placeholder-count="8">
+          <div style="padding:9px 0;border-top:1px solid #1a2536">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:20px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:{{ ir.noC }}">{{ ir.no }}</div>
+              <div style="flex:1;font-size:13px;font-weight:600">{{ ir.name }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:{{ ir.rateC }}">{{ ir.rate }}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+              <div style="width:20px;flex:none"></div>
+              <div style="flex:1;height:6px;background:#1a2536;border-radius:999px;overflow:hidden"><div style="height:100%;width:{{ ir.w }};background:{{ ir.bar }}"></div></div>
+              <div style="font-size:10px;color:#5d7089;font-family:'IBM Plex Mono',monospace">{{ ir.cpk }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="grid-area:i1;display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <sc-for list="{{ cards1 }}" as="cd" hint-placeholder-count="4">
+        <div style="background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:14px 16px;display:flex;flex-direction:column;box-sizing:border-box">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:13px;font-weight:700">{{ cd.name }}</div>
+            <span style="font-size:10px;font-weight:700;color:{{ cd.jc }};background:{{ cd.jbg }};border-radius:999px;padding:2px 8px">{{ cd.jt }}</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-top:8px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600">{{ cd.rate }}</div>
+            <div style="font-size:11px;color:#8fa1b8">% 불량률</div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:#8fa1b8">
+            <div>CPK <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:#e6edf7">{{ cd.cpk }}</span></div>
+            <div>모수 <span style="font-family:'IBM Plex Mono',monospace">{{ cd.n }}</span></div>
+            <div>불량 <span style="font-family:'IBM Plex Mono',monospace">{{ cd.def }}</span></div>
+          </div>
+          <div style="flex:1;display:flex;align-items:flex-end;margin-top:8px">
+            <svg viewBox="0 0 100 32" preserveAspectRatio="none" style="width:100%;height:32px;display:block;overflow:visible"><polyline points="{{ cd.pts }}" fill="none" stroke="{{ cd.stroke }}" stroke-width="1.5" vector-effect="non-scaling-stroke"></polyline></svg>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="grid-area:i2;display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <sc-for list="{{ cards2 }}" as="cd" hint-placeholder-count="4">
+        <div style="background:#101825;border:1px solid #1f2c3f;border-radius:12px;box-shadow:none;padding:14px 16px;display:flex;flex-direction:column;box-sizing:border-box">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:13px;font-weight:700">{{ cd.name }}</div>
+            <span style="font-size:10px;font-weight:700;color:{{ cd.jc }};background:{{ cd.jbg }};border-radius:999px;padding:2px 8px">{{ cd.jt }}</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-top:8px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600">{{ cd.rate }}</div>
+            <div style="font-size:11px;color:#8fa1b8">% 불량률</div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:#8fa1b8">
+            <div>CPK <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:#e6edf7">{{ cd.cpk }}</span></div>
+            <div>모수 <span style="font-family:'IBM Plex Mono',monospace">{{ cd.n }}</span></div>
+            <div>불량 <span style="font-family:'IBM Plex Mono',monospace">{{ cd.def }}</span></div>
+          </div>
+          <div style="flex:1;display:flex;align-items:flex-end;margin-top:8px">
+            <svg viewBox="0 0 100 32" preserveAspectRatio="none" style="width:100%;height:32px;display:block;overflow:visible"><polyline points="{{ cd.pts }}" fill="none" stroke="{{ cd.stroke }}" stroke-width="1.5" vector-effect="non-scaling-stroke"></polyline></svg>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;cpkTarget&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:1.33,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:1,&quot;max&quot;:1.67,&quot;step&quot;:0.01,&quot;section&quot;:&quot;판정 기준&quot;},&quot;model&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;B8 SM-XYZ982&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;헤더 정보&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;PV2-1&quot;,&quot;options&quot;:[&quot;PV1&quot;,&quot;PV2-1&quot;,&quot;PV2-2&quot;,&quot;MP&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;헤더 정보&quot;}}">
+class Component extends DCLogic {
+  state = { d: null };
+  componentDidMount() {
+    import('./smp-data.js').then(m => this.setState({ d: m.getData() }));
+  }
+  renderVals() {
+    const ACC='#3fd2e8', INK='#e6edf7', MUT='#8fa1b8', SUB='#0c1420',
+      GOOD='#3edc9b', GOODBG='rgba(62,220,155,.13)', WARN='#f2b04e', WARNBG='rgba(242,176,78,.14)',
+      BAD='#ff6072', BADBG='rgba(255,96,114,.14)';
+    const target = this.props.cpkTarget ?? 1.33;
+    const model = this.props.model ?? 'B8 SM-XYZ982';
+    const stage = this.props.stage ?? 'PV2-1';
+    const d = this.state.d;
+    if (!d) return { model, stage, days:[], xlabels:[], cpkPts:'', targetY:'-10', targetLabel:'', rank:[], calCells:[], rows:[], itemRank:[], cards1:[], cards2:[], notices:[], today:{rate:'',rateD:'',rateDC:'',input:'',errors:'',errD:'',errDC:'',cpk:'',cpkD:'',cpkDC:''} };
+    const days = d.days.map(x => ({ h: Math.max(3, x.defect/14*100).toFixed(1), bg: x.defect>=5?BAD:ACC, tip: x.key+' · '+x.defect.toFixed(1)+'%' }));
+    const cpkPts = d.days.map((x,i) => (i/29*300).toFixed(1)+','+(100-(x.cpk-0.6)/1.1*100).toFixed(1)).join(' ');
+    const targetY = (100-(target-0.6)/1.1*100).toFixed(1);
+    const xlabels = ['06.24','06.29','07.04','07.09','07.14','07.19','07.23'];
+    const maxR = d.ranking[0].defect;
+    const rank = d.ranking.map((x,i) => ({ no:i+1, date:x.key, rate:x.defect.toFixed(1)+'%', w:(x.defect/maxR*100).toFixed(0)+'%', chipBg:i<3?BADBG:SUB, chipC:i<3?BAD:MUT, bar:i<3?BAD:ACC }));
+    const july = {}; d.days.forEach(x => { if (x.month===7) july[x.day]=x.defect; });
+    const calCells = [];
+    for (let i=0;i<3;i++) calCells.push({ t:'', bg:'transparent', fg:MUT, b:'transparent' });
+    for (let day=1; day<=31; day++) {
+      const v = july[day]; let bg=SUB, fg=MUT, b='transparent';
+      if (v!=null) { const a=Math.min(.95,.08+v/13*.9); bg='rgba(255,96,114,'+a.toFixed(2)+')'; fg=a>.45?'#fff':INK; }
+      if (day===23) b=INK;
+      calCells.push({ t:String(day), bg, fg, b });
+    }
+    const judge = cpk => cpk>=target ? {t:'양호',c:GOOD,bg:GOODBG} : cpk>=1.0 ? {t:'주의',c:WARN,bg:WARNBG} : {t:'관리',c:BAD,bg:BADBG};
+    const rows = d.items.map(x => {
+      const j=judge(x.cpk), ratio=Math.abs(x.dev)/x.tol, w=Math.min(50,ratio*50);
+      return { name:x.name, dev:(x.dev>0?'+':'')+x.dev.toFixed(3),
+        devLeft:(x.dev<0?50-w:50)+'%', devW:w+'%', devC:ratio>.6?BAD:ratio>.4?WARN:ACC,
+        cpk:x.cpk.toFixed(2), cpkC:x.cpk>=target?INK:BAD, n:x.n.toLocaleString(), def:x.def.toLocaleString(),
+        rate:x.rate.toFixed(2)+'%', jt:j.t, jc:j.c, jbg:j.bg };
+    });
+    const sorted = [...d.items].sort((a,b) => b.rate-a.rate);
+    const itemRank = sorted.map((x,i) => ({ no:i+1, name:x.name, rate:x.rate.toFixed(2)+'%', w:(x.rate/sorted[0].rate*100).toFixed(0)+'%', cpk:'CPK '+x.cpk.toFixed(2), noC:i<2?BAD:MUT, rateC:i<2?BAD:INK, bar:i<2?BAD:ACC }));
+    const mkCard = x => {
+      const j=judge(x.cpk), mn=Math.min(...x.trend), mx=Math.max(...x.trend);
+      const pts = x.trend.map((v,i) => (i/(x.trend.length-1)*100).toFixed(1)+','+(30-(v-mn)/((mx-mn)||1)*26).toFixed(1)).join(' ');
+      return { name:x.name, rate:x.rate.toFixed(2), cpk:x.cpk.toFixed(2), n:x.n.toLocaleString(), def:x.def.toLocaleString(), jt:j.t, jc:j.c, jbg:j.bg, pts, stroke:j.c };
+    };
+    const cards = d.items.map(mkCard);
+    const t = d.today;
+    const today = {
+      rate:t.rate.toFixed(2)+'%', rateD:(t.rateDelta>0?'▲ ':'▼ ')+Math.abs(t.rateDelta).toFixed(2)+'%p', rateDC:t.rateDelta>0?BAD:GOOD,
+      input:t.input.toLocaleString(),
+      errors:t.errors.toLocaleString(), errD:(t.errDelta>0?'▲ ':'▼ ')+Math.abs(t.errDelta), errDC:t.errDelta>0?BAD:GOOD,
+      cpk:t.cpk.toFixed(2), cpkD:(t.cpkDelta>0?'▲ ':'▼ ')+Math.abs(t.cpkDelta).toFixed(2), cpkDC:t.cpkDelta>0?GOOD:BAD
+    };
+    return { model, stage, days, cpkPts, targetY, xlabels, rank, calCells, rows, itemRank,
+      cards1:cards.slice(0,4), cards2:cards.slice(4), notices:d.notices, today,
+      targetLabel:'CPK 목표 '+target.toFixed(2) };
+  }
+}
+</script>
+</body>
+</html>
