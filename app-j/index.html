@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>불량률 분석 도구</title>
+<title>SMP 포탈</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23107C41'/%3E%3Ctext x='16' y='23' font-size='20' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3EX%3C/text%3E%3C/svg%3E">
 <style>
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
@@ -725,7 +725,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
 
 <!-- 타이틀 바 -->
 <div id="titlebar">
-  <span id="tb-title">불량률 분석 도구</span><span id="tb-team">스마트폰기구개발2그룹 AX TF 정웅호</span><span id="tb-admin" title="관리자 모드 — 타이틀 더블클릭으로 끔">ADMIN</span>
+  <span id="tb-title">SMP 포탈</span><span id="tb-team">스마트폰기구개발2그룹 AX TF 정웅호</span><span id="tb-admin" title="관리자 모드 — 타이틀 더블클릭으로 끔">ADMIN</span>
   <div id="tb-search" class="dummy">🔍 <span style="color:#666">검색</span></div>
   <div id="tb-right">
     <button class="win-btn dummy" title="최소화">🗕</button>
@@ -1061,7 +1061,7 @@ table.xl-grid.fx td.fill{background:#f2f0ee}   /* 정보 없는 셀(갭 열·빈
     <h1>홈</h1>
     <div class="bs-doc dummy">
       <div class="di">X</div>
-      <div><div class="dn">불량률 분석 도구</div><div class="dp">이 웹앱 &gt; 현재 세션</div></div>
+      <div><div class="dn">SMP 포탈</div><div class="dp">이 웹앱 &gt; 현재 세션</div></div>
     </div>
     <div class="bs-doc dummy">
       <div class="di">X</div>
@@ -2342,9 +2342,9 @@ $('ribbon').addEventListener('click', e=>{
   else if(act==='text2col'){ textToColumns(); return; }
   else if(act==='dedup'){ removeDuplicates(); return; }
   else if(act==='wizard'){ startTutorial(); return; }
-  else if(act==='go-normal'){ gotoSheet('정규분포'); return; }
-  else if(act==='go-scatter'){ gotoSheet('산점도'); return; }
-  else if(act==='go-box'){ gotoSheet('박스플롯'); return; }
+  else if(act==='go-normal'){ setChartType('normal'); return; }
+  else if(act==='go-scatter'){ setChartType('scatter'); return; }
+  else if(act==='go-box'){ setChartType('box'); return; }
   focusGrid();
 });
 document.addEventListener('change', e=>{
@@ -2431,7 +2431,7 @@ $('zoom-pct').addEventListener('click', ()=>{ $('zoom-slider').value=100; setZoo
 
 /* ══════════════ 최종 수정 타임스탬프 (배포본 신선도 표시) ══════════════ */
 /* BUILD_TS = 최종 수정 기점(epoch ms). 소스를 고칠 때마다 이 값을 현재 시각으로 갱신. */
-const BUILD_TS = 1785136266644;   // SMP PORTAL 엑셀 대시보드
+const BUILD_TS = 1785137566791;   // SMP 포탈
 function relUpdated(ts){
   const s = Math.max(0, (Date.now()-ts)/1000);
   if(s < 45) return '방금 전 수정됨';
@@ -2533,7 +2533,7 @@ $('sv-go').addEventListener('click', async ()=>{
 $('bs-print').addEventListener('click', ()=>{
   $('backstage').classList.remove('open');
   let h='';
-  [['측정데이터','📄','포인트 요약 표'],['정규분포','📊','전체 차트'],['산점도','⚬','전체 차트'],['박스플롯','📦','전체 차트']]
+  [['메인페이지','🗂️','SMP 대시보드 시트'],['정규분포','📊','전체 차트'],['산점도','⚬','전체 차트'],['박스플롯','📦','전체 차트']]
     .forEach(it=>{ h+='<button class="ipv-opt" data-print="'+it[0]+'"><span><b>'+it[1]+' '+it[0]+'</b><div class="sub">'+it[2]+'</div></span></button>'; });
   $('pr-list').innerHTML=h;
   $('print-dlg').classList.add('show');
@@ -2542,13 +2542,15 @@ $('pr-cancel').addEventListener('click', ()=>$('print-dlg').classList.remove('sh
 $('print-dlg').addEventListener('click', e=>{
   const b=e.target.closest('[data-print]'); if(!b) return;
   $('print-dlg').classList.remove('show');
-  const name=b.dataset.print, idx=sheets.findIndex(s=>s.name===name);
-  if(idx<0){ toast('시트를 찾을 수 없습니다: '+name); return; }
-  if(name!=='측정데이터'){   // 차트: 시트 전환 없이 인쇄 전용 3열 레이아웃으로
+  const name=b.dataset.print;
+  const ct={'정규분포':'normal','산점도':'scatter','박스플롯':'box'}[name];
+  if(ct){   // 차트: 시트 전환 없이 인쇄 전용 3열 레이아웃으로 (시트 탭 불필요)
     const qc=extractQC(); if(!qc){ toast('인쇄할 측정데이터가 없습니다 — 먼저 데이터를 불러오세요'); return; }
-    printCharts({'정규분포':'normal','산점도':'scatter','박스플롯':'box'}[name], qc);
+    printCharts(ct, qc);
     return;
   }
+  const idx=sheets.findIndex(s=>s.name===name);
+  if(idx<0){ toast('시트를 찾을 수 없습니다: '+name); return; }
   const prev=cur;
   if(idx!==cur) switchSheet(idx);
   window.addEventListener('afterprint', ()=>{ if(prev!==idx) switchSheet(prev); }, {once:true});
@@ -3181,6 +3183,12 @@ function removeDuplicates(){
 function replaceQCSheet(sh){
   sh.name='측정데이터';
   let idx=sheets.findIndex(s=>s.name.indexOf('측정데이터')===0);
+  if(idx<0){   // 측정데이터 탭이 없는 구성 — QC 형식일 때만 소스 교체 (원시 CSV로 차트 오염 방지)
+    const isQC=sh.data&&sh.data['1,0']&&/포인트/.test(String(sh.data['1,0'].v||''));
+    if(!isQC){ toast('원시 표 미리보기는 이 구성에서 지원하지 않습니다 — QC 템플릿 형식으로 업로드하면 8개 항목 차트에 반영돼요'); return; }
+    qcSource=sh;
+    if(sheet().kind==='chart') showChartSheet();
+    return; }
   if(idx<0) idx=sheets.findIndex(s=>s.kind==='data' && !s.landing);
   if(idx>=0) sheets[idx]=sh; else { sheets.push(sh); idx=sheets.length-1; }
   qcSource=sh;
@@ -3205,6 +3213,12 @@ let lastChartData = {type:'normal', points:[]};   // 내보내기용 현재 차�
 let selectedIdx = new Set();                        // 다중 선택된 카드 인덱스
 function newChartSheet(name,type,framed){ return {name, kind:'chart', chart:type, framed:!!framed, data:{}, colW:{}, rowH:{}}; }
 function gotoSheet(name){ const i=sheets.findIndex(s=>s.name===name); if(i>=0 && i!==cur) switchSheet(i); }
+/* 항목 시트 안에서 정규분포/산점도/박스플롯 전환 — 현재 시트가 차트가 아니면 첫 항목 시트로 */
+function setChartType(t){
+  if(sheet().kind!=='chart'){ const i=sheets.findIndex(s=>s.kind==='chart'); if(i<0) return; switchSheet(i); }
+  if(sheet().chart!==t){ sheet().chart=t; showChartSheet(); }
+  else if(sheet().kind==='chart' && !document.querySelector('#chart-view .chart-card')) showChartSheet();
+}
 
 function quantile(sorted, q){
   const n=sorted.length; if(!n) return 0; if(n===1) return sorted[0];
@@ -3507,8 +3521,14 @@ function renderFramedChart(type, cv){
   const C0=MARGIN+2, contentEnd=C0+contentCols-1, totalCols=contentEnd+1+MARGIN;
   const titleCS=Math.min(8,contentCols), infoCS=titleCS;   // 3행 부제도 제목과 같은 폭(=K열까지)
   const items=[], push=(r,c,cs,rs,cls,html)=>items.push({r,c,cs,rs,cls,html});
-  push(2,C0,titleCS,1,'fx-title', CHART_META[type][1]+' '+meta[0]+'분석');
+  push(2,C0,titleCS,1,'fx-title', CHART_META[type][1]+' '+escH(sh.name)+' — '+meta[0]+' 분석');
   push(3,C0,infoCS,1,'fx-sub', escH(meta[2]+' · 포인트 '+pts.length+'개 · 소스: '+qc.src));
+  // 차트 종류 전환(정규분포/산점도/박스플롯) — 한 시트 안에서 즉시 전환.
+  // 4행은 어떤 폭에서도 비어 있어 제목(2행 colspan)과 충돌하지 않는다 (좁은 화면에서 버튼 소실 방지)
+  [['normal','📊 정규분포'],['scatter','⚬ 산점도'],['box','📦 박스플롯']].forEach((tp,i)=>{
+    push(4,C0+i*2,1,1,'fx-btn'+(tp[0]===type?' fx-btn-p':''),
+      '<div class="fx-btn-in" data-settype="'+tp[0]+'" title="'+tp[1].slice(2)+' 보기로 전환">'+tp[1]+'</div>');
+  });
   // 전체 복사/저장 — 2행 오른쪽 끝의 넓은 열 2개(기본 레이아웃에서 X2·Z2)
   push(2,contentEnd-2,1,1,'fx-btn','<div class="fx-btn-in" data-allact="copy" title="전체 차트를 이미지로 클립보드에 복사">📋 전체 복사</div>');
   push(2,contentEnd,1,1,'fx-btn fx-btn-p','<div class="fx-btn-in" data-allact="save" title="전체 차트를 PNG로 저장">💾 전체 저장</div>');
@@ -3641,6 +3661,8 @@ function clearSelection(){
   updateSelbar();
 }
 $('chart-view').addEventListener('click', e=>{
+  const st=e.target.closest('[data-settype]');
+  if(st){ if(sheet().kind==='chart'&&sheet().chart!==st.dataset.settype){ sheet().chart=st.dataset.settype; showChartSheet(); } return; }
   const ca=e.target.closest('[data-cardact]');
   if(ca){ const card=ca.closest('.chart-card'); exportSingle(+card.dataset.idx, ca.dataset.cardact); return; }
   const aa=e.target.closest('[data-allact]');
@@ -4454,7 +4476,7 @@ function showChartSheet(){
 /* ══════════════ 튜토리얼 위저드 ══════════════ */
 function wzEnsureChart(done){
   if(isChartSheet() && document.querySelector('#chart-view .chart-card')) done();
-  else { gotoSheet('정규분포'); setTimeout(done, 980); }
+  else { const i=sheets.findIndex(s=>s.kind==='chart'); if(i>=0&&i!==cur) switchSheet(i); setTimeout(done, 980); }
 }
 function wzRevealFirstCard(){ const c=document.querySelector('#chart-view .chart-card'); if(c) c.classList.add('wz-reveal'); }
 function wzSelectDemo(nSel){
@@ -4470,7 +4492,7 @@ const WZ_STEPS=[
     before(done){ activateTab('data'); setTimeout(done,140); },
     target(){ return document.querySelector('#ribbon .rpanel.active [data-act="loadqc"]') || document.querySelector('[data-act="loadqc"]'); } },
   { title:'2. 다음 시트를 클릭!',
-    body:'데이터가 잘 입력되었으면, 아래 시트 탭에서 ‘정규분포 · 산점도 · 박스플롯’을 눌러 보세요. 측정값이 자동으로 그래프로 만들어집니다.',
+    body:'데이터가 잘 입력되었으면, 아래 시트 탭에서 8가지 공정 항목을 눌러 보세요. 각 항목 시트 안에서 ‘정규분포 · 산점도 · 박스플롯’을 바로 전환할 수 있습니다.',
     place:'top',
     before(done){ done(); },
     target(){ return $('sheet-tabs'); } },
@@ -4478,7 +4500,7 @@ const WZ_STEPS=[
     body:'위쪽에는 전체 요약 정보(종합 판정 · NG 포인트 · 최저 Cpk 등), 아래쪽에는 포인트마다 상세 차트가 나옵니다.',
     place:'bottom',
     before(done){ wzEnsureChart(done); },
-    target(){ return document.querySelector('#chart-view .cv-tiles') || $('chart-view'); } },
+    target(){ return document.querySelector('#chart-view td.fx-kpi-v') || document.querySelector('#chart-view .cv-tiles') || $('chart-view'); } },
   { title:'4. 카드 하나만 복사·저장',
     body:'포인트별 상세 카드입니다. 카드에 마우스를 올리면 오른쪽 아래에 ‘복사·저장’ 버튼이 나타나, 그 차트 하나만 이미지로 저장하거나 클립보드에 복사할 수 있어요.',
     place:'bottom',
@@ -4528,12 +4550,9 @@ $('wz-hint').addEventListener('click', startTutorial);
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $('wizard').style.display==='block') endTutorial(); });
 
 /* ══════════════ 초기화 ══════════════ */
-sheets.push(Object.assign(newSheet('메인페이지'), {kind:'data', landing:true}));   // 메인 페이지(측정데이터 왼쪽)
-const _qcSheet = genQCData('측정데이터');
-sheets.push(_qcSheet); qcSource = _qcSheet;
-sheets.push(newChartSheet('정규분포','normal',true));
-sheets.push(newChartSheet('산점도','scatter',true));
-sheets.push(newChartSheet('박스플롯','box',true));
+sheets.push(Object.assign(newSheet('메인페이지'), {kind:'data', landing:true}));   // 메인 페이지(SMP 대시보드)
+qcSource = genQCData('측정데이터');   // 측정데이터는 탭 없이 차트 데이터 소스로만 유지
+for(const nm of DASH_PROC) sheets.push(newChartSheet(nm,'normal',true));   // 8가지 공정 항목 = 시트 (안에서 정규분포/산점도/박스플롯 전환)
 cur = 0;   // 메인페이지부터 표시
 renderTabs();
 renderSheetFull();
@@ -4553,7 +4572,7 @@ document.addEventListener('mouseup', ()=>{ setTimeout(()=>{ if(document.activeEl
 $('file-input').addEventListener('change', e=>{ const f=e.target.files[0]; e.target.value=''; if(f) processUpload(f, uploadMode); });
 // 최초 1회 튜토리얼
 let _tutDone=false; try{ _tutDone=localStorage.getItem('qc_tut_done')==='1'; }catch(e){}
-if(!_tutDone) setTimeout(startTutorial, 950);
+/* 자동 튜토리얼 비활성 (SMP 포탈 시안) — [데이터] 탭 분석마법사로 수동 실행 가능 */
 </script>
 </body>
 </html>
