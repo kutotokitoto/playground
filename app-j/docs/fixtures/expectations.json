@@ -1,0 +1,64 @@
+{
+ "F01-standard": {
+  "path": "label",
+  "P": 8,
+  "N": 40
+ },
+ "F02-offset": {
+  "path": "label",
+  "P": 6,
+  "N": 30
+ },
+ "F03-transposed-labeled": {
+  "path": "label-transposed",
+  "P": 10,
+  "N": 36
+ },
+ "F04-index-and-serial-cols": {
+  "path": "infer",
+  "P": 5,
+  "N": 32,
+  "textSerials": true
+ },
+ "F05-missing-cells": {
+  "path": "label",
+  "P": 8,
+  "N": 40,
+  "miss": 34
+ },
+ "F06-unnamed-shuffled-specs": {
+  "path": "infer",
+  "P": 7,
+  "N": 34
+ },
+ "F07-ambiguous-square": {
+  "path": "preview",
+  "P": 12,
+  "N": 14
+ },
+ "F08-two-sheets": {
+  "path": "label",
+  "P": 5,
+  "N": 20,
+  "sheets": 2
+ },
+ "F09-headerless": {
+  "path": "infer",
+  "P": 10,
+  "N": 30,
+  "autoNames": true
+ },
+ "F10-footer-junk": {
+  "path": "label",
+  "P": 6,
+  "N": 28
+ },
+ "F11-transposed-offset-missing": {
+  "path": "infer-transposed",
+  "P": 12,
+  "N": 30
+ },
+ "F12-no-specs": {
+  "path": "fail-no-spec"
+ }
+}
